@@ -1,0 +1,31 @@
+body {
+    background-color: #F4ECF7;
+}
+
+/* Purple top bar using the client's company color */
+.navbar-purple {
+    background-color: #bf40bf;
+}
+
+/* Round placeholder until the real logo is made */
+.logo-placeholder {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: #FFFFFF;
+    color: #bf40bf;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 40px;
+}
+
+.btn-primary {
+    background-color: #bf40bf;
+    border: none;
+}
+
+.btn-primary:hover {
+    background-color: #9C329C;
+}
