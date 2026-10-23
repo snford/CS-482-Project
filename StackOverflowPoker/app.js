@@ -17,5 +17,7 @@ app.get('/users/:username', controller.getUser);
 app.post('/addfriend', controller.postAddFriend);
 app.get('/acceptfriend/:from/:to', controller.getAcceptFriend);
 app.get('/declinefriend/:from/:to', controller.getDeclineFriend);
+// ST-01: Player Statistics
+app.get('/stats/:username', controller.getPlayerStats);
 
 exports.app = app;

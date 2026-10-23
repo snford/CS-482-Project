@@ -1,4 +1,0 @@
-HOSTNAME=localhost
-PORT=3000
-DB_URI=mongodb+srv://USERNAME_db_user:PASSWORD@cs-482.74zvozi.mongodb.net/stackoverflowpoker?retryWrites=true&w=majority
-TESTDB_URI=mongodb+srv://USERNAME_db_user:PASSWORD@cs-482.74zvozi.mongodb.net/stackoverflowpoker-test?retryWrites=true&w=majority

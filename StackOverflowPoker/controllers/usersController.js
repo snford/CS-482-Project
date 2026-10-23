@@ -107,3 +107,52 @@ async function makeFriends(fromUser, toUser) {
     await dao.update(toUser);
 }
  
+
+// ST-01: Get a player's statistics
+exports.getPlayerStats = async function(req, res) {
+    try {
+        
+        let username = req.params.username;
+
+        
+        let user = await dao.readByUsername(username);
+
+        // if the player exists
+        if (user == null) {
+            return res.status(404).json({
+                msg: "Player not found"
+            });
+        }
+
+        // Get the player's wins and losses
+        let wins = user.wins ?? 0;
+        let losses = user.losses ?? 0;
+
+        
+        let totalGames = wins + losses;
+
+        // Start the win percentage at 0
+        let winPercentage = 0;
+
+        // Calculate only if the player has played games
+        if (totalGames > 0) {
+            winPercentage = (wins / totalGames) * 100;
+        }
+
+        // Send the statistics back to the website
+        return res.status(200).json({
+            username: user.username,
+            wins: wins,
+            losses: losses,
+            totalGames: totalGames,
+            winPercentage: Number(winPercentage.toFixed(2))
+        });
+
+    } catch (error) {
+        console.error(error);
+
+        return res.status(500).json({
+            msg: "Error getting player statistics"
+        });
+    }
+};
