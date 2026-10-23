@@ -55,3 +55,16 @@ test('Update User Friends List', async function() {
     expect(foundBen.friends).toContain("Dennis");
     expect(foundDennis.friends).toContain("Ben");
 });
+
+test('Save A Friend Request', async function() {
+    await dao.create({ username: "Ben" });
+    let dennis = await dao.create({ username: "Dennis" });
+
+    dennis.friendRequests.push("Ben");
+    await dao.update(dennis);
+
+    let foundDennis = await dao.readByUsername("Dennis");
+
+    expect(foundDennis.friendRequests).toContain("Ben");
+    expect(foundDennis.friends.length).toBe(0);
+}); 

@@ -15,5 +15,7 @@ app.use(express.json());
 app.post('/login', controller.postLogin);
 app.get('/users/:username', controller.getUser);
 app.post('/addfriend', controller.postAddFriend);
+app.get('/acceptfriend/:from/:to', controller.getAcceptFriend);
+app.get('/declinefriend/:from/:to', controller.getDeclineFriend);
 
 exports.app = app;

@@ -2,7 +2,8 @@ const mongoose = require("mongoose");
 
 const userSchema = mongoose.Schema({
     username: { type: String, required: true, unique: true },
-    friends: { type: [String], default: [] }
+    friends: { type: [String], default: [] },
+    friendRequests: { type: [String], default: [] }
 });
 
 const userModel = mongoose.model('user', userSchema);
@@ -22,7 +23,8 @@ exports.update = async function(user) {
     const updated = await userModel.findByIdAndUpdate(
         user._id,
         {
-            friends: user.friends
+            friends: user.friends,
+            friendRequests: user.friendRequests
         },
         { new: true }
     );
