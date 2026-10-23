@@ -67,4 +67,13 @@ test('Save A Friend Request', async function() {
 
     expect(foundDennis.friendRequests).toContain("Ben");
     expect(foundDennis.friends.length).toBe(0);
-}); 
+});
+
+test('Delete All Only Works For Test', async function() {
+    await dao.create({ username: "Ben" });
+
+    await dao.deleteAll("prod");
+    let found = await dao.readByUsername("Ben");
+
+    expect(found).not.toBeNull();
+});
