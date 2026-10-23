@@ -29,6 +29,14 @@
                 <li class="nav-item">
                   <a class="nav-link mt-2" href="stats.html" id="statsLink">Stats</a>
                 </li>
+                <!-- ST-02: Leaderboard -->
+                <li class="nav-item">
+                  <a class="nav-link mt-2"
+                    href="leaderboard.html"
+                    id="leaderboardLink">
+                    Leaderboard
+                  </a>
+                </li>
                 <li class="nav-item">
                   <a class="nav-link mt-2" href="profile.html">Profile</a>
                 </li>
@@ -57,6 +65,11 @@
     // ST-01: Player Statistics navigation
     document.getElementById("statsLink").href =
         "stats.html?username=" + encodeURIComponent(username);
+
+    // ST-02: Leaderboard navigation
+    document.getElementById("leaderboardLink").href =
+        "leaderboard.html?username=" + encodeURIComponent(username);
+
   }
 </script>
 </body>

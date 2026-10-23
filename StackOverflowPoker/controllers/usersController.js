@@ -156,3 +156,39 @@ exports.getPlayerStats = async function(req, res) {
         });
     }
 };
+
+// ST-02: Retrieve the leaderboard
+exports.getLeaderboard = async function(req, res) {
+
+    try {
+
+        // Get the top players from MongoDB
+        const players = await dao.getLeaderboard();
+
+        // Add ranking numbers
+        const leaderboard = players.map(function(player, index) {
+
+            return {
+                rank: index + 1,
+                username: player.username,
+                wins: player.wins,
+                losses: player.losses,
+                totalGames: player.totalGames,
+                winPercentage: player.winPercentage
+            };
+
+        });
+
+        // Return the leaderboard as JSON
+        return res.status(200).json(leaderboard);
+
+    } catch (error) {
+
+        console.error("Error retrieving leaderboard:", error);
+
+        return res.status(500).json({
+            msg: "Error retrieving leaderboard"
+        });
+
+    }
+};

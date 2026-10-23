@@ -19,5 +19,7 @@ app.get('/acceptfriend/:from/:to', controller.getAcceptFriend);
 app.get('/declinefriend/:from/:to', controller.getDeclineFriend);
 // ST-01: Player Statistics
 app.get('/stats/:username', controller.getPlayerStats);
+// ST-02: Leaderboard API
+app.get('/api/leaderboard', controller.getLeaderboard);
 
 exports.app = app;
