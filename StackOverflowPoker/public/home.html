@@ -27,7 +27,7 @@
                   <a class="nav-link mt-2" href="friends.html" id="friendsLink">Friends</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link mt-2" href="stats.html">Stats</a>
+                  <a class="nav-link mt-2" href="stats.html" id="statsLink">Stats</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link mt-2" href="profile.html">Profile</a>
@@ -51,7 +51,12 @@
   let username = params.get("username");
 
   if (username != null) {
-    document.getElementById("friendsLink").href = "friends.html?username=" + username;
+    document.getElementById("friendsLink").href =
+        "friends.html?username=" + encodeURIComponent(username);
+
+    // ST-01: Player Statistics navigation
+    document.getElementById("statsLink").href =
+        "stats.html?username=" + encodeURIComponent(username);
   }
 </script>
 </body>
