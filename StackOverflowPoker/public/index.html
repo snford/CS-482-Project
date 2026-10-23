@@ -40,7 +40,15 @@
         <h1 class="text-center mb-4">
           Welcome
         </h1>
-        <a href="home.html" class="btn btn-primary">Sign in with Google</a>
+        <form action="/login" method="post">
+          <div class="mb-3">
+              <label class="form-label">
+                Username
+              </label>
+              <input type="text" name="txt_username" class="form-control" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Sign in with Google</button>
+        </form>
         <a href="lobby.html" class="btn btn-primary">Play as Guest</a>
     </div>
 
