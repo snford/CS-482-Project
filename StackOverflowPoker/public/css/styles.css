@@ -29,3 +29,8 @@ body {
 .btn-primary:hover {
     background-color: #9C329C;
 }
+
+/* Dashed box for features that are not made yet */
+.placeholder-box {
+    border: 2px dashed #999999;
+}
