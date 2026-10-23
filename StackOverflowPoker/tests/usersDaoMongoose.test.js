@@ -39,3 +39,19 @@ test('Read User That Does Not Exist', async function() {
 
     expect(found).toBeNull();
 });
+
+test('Update User Friends List', async function() {
+    let ben = await dao.create({ username: "Ben" });
+    let dennis = await dao.create({ username: "Dennis" });
+
+    ben.friends.push("Dennis");
+    dennis.friends.push("Ben");
+    await dao.update(ben);
+    await dao.update(dennis);
+
+    let foundBen = await dao.readByUsername("Ben");
+    let foundDennis = await dao.readByUsername("Dennis");
+
+    expect(foundBen.friends).toContain("Dennis");
+    expect(foundDennis.friends).toContain("Ben");
+});

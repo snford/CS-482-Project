@@ -18,6 +18,18 @@ exports.create = async function(user) {
     return mongoUser;
 }
 
+exports.update = async function(user) {
+    const updated = await userModel.findByIdAndUpdate(
+        user._id,
+        {
+            friends: user.friends
+        },
+        { new: true }
+    );
+
+    return updated;
+}
+
 exports.deleteAll = async function(check) {
     if (check === "test") {
         await userModel.deleteMany();
