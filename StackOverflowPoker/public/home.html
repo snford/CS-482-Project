@@ -24,7 +24,7 @@
                   <a class="nav-link mt-2" href="lobby.html">Lobby</a>
                 </li>
                 <li class="nav-item">
-                  <a class="nav-link mt-2" href="friends.html">Friends</a>
+                  <a class="nav-link mt-2" href="friends.html" id="friendsLink">Friends</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link mt-2" href="stats.html">Stats</a>
@@ -44,6 +44,15 @@
     </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Keeps the logged in username when going to the friends page
+  // (temporary until Google sign in is added)
+  let params = new URLSearchParams(window.location.search);
+  let username = params.get("username");
+
+  if (username != null) {
+    document.getElementById("friendsLink").href = "friends.html?username=" + username;
+  }
+</script>
 </body>
 </html>
- 

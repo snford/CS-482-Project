@@ -5,8 +5,8 @@
   "main": "server.js",
   "type": "commonjs",
   "scripts": {
-    "test": "jest",
-    "coverage": "jest --coverage"
+    "test": "jest --runInBand",
+    "coverage": "jest --coverage --runInBand"
   },
   "keywords": [],
   "author": "",

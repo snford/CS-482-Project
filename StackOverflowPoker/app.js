@@ -1,3 +1,5 @@
+const controller = require("./controllers/usersController");
+
 const express = require('express');
 const morgan = require('morgan');
 
@@ -10,6 +12,10 @@ app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// When the controllers are made we will put the routes here
+app.post('/login', controller.postLogin);
+app.get('/users/:username', controller.getUser);
+app.post('/addfriend', controller.postAddFriend);
+app.get('/acceptfriend/:from/:to', controller.getAcceptFriend);
+app.get('/declinefriend/:from/:to', controller.getDeclineFriend);
 
 exports.app = app;
