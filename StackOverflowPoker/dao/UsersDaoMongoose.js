@@ -55,6 +55,58 @@ exports.recordGameResult = async function(username, result) {
     return updateUser;
 }
 
+// ST-02 T1: Get the top 10 players for the leaderboard
+exports.getLeaderboard = async function() {
+
+    // Get players from MongoDB, sorted by wins
+    const players = await userModel.aggregate([
+        {
+            $project: {
+                username: 1,
+
+                // Default missing statistics to zero
+                wins: { $ifNull: ["$wins", 0] },
+                losses: { $ifNull: ["$losses", 0] }
+            }
+        },
+        {
+            // Most wins first, then fewest losses
+            $sort: {
+                wins: -1,
+                losses: 1,
+                username: 1
+            }
+        },
+        {
+            // Only return the top 10 players
+            $limit: 10
+        }
+    ]);
+
+    // Calculate additional statistics
+    return players.map(function(player) {
+
+        const wins = player.wins;
+        const losses = player.losses;
+
+        const totalGames = wins + losses;
+
+        let winPercentage = 0;
+
+        if (totalGames > 0) {
+            winPercentage = (wins / totalGames) * 100;
+        }
+
+        return {
+            username: player.username,
+            wins: wins,
+            losses: losses,
+            totalGames: totalGames,
+            winPercentage: Number(winPercentage.toFixed(2))
+        };
+    });
+};
+
 exports.deleteAll = async function(check) {
     if (check === "test") {
         await userModel.deleteMany();
