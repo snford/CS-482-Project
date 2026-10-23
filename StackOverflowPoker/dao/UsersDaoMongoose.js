@@ -4,7 +4,7 @@ const userSchema = mongoose.Schema({
     username: { type: String, required: true, unique: true },
 
     friends: { type: [String], default: [] },
-    friendRequests: { type: [String], default: [] }
+    friendRequests: { type: [String], default: [] },
 
     //ST-01: Player Statistics
     wins: { type: Number, default: 0, min: 0 },
