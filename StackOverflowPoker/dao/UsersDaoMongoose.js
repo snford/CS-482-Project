@@ -39,7 +39,7 @@ exports.update = async function(user) {
 }
 
 // ST-01: Record game result for a user (win or loss)
-exports.recordGameResult = async function(username, isWin) {
+exports.recordGameResult = async function(username, result) {
     if(result !== "win" && result !== "loss") {
         throw new Error("Invalid result. Must be 'win' or 'loss'.");
     }
