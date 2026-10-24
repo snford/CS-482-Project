@@ -17,4 +17,5 @@ exports.readAll = async function() {
   return await tableModel.find({
     status: { $in: ["waiting", "playing"] }
   }).sort({ name: 1 });
+  
 };
