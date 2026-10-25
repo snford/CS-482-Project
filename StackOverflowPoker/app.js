@@ -22,7 +22,11 @@ app.get('/stats/:username', controller.getPlayerStats);
 // ST-02: Leaderboard API
 app.get('/api/leaderboard', controller.getLeaderboard);
 
+// LT-01: View Lobby
 app.get("/api/tables", tablesController.getTables);
+
+// LT-02: Join Table
+app.post("/api/tables/join", tablesController.joinTable);
 
 
 
