@@ -1,5 +1,5 @@
 const controller = require("./controllers/usersController");
-
+const tablesController = require("./controllers/tablesController");
 const express = require('express');
 const morgan = require('morgan');
 
@@ -21,5 +21,8 @@ app.get('/declinefriend/:from/:to', controller.getDeclineFriend);
 app.get('/stats/:username', controller.getPlayerStats);
 // ST-02: Leaderboard API
 app.get('/api/leaderboard', controller.getLeaderboard);
+
+app.get("/api/tables", tablesController.getTables);
+
 
 exports.app = app;
