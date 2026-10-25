@@ -25,4 +25,6 @@ app.get('/api/leaderboard', controller.getLeaderboard);
 app.get("/api/tables", tablesController.getTables);
 
 
+
 exports.app = app;
+
