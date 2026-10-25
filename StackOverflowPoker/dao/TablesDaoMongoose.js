@@ -1,6 +1,5 @@
-const mongoose = require("mongoose");
-
 const tableSchema = new mongoose.Schema({
+  
   name: { type: String, required: true, trim: true },
   maxPlayers: { type: Number, default: 6, min: 2 },
   players: { type: [String], default: [] },
