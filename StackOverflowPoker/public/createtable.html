@@ -9,6 +9,7 @@
 
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/createTable.css">
 </head>
 <body>
 
@@ -36,10 +37,124 @@
         </div>
     </nav>
 
+    <!-- Main content -->
     <div class="container mt-5">
         <h1 class="text-center mb-4">
           Create Table
         </h1>
+
+        <section class="create-table">
+          <form id="createTableForm">
+            <div class="form-group">
+              <label for="tableName" >Table Name</label>
+              <input 
+              type="text"
+              id="tableName"
+              name="tableName"
+              placeholder="Enter table name"
+              maxlength="40" 
+              required>
+            </div>
+            <div class="form-group">
+                    <label>Visibility</label>
+
+                    <div class="button-group" id="visibility-options">
+                        <button
+                            type="button"
+                            class="option-button selected"
+                            data-value="public"
+                        >
+                            Public
+                        </button>
+
+                        <button
+                            type="button"
+                            class="option-button"
+                            data-value="private"
+                        >
+                            Private
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="ante">
+                        Ante / bring-in / small bet / big bet
+                    </label>
+
+                    <input
+                        type="text"
+                        id="ante"
+                        name="ante"
+                        placeholder="5 / 10 / 20 / 40"
+                        value="5 / 10 / 20 / 40"
+                        required
+                    >
+                </div>
+                <div class="form-group">
+                    <label for="max-players">Max players (2-7)</label>
+
+                    <input
+                        type="number"
+                        id="max-players"
+                        name="maxPlayers"
+                        min="2"
+                        max="7"
+                        value="7"
+                        required
+                    >
+                </div>
+                <div class="form-group">
+                    <label>Fill empty seats with bots</label>
+
+                    <div class="button-group" id="bot-options">
+                        <button
+                            type="button"
+                            class="option-button selected"
+                            data-value="off"
+                        >
+                            Off
+                        </button>
+
+                        <button
+                            type="button"
+                            class="option-button"
+                            data-value="easy"
+                        >
+                            Easy
+                        </button>
+
+                        <button
+                            type="button"
+                            class="option-button"
+                            data-value="medium"
+                        >
+                            Medium
+                        </button>
+
+                        <button
+                            type="button"
+                            class="option-button"
+                            data-value="hard"
+                        >
+                            Hard
+                        </button>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="window.location.href='lobby.html';">
+                        Cancel
+                    </button>
+
+                    <button type="submit"  class="btn btn-primary" id="create-button">
+                        Create
+                    </button>
+                </div>
+
+            </form>
+
+        </section>
+
 
     </div>
 
