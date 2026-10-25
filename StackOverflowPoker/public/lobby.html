@@ -93,18 +93,43 @@ async function showTables() {
                 const button = document.createElement("button");
                 button.textContent = "Join";
                 button.className = "btn btn-primary btn-sm";
-
+                
+                button.onclick = async function() {
+                    const username = prompt("Enter your username:");
+                
+                    if (!username || username.trim() === "") {
+                        return;
+                    }
+                
+                    try {
+                        const response = await fetch("/api/tables/join", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                tableId: table._id,
+                                username: username.trim()
+                            })
+                        });
+                
+                        const result = await response.json();
+                        alert(result.msg);
+                
+                        if (response.ok) {
+                            location.reload();
+                        }
+                
+                    } catch (error) {
+                        alert("Could not join table.");
+                    }
+                };
+                
                 joinCell.appendChild(button);
             }
         }
 
     } catch (error) {
-        message.textContent = "Could not load tables.";
-    }
-}
-
-showTables();
-    
         message.textContent = "Could not load tables.";
     }
 }
