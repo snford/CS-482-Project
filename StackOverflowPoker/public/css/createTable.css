@@ -1,0 +1,29 @@
+.option-button {
+    min-width: 106px;
+    height: 28px;
+
+    border: 1px solid #888;
+    border-radius: 5px;
+
+    background-color: #eee;
+    color: black;
+
+    font-size: 13px;
+    cursor: pointer;
+
+    transition: background-color 0.2s ease;
+}
+
+.option-button:hover {
+    background-color: #ccc;
+}
+
+.option-button.selected {
+    background-color: #595959;
+    color: white;
+    border-color: #595959;
+}
+
+.option-button.selected:hover {
+    background-color: #444;
+}
