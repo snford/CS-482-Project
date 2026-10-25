@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const tableSchema = new mongoose.Schema({
   
   name: { type: String, required: true, trim: true },
@@ -18,4 +19,29 @@ exports.readAll = async function() {
   }).sort({ name: 1 });
 
   return tables;
+};
+
+exports.joinTable = async function(tableId, username) {
+    const table = await Table.findById(tableId);
+
+    if (!table) {
+        return null;
+    }
+  
+    if (table.status !== "waiting") {
+        return null;
+    }
+
+    if (table.players.length >= table.maxPlayers) {
+        return null;
+    }
+
+    if (table.players.includes(username)) {
+        return null;
+    }
+
+    table.players.push(username);
+    await table.save();
+
+    return table;
 };
