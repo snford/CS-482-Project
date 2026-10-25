@@ -52,6 +52,7 @@
                     <th>Table Name</th>
                     <th>Players</th>
                     <th>Status</th>
+                    <th>Join</th>
                 </tr>
             </thead>
             <tbody id="tablesList">
@@ -60,6 +61,7 @@
     </div>
 
 <script>
+    
 async function showTables() {
     const message = document.getElementById("tableMessage");
     const list = document.getElementById("tablesList");
@@ -69,7 +71,7 @@ async function showTables() {
         const tables = await response.json();
 
         if (tables.length === 0) {
-            message.textContent = "No tables available right now.";
+            message.textContent = "No tables available.";
             return;
         }
 
@@ -82,8 +84,27 @@ async function showTables() {
             row.insertCell().textContent =
                 table.players.length + "/" + table.maxPlayers;
             row.insertCell().textContent = table.status;
+
+            const joinCell = row.insertCell();
+
+            if (table.status === "waiting" &&
+                table.players.length < table.maxPlayers) {
+
+                const button = document.createElement("button");
+                button.textContent = "Join";
+                button.className = "btn btn-primary btn-sm";
+
+                joinCell.appendChild(button);
+            }
         }
+
     } catch (error) {
+        message.textContent = "Could not load tables.";
+    }
+}
+
+showTables();
+    
         message.textContent = "Could not load tables.";
     }
 }
