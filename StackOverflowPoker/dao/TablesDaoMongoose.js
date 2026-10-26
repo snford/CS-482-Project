@@ -5,9 +5,14 @@ const tableSchema = new mongoose.Schema({
   maxPlayers: { type: Number, default: 6, min: 2 },
   players: { type: [String], default: [] },
   status: {
-    type: String,
-    enum: ["waiting", "playing", "closed"],
-    default: "waiting"
+      type: String,
+      enum: ["waiting", "playing", "closed"],
+      default: "waiting"
+  },
+  privacy: {
+      type: String,
+      enum: ["public", "private"],
+      default: "public"
   }
 });
 
@@ -41,6 +46,18 @@ exports.joinTable = async function(tableId, username) {
     }
 
     table.players.push(username);
+    await table.save();
+
+    return table;
+};
+
+exports.createTable = async function(name, maxPlayers, privacy) {
+    const table = new Table({
+        name: name,
+        maxPlayers: maxPlayers,
+        privacy: privacy
+    });
+
     await table.save();
 
     return table;
