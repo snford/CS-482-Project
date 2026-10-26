@@ -211,13 +211,19 @@
     
             const result = await response.json();
             message.textContent = result.msg;
-
+            
             if (response.ok) {
-                if (privacy == "private") {
-                    message.textContent += "Share this invite code with friends: " + result.table._id;
+                if (result.table && result.table._id) {
+                    sessionStorage.removeItem("currentUsername");
+                    sessionStorage.setItem("currentTableId", result.table._id);
+                
+                    window.location.href = "table.html?tableId=" +
+                        encodeURIComponent(result.table._id);
+                
+                    return;
                 }
-
-                message.textContent += "Go to the lobby to join the table.";
+            
+                message.textContent = "Table created, but could not open it.";
             }
                 
     
