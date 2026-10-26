@@ -45,3 +45,13 @@ exports.joinTable = async function(tableId, username) {
 
     return table;
 };
+
+exports.createTable = async function(name, maxPlayers) {
+  const newTable = await Table.create({
+    name: name,
+    maxPlayers: maxPlayers,
+    players: [],
+    status: "waiting"
+  });
+  return newTable;
+};

@@ -42,3 +42,26 @@ exports.joinTable = async function(req, res) {
         });
     }
 };
+
+exports.createTable = async function(req, res) {
+    const { name, maxPlayers } = req.body;
+
+    if (!name || !maxPlayers) {
+        return res.status(400).json({
+            msg: "Name and maxPlayers are required"
+        });
+    }
+
+    try {
+        const table = await dao.createTable(name, maxPlayers);
+        return res.status(201).json({
+            msg: "Table created successfully",
+            table: table
+        });
+    } catch (error) {
+        console.error("Error creating table:", error);
+        return res.status(500).json({
+            msg: "Error creating table"
+        });
+    }
+};
