@@ -49,7 +49,7 @@ exports.createTable = async function(req, res) {
     const privacy = req.body.privacy;
 
     if (!name || !name.trim() ||
-        ![2, 4, 6].includes(maxPlayers) ||
+        ![2, 3, 4, 5, 6, 7].includes(maxPlayers) ||
         !["public", "private"].includes(privacy)) {
         return res.status(400).json({
             msg: "Invalid table information"
