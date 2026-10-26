@@ -101,3 +101,19 @@ exports.leaveTable = async function(req, res) {
         });
     }
 };
+
+// LT-03: Load the selected table to show its player seats.
+exports.getTable = async function (req, res) {
+  const tableId = req.params.tableId;
+  if (typeof tableId !== "string" || !mongoose.isValidObjectId(tableId)) {
+    return res.status(400).json({ msg: "Invalid table ID" });
+  }
+  try {
+    const table = await dao.readById(tableId);
+    if (!table) return res.status(404).json({ msg: "Table not found" });
+    return res.status(200).json(table);
+  } catch (error) {
+    console.error("Error loading table:", error);
+    return res.status(500).json({ msg: "Error loading table" });
+  }
+};
