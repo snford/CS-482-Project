@@ -40,8 +40,26 @@
         <h1 class="text-center mb-4">
           Lobby
         </h1>
+        
         <a href="createtable.html" class="btn btn-primary">Create Table</a>
-        <a href="table.html" class="btn btn-primary">Join Table</a>
+        
+        <div class="mt-3 mb-4">
+            <label for="privateTableCode">Private Table Invite Code:</label>
+        
+            <input
+                type="text"
+                id="privateTableCode"
+                class="form-control"
+                placeholder="Enter invite code">
+        
+            <button
+                type="button"
+                class="btn btn-primary mt-2"
+                onclick="joinPrivateTable()">
+                Join Private Table
+            </button>
+        </div>
+        
         <h3 class="mt-4">Available Tables</h3>
 
         <p id="tableMessage">Loading tables...</p>
@@ -61,6 +79,40 @@
     </div>
 
 <script>
+
+async function joinPrivateTable() {
+    const code = document.getElementById("privateTableCode").value.trim();
+
+    if (!code) {
+        alert("Please enter an invite code.");
+        return;
+    }
+    const username = prompt("Enter your username:");
+
+    if (!username || !username.trim()) {
+        return;
+    }
+    try {
+        const response = await fetch("/api/tables/join", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                tableId: code,
+                username: username.trim()
+            })
+        });
+        const result = await response.json();
+        alert(result.msg);
+        if (response.ok) {
+            location.reload();
+        }
+
+    } catch (error) {
+        alert("Could not join private table.");
+    }
+}
     
 async function showTables() {
     const message = document.getElementById("tableMessage");
