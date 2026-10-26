@@ -127,3 +127,31 @@ test("LT-03: Database error while saving", async function() {
         "Friday Poker", 6, "public", "5/10", "off"
     )).rejects.toThrow("Save failed");
 });
+
+test("LT-03: Load a private table by ID", async function() {
+    const table = {
+        name: "Friends Table",
+        privacy: "private",
+        status: "waiting",
+        players: ["Dennis"]
+    };
+
+    jest.spyOn(Table, "findById").mockResolvedValue(table);
+
+    const result = await dao.readById(tableId);
+
+    expect(result).toBe(table);
+});
+
+test("LT-03: Do not load a closed table", async function() {
+    const table = {
+        name: "Old Table",
+        status: "closed"
+    };
+
+    jest.spyOn(Table, "findById").mockResolvedValue(table);
+
+    const result = await dao.readById(tableId);
+
+    expect(result).toBeNull();
+});
