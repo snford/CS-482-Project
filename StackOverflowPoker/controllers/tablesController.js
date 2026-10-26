@@ -79,3 +79,25 @@ exports.createTable = async function(req, res) {
         });
     }
 };
+
+exports.leaveTable = async function(req, res) {
+    const tableId = req.body.tableId;
+    const username = req.body.username;
+    if (!tableId || !username) {
+        return res.status(400).json({
+            msg: "Table ID and username are required"
+        });
+    }
+
+    try {
+        await dao.leaveTable(tableId, username);
+
+        return res.status(200).json({
+            msg: "Successfully left the table"
+        });
+    } catch (error) {
+        return res.status(500).json({
+            msg: "Could not leave table"
+        });
+    }
+};

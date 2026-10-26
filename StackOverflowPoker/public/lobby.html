@@ -169,6 +169,7 @@ async function showTables() {
                         alert(result.msg);
                 
                         if (response.ok) {
+                            sessionStorage.setItem("username", username.trim());
                             window.location.href = `/table/${table._id}`;
                         }
                 

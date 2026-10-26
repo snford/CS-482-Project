@@ -77,3 +77,22 @@ exports.createTable = async function(name, maxPlayers, privacy, ante, bots) {
     return table;
 };
 
+exports.leaveTable = async function(tableId, username) {
+    const table = await Table.findById(tableId);
+
+    if (!table) {
+        throw new Error("Table not found");
+    }
+
+    if (!table.players.includes(username)) {
+        throw new Error("Player is not at this table");
+    }
+
+    table.players = table.players.filter(
+        player => player !== username
+    );
+
+    await table.save();
+
+    return table;
+};

@@ -37,5 +37,7 @@ app.get("/table/:tableId", (req, res) => {
     );
 });
 
+app.post("/api/tables/leave", tablesController.leaveTable);
+
 exports.app = app;
 
