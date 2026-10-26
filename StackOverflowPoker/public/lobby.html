@@ -105,8 +105,13 @@ async function joinPrivateTable() {
         });
         const result = await response.json();
         alert(result.msg);
+        
         if (response.ok) {
-            location.reload();
+            sessionStorage.setItem("currentTableId", code);
+            sessionStorage.setItem("currentUsername", username.trim());
+        
+            window.location.href = "table.html?tableId=" +
+                encodeURIComponent(code);
         }
 
     } catch (error) {
@@ -169,8 +174,9 @@ async function showTables() {
                         alert(result.msg);
                 
                         if (response.ok) {
-                            sessionStorage.setItem("username", username.trim());
-                            window.location.href = `/table/${table._id}`;
+                            sessionStorage.setItem("currentTableId", table._id);
+                            sessionStorage.setItem("currentUsername", username.trim());
+                            window.location.href = "table.html?tableId=" + encodeURIComponent(table._id);
                         }
                 
                     } catch (error) {
