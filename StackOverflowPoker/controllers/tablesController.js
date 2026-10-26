@@ -44,22 +44,32 @@ exports.joinTable = async function(req, res) {
 };
 
 exports.createTable = async function(req, res) {
-    const { name, maxPlayers } = req.body;
+    const name = req.body.name;
+    const maxPlayers = Number(req.body.maxPlayers);
+    const privacy = req.body.privacy;
 
-    if (!name || !maxPlayers) {
+    if (!name || !name.trim() ||
+        ![2, 3, 4, 5, 6, 7].includes(maxPlayers) ||
+        !["public", "private"].includes(privacy)) {
         return res.status(400).json({
-            msg: "Name and maxPlayers are required"
+            msg: "Invalid table information"
+
         });
     }
 
     try {
-        const table = await dao.createTable(name, maxPlayers);
+
+
+        const table = await dao.createTable(
+            name.trim(), maxPlayers, privacy
+        );
+
         return res.status(201).json({
             msg: "Table created successfully",
             table: table
         });
+
     } catch (error) {
-        console.error("Error creating table:", error);
         return res.status(500).json({
             msg: "Error creating table"
         });

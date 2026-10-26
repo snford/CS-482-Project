@@ -39,9 +39,34 @@
 
     <!-- Main content -->
     <div class="container mt-5">
-        <h1 class="text-center mb-4">
-          Create Table
-        </h1>
+    <h1 class="text-center mb-4">Create Table</h1>
+
+    <form id="createTableForm">
+
+        <label for="tableName">Table Name:</label>
+        <input type="text" id="tableName" class="form-control" required>
+
+        <label for="maxPlayers" class="mt-3">Maximum Players:</label>
+        <select id="maxPlayers" class="form-select">
+            <option value="2">2</option>
+            <option value="4">4</option>
+            <option value="6" selected>6</option>
+        </select>
+
+        <label for="privacy" class="mt-3">Who Can Join:</label>
+        <select id="privacy" class="form-select">
+            <option value="public">Anyone</option>
+            <option value="private">Invited Friends Only</option>
+        </select>
+
+        <button type="submit" class="btn btn-primary mt-3">
+            Create Table
+        </button>
+
+    </form>
+
+    <p id="createMessage" class="mt-3"></p>
+›</div>
 
         <section class="create-table">
           <form id="createTableForm">
