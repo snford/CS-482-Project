@@ -4,7 +4,12 @@ jest.mock("../dao/TablesDaoMongoose", () => ({
     joinTable: jest.fn(),
     createTable: jest.fn()
 }));
-
+jest.mock("../dao/TablesDaoMongoose", () => ({
+    readAll: jest.fn(),
+    joinTable: jest.fn(),
+    createTable: jest.fn(),
+    readById: jest.fn()
+}));
 const dao = require("../dao/TablesDaoMongoose");
 const controller = require("../controllers/tablesController");
 
@@ -216,4 +221,44 @@ test("LT-03: Database error while creating", async function() {
 
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({ msg: "Error creating table" });
+});
+
+
+test("LT-03: Get table information", async function() {
+    const table = {
+        _id: tableId,
+        name: "Friends Table",
+        privacy: "private",
+        status: "waiting",
+        players: ["Dennis"]
+    };
+
+    dao.readById.mockResolvedValue(table);
+    const res = makeResponse();
+
+    await controller.getTable({ params: { tableId } }, res);
+
+    expect(dao.readById).toHaveBeenCalledWith(tableId);
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(table);
+});
+
+test("LT-03: Invalid table ID", async function() {
+    const res = makeResponse();
+
+    await controller.getTable(
+        { params: { tableId: "wrong" } }, res
+    );
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(dao.readById).not.toHaveBeenCalled();
+});
+
+test("LT-03: Table not found", async function() {
+    dao.readById.mockResolvedValue(null);
+    const res = makeResponse();
+
+    await controller.getTable({ params: { tableId } }, res);
+
+    expect(res.status).toHaveBeenCalledWith(404);
 });
