@@ -1,5 +1,7 @@
 const dao = require("../dao/TablesDaoMongoose");
+const mongoose = require("mongoose");
 
+//Lt-01: View Lobbys
 exports.getTables = async function(req, res) {
   try {
     const tables = await dao.readAll();
@@ -12,18 +14,19 @@ exports.getTables = async function(req, res) {
   }
 };
 
+//LT-02: Join Tables
 exports.joinTable = async function(req, res) {
     const tableId = req.body.tableId;
     const username = req.body.username;
 
-    if (!tableId || !username) {
+    if (typeof tableId !== "string" || !mongoose.isValidObjectId(tableId) || typeof username !== "string" || !username.trim()) {
         return res.status(400).json({
-            msg: "Table and username are required"
+            msg: "Invalid table or username"
         });
     }
 
     try {
-        const table = await dao.joinTable(tableId, username);
+        const table = await dao.joinTable(tableId, username.trim());
 
         if (!table) {
             return res.status(400).json({
@@ -43,14 +46,15 @@ exports.joinTable = async function(req, res) {
     }
 };
 
+//Lt-03: creating the tables
 exports.createTable = async function(req, res) {
     const name = req.body.name;
     const maxPlayers = Number(req.body.maxPlayers);
     const privacy = req.body.privacy;
+    const ante = req.body.ante;
+    const bots = req.body.bots;
 
-    if (!name || !name.trim() ||
-        ![2, 3, 4, 5, 6, 7].includes(maxPlayers) ||
-        !["public", "private"].includes(privacy)) {
+    if (typeof name !== "string" || !name.trim() || name.trim().length > 40 || ![2, 3, 4, 5, 6, 7].includes(maxPlayers) || !["public", "private"].includes(privacy) || typeof ante !== "string" || !ante.trim() || !["off", "easy", "medium", "hard"].includes(bots)) {
         return res.status(400).json({
             msg: "Invalid table information"
 
@@ -61,7 +65,7 @@ exports.createTable = async function(req, res) {
 
 
         const table = await dao.createTable(
-            name.trim(), maxPlayers, privacy
+            name.trim(), maxPlayers, privacy, ante.trim(), bots
         );
 
         return res.status(201).json({

@@ -1,8 +1,8 @@
 const mongoose = require("mongoose");
+
 const tableSchema = new mongoose.Schema({
-  
   name: { type: String, required: true, trim: true },
-  maxPlayers: { type: Number, default: 6, min: 2 },
+  maxPlayers: { type: Number, default: 6, min: 2, max: 7 },
   players: { type: [String], default: [] },
   status: {
       type: String,
@@ -13,19 +13,29 @@ const tableSchema = new mongoose.Schema({
       type: String,
       enum: ["public", "private"],
       default: "public"
+  },
+
+  ante: { type: String, default: "" },
+
+  bots: {
+    type: String,
+    enum: ["off", "easy", "medium", "hard"],
+    default: "off"
   }
 });
 
 const Table = mongoose.model("table", tableSchema);
 
+//Lt-01: public tables for lobby
 exports.readAll = async function() {
   const tables = await Table.find({
-    status: { $in: ["waiting", "playing"] }
+    status: { $in: ["waiting", "playing"] }, privacy: { $ne: "private" }
   }).sort({ name: 1 });
 
   return tables;
 };
 
+//Lt-02: Joining a table
 exports.joinTable = async function(tableId, username) {
     const table = await Table.findById(tableId);
 
@@ -51,11 +61,15 @@ exports.joinTable = async function(tableId, username) {
     return table;
 };
 
-exports.createTable = async function(name, maxPlayers, privacy) {
+
+//Lt-03: creating a table
+exports.createTable = async function(name, maxPlayers, privacy, ante, bots) {
     const table = new Table({
         name: name,
         maxPlayers: maxPlayers,
-        privacy: privacy
+        privacy: privacy,
+        ante: ante,
+        bots: bots
     });
 
     await table.save();
