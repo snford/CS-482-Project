@@ -28,7 +28,8 @@ app.get("/api/tables", tablesController.getTables);
 // LT-02: Join Table
 app.post("/api/tables/join", tablesController.joinTable);
 
-
+// LT-03: Create Table
+app.post("/api/tables/create", tablesController.createTable);
 
 exports.app = app;
 
