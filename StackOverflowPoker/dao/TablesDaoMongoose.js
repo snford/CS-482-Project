@@ -96,3 +96,10 @@ exports.leaveTable = async function(tableId, username) {
 
     return table;
 };
+
+// LT-03: Read one waiting/playing table, including a private table by invite ID.
+exports.readById = async function (tableId) {
+  const table = await Table.findById(tableId);
+  if (!table || !["waiting", "playing"].includes(table.status)) return null;
+  return table;
+};
