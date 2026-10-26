@@ -169,7 +169,7 @@ async function showTables() {
                         alert(result.msg);
                 
                         if (response.ok) {
-                            location.reload();
+                            window.location.href = `/table/${table._id}`;
                         }
                 
                     } catch (error) {

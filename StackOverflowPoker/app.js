@@ -31,5 +31,11 @@ app.post("/api/tables/join", tablesController.joinTable);
 // LT-03: Create Table
 app.post("/api/tables/create", tablesController.createTable);
 
+app.get("/table/:tableId", (req, res) => {
+    res.sendFile(
+        require("path").join(__dirname, "public", "table.html")
+    );
+});
+
 exports.app = app;
 
