@@ -189,7 +189,9 @@
     
         const name = document.getElementById("tableName").value;
         const maxPlayers = document.getElementById("max-players").value;
+        const ante = document.getElementById("ante").value;
         const privacy = document.querySelector("#visibility-options .selected").getAttribute("data-value");
+        const bots = document.querySelector("#bot-options  .selected").getAttribute("data-value");
         const message = document.getElementById("createMessage");
     
         try {
@@ -201,12 +203,23 @@
                 body: JSON.stringify({
                     name: name,
                     maxPlayers: maxPlayers,
-                    privacy: privacy
+                    privacy: privacy,
+                    ante: ante,
+                    bots: bots
                 })
             });
     
             const result = await response.json();
             message.textContent = result.msg;
+
+            if (response.ok) {
+                if (privacy == "private") {
+                    message.textContent += "Share this invite code with friends: " + result.table._id;
+                }
+
+                message.textContent += "Go to the lobby to join the table.";
+            }
+                
     
         } catch (error) {
             message.textContent = "Could not create table.";
