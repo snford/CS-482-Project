@@ -130,7 +130,7 @@ describe("TT-03 Finish Google Login", function() {
 
         auth.finishGoogleLogin(req, res, user);
 
-        expect(res.redirect).toHaveBeenCalledWith('/home.html?username=Ben');
+        expect(res.redirect).toHaveBeenCalledWith('/home.html');
     });
 
     test('Login Fails If A New Session Cannot Be Made', async function() {
@@ -149,6 +149,28 @@ describe("TT-03 Finish Google Login", function() {
         auth.finishGoogleLogin(req, res, user);
 
         expect(res.redirect).toHaveBeenCalledWith('/index.html?login=failed');
+    });
+});
+
+describe("TT-03 Play As Guest", function() {
+
+    test('Guest Gets A Temporary Name And Goes To The Lobby', function() {
+        let req = { session: fakeSession(false, false) };
+
+        auth.startGuest(req, res);
+
+        expect(req.session.regenerate).toHaveBeenCalled();
+        expect(req.session.guestName).toMatch(/^Guest-\d{4}$/);
+        expect(res.redirect).toHaveBeenCalledWith('/lobby.html');
+    });
+
+    test('Guest Session Cannot Be Made', function() {
+        let req = { session: fakeSession(true, false) };
+
+        auth.startGuest(req, res);
+
+        expect(req.session.guestName).toBeUndefined();
+        expect(res.redirect).toHaveBeenCalledWith('/index.html');
     });
 });
 

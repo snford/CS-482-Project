@@ -8,6 +8,7 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const authController = require('./controllers/authController');
+const { loadUser, requireLogin } = require('./middleware/auth');
 
 const app = express();
 
@@ -38,8 +39,15 @@ app.use(session({
         maxAge: SEVEN_DAYS * 1000
     },
     store: MongoStore.create({
-        clientPromise: mongoose.connection.asPromise().then(function (connection) {
-            return connection.getClient();
+        // Waits until mongoose has connected, then shares its connection
+        clientPromise: new Promise(function (resolve) {
+            if (mongoose.connection.readyState === 1) {
+                resolve(mongoose.connection.getClient());
+            } else {
+                mongoose.connection.once("connected", function () {
+                    resolve(mongoose.connection.getClient());
+                });
+            }
         }),
         collectionName: "sessions",
         ttl: SEVEN_DAYS
@@ -65,6 +73,9 @@ if (googleReady) {
 }
 
 app.use(passport.initialize());
+
+// TT-03: figure out who is signed in for every request (req.user)
+app.use(loadUser);
 
 function requireGoogleSetup(req, res, next) {
     if (!googleReady) {
@@ -94,17 +105,20 @@ app.get('/auth/google/callback', requireGoogleSetup, function(req, res, next) {
 
 app.post('/logout', authController.postLogout);
 
+// TT-03: play without an account (temporary guest name in the session)
+app.post('/guest', authController.startGuest);
+
 // TT-03: new players pick a poker name after their first Google login
 app.get('/api/username-available', controller.getUsernameAvailable);
 app.post('/api/me/username', controller.postChooseUsername);
 
-app.post('/login', controller.postLogin);
 app.get('/users/:username', controller.getUser);
-app.post('/addfriend', controller.postAddFriend);
-app.get('/acceptfriend/:from/:to', controller.getAcceptFriend);
-app.get('/declinefriend/:from/:to', controller.getDeclineFriend);
-// SF-04: Remove Friend
-app.post('/removefriend', controller.postRemoveFriend);
+
+// SF-01 to SF-04: friends. All of these act as the signed-in player.
+app.post('/addfriend', requireLogin, controller.postAddFriend);
+app.post('/acceptfriend', requireLogin, controller.postAcceptFriend);
+app.post('/declinefriend', requireLogin, controller.postDeclineFriend);
+app.post('/removefriend', requireLogin, controller.postRemoveFriend);
 // ST-01: Player Statistics
 app.get('/stats/:username', controller.getPlayerStats);
 // ST-02: Leaderboard API

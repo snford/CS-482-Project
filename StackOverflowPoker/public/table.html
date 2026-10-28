@@ -108,7 +108,8 @@
     const tableId = params.get("tableId") || params.get("id") ||
                     (pathMatch ? decodeURIComponent(pathMatch[1]) : null) ||
                     sessionStorage.getItem("currentTableId");
-    let username = params.get("username") || sessionStorage.getItem("currentUsername") || SOP.user || "";
+    // Filled in once nav.js knows who is signed in (or which guest this is)
+    let username = "";
     let currentTable = null;
     // What each seat showed last time, so polling only redraws when something changed
     let lastSeatKey = "";
@@ -270,24 +271,26 @@
 
     async function joinCurrentTable() {
       if (!tableId || !currentTable) return;
-      // Signed-in players join as themselves; guests are asked for a name.
-      const name = SOP.user || prompt("Enter your username to join this table:", username);
-      if (!name || !name.trim()) return;
+      // The server joins whoever is signed in (or the guest) from the login cookie
       const joinButton = document.getElementById("joinButton");
       joinButton.disabled = true;
       try {
         const response = await fetch("/api/tables/join", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tableId: tableId, username: name.trim() })
+          body: JSON.stringify({ tableId: tableId })
         });
         const result = await response.json();
+        if (response.status === 401) {
+          showNotice("Sign in or play as a guest to join this table.");
+          setTimeout(function () { location.href = "/index.html"; }, 1500);
+          return;
+        }
         if (!response.ok) {
           showNotice(result.msg || "Unable to join table");
           return;
         }
-        username = name.trim();
-        sessionStorage.setItem("currentUsername", username);
+        username = result.username || username;
         clearNotice();
         SOP.toast("You joined " + (currentTable.name || "the table") + "!", "success");
         // Update immediately using the returned saved table, then refresh from MongoDB.
@@ -314,10 +317,30 @@
     document.getElementById("joinButton").addEventListener("click", joinCurrentTable);
     document.getElementById("inviteButton").addEventListener("click", copyInviteLink);
     document.getElementById("refreshButton").addEventListener("click", () => loadTable());
-    document.getElementById("leaveButton").addEventListener("click", function () {
-      if (confirm("Return to the lobby? Your seat stays reserved until a leave-table feature is added.")) {
-        location.href = SOP.withUser("/lobby.html");
+    document.getElementById("leaveButton").addEventListener("click", async function () {
+      const seated = currentTable && username && (currentTable.players || []).includes(username);
+      if (!seated) {
+        location.href = "/lobby.html";
+        return;
       }
+      if (!confirm("Leave this table and give up your seat?")) return;
+
+      try {
+        await fetch("/api/tables/leave", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tableId: tableId })
+        });
+      } catch (error) { /* go back to the lobby anyway */ }
+      sessionStorage.removeItem("currentTableId");
+      location.href = "/lobby.html";
+    });
+
+    // Wait for nav.js to know who we are, so our own seat is shown at the bottom
+    SOP.ready.then(function () {
+      username = SOP.user || SOP.guestName || "";
+      lastSeatKey = "";
+      if (currentTable) showTable(currentTable);
     });
 
     loadTable();

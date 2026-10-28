@@ -157,8 +157,7 @@
 
     <!-- ST-02 JavaScript -->
     <script>
-        const username = SOP.user;
-        document.getElementById("backLink").href = SOP.withUser("/home.html");
+        let username = null;
 
         function podiumSpot(player, place) {
             const spot = document.createElement("div");
@@ -246,7 +245,11 @@
             }
         }
 
-        loadLeaderboard();
+        // Wait for nav.js so the signed-in player's row can be highlighted
+        SOP.ready.then(function () {
+            username = SOP.user;
+            loadLeaderboard();
+        });
     </script>
 </body>
 </html>

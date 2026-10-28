@@ -89,9 +89,6 @@
 
                     <!-- SF-01: Send a friend request -->
                     <form action="/addfriend" method="post">
-                        <!-- Hidden username of the player who is logged in -->
-                        <input type="hidden" name="txt_from" id="txt_from">
-
                         <div class="input-group">
                             <div class="input-icon">
                                 <i class="bi bi-search"></i>
@@ -155,30 +152,30 @@
   // Loads the friend requests and the friends list of the player who is logged in
   let lstRequests = [];
   let lstFriends = [];
-  const username = SOP.user;
-
-  async function readUserData() {
-      if (!username) {
+  // nav.js already asked the server for the signed-in player (with their friends)
+  function readUserData() {
+      if (!SOP.user) {
         document.getElementById("signedOut").hidden = false;
         document.getElementById("friendsPage").hidden = true;
         return;
       }
 
-      document.getElementById("txt_from").value = username;
-
-      try {
-        const response = await fetch("/users/" + encodeURIComponent(username));
-        if (response.status == 200) {
-          const user = await response.json();
-          lstRequests = user.friendRequests || [];
-          lstFriends = user.friends || [];
-        }
-      } catch (error) {
-        SOP.toast("Could not load your friends.", "error");
-      }
+      lstRequests = SOP.me.friendRequests || [];
+      lstFriends = SOP.me.friends || [];
 
       readRequestData();
       readFriendData();
+  }
+
+  // A small form that posts one friend request answer (accept or decline)
+  function requestForm(action, fromName, buttonHtml) {
+      const form = document.createElement("form");
+      form.method = "post";
+      form.action = action;
+      form.className = "m-0";
+      form.innerHTML = '<input type="hidden" name="txt_from">' + buttonHtml;
+      form.querySelector("input").value = fromName;
+      return form;
   }
 
   // SF-03: requests waiting for this player to accept or decline
@@ -194,16 +191,17 @@
 
       container.replaceChildren();
       for (const name of lstRequests) {
-        const from = encodeURIComponent(name);
-        const to = encodeURIComponent(username);
         const row = document.createElement("div");
         row.className = "list-row request-row";
         row.innerHTML =
           SOP.avatarHtml(name) +
-          '<div class="grow"><div class="title"></div><div class="sub">wants to be friends</div></div>' +
-          '<a href="/acceptfriend/' + from + "/" + to + '" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i>Accept</a>' +
-          '<a href="/declinefriend/' + from + "/" + to + '" class="btn btn-light-soft btn-sm" aria-label="Decline request from ' + SOP.escapeHtml(name) + '"><i class="bi bi-x-lg"></i></a>';
+          '<div class="grow"><div class="title"></div><div class="sub">wants to be friends</div></div>';
         row.querySelector(".title").textContent = name;
+        row.appendChild(requestForm("/acceptfriend", name,
+          '<button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i>Accept</button>'));
+        row.appendChild(requestForm("/declinefriend", name,
+          '<button type="submit" class="btn btn-light-soft btn-sm" aria-label="Decline request from ' + SOP.escapeHtml(name) +
+          '"><i class="bi bi-x-lg"></i></button>'));
         container.appendChild(row);
       }
   }
@@ -225,7 +223,7 @@
       for (const name of lstFriends) {
         const row = document.createElement("a");
         row.className = "list-row friend-link";
-        row.href = SOP.withUser("/player.html?name=" + encodeURIComponent(name));
+        row.href = "/player.html?name=" + encodeURIComponent(name);
         row.innerHTML =
           SOP.avatarHtml(name) +
           '<div class="grow"><div class="title"></div><div class="sub">View profile</div></div>' +
@@ -241,7 +239,7 @@
     SOP.toast(removedName + " was removed from your friends.", "success");
   }
 
-  readUserData();
+  SOP.ready.then(readUserData);
 </script>
 </body>
 </html>

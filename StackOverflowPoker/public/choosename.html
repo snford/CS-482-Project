@@ -135,7 +135,7 @@
                 }
                 const me = await response.json();
                 if (!me.needsUsername) {
-                    window.location.href = "/home.html?username=" + encodeURIComponent(me.username);
+                    window.location.href = "/home.html";
                     return;
                 }
                 if (me.email) {
@@ -195,7 +195,7 @@
                 const result = await response.json();
 
                 if (response.ok) {
-                    window.location.href = "/home.html?username=" + encodeURIComponent(result.username);
+                    window.location.href = "/home.html";
                     return;
                 }
                 if (response.status === 401) {

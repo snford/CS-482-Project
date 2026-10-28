@@ -57,8 +57,25 @@ exports.finishGoogleLogin = function(req, res, user) {
             if (user.needsUsername) {
                 res.redirect('/choosename.html');
             } else {
-                res.redirect('/home.html?username=' + encodeURIComponent(user.username));
+                res.redirect('/home.html');
             }
+        });
+    });
+};
+
+// Guests get a temporary name (like "Guest-4821") kept only in their session.
+// They can join tables, but have no account, friends, or saved stats.
+exports.startGuest = function(req, res) {
+    req.session.regenerate(function(error) {
+        if (error) {
+            res.redirect('/index.html');
+            return;
+        }
+
+        req.session.guestName = "Guest-" + Math.floor(1000 + Math.random() * 9000);
+
+        req.session.save(function() {
+            res.redirect('/lobby.html');
         });
     });
 };

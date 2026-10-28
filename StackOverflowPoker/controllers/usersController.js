@@ -1,29 +1,5 @@
 const dao = require('../dao/UsersDaoMongoose');
 
-// Temporary login until Google sign in is added:
-// logs in to the account with this username, or creates it if it is new
-exports.postLogin = async function(req, res) {
-    let uname = req.body.txt_username.trim();
-
-    if (uname === "") {
-        res.redirect('index.html');
-        return;
-    }
-
-    let user = await dao.readByUsername(uname);
-
-    if (user == null) {
-        user = await dao.create({ username: uname });
-    }
-
-    // TT-03: remember who is logged in
-    if (req.session) {
-        req.session.userId = user._id.toString();
-    }
-
-    res.redirect('home.html?username=' + encodeURIComponent(user.username));
-};
-
 // TT-03: rules for a poker name. Returns an error message, or null if it's fine.
 const RESERVED_NAMES = ["guest", "admin", "bot", "dealer", "system"];
 
@@ -37,7 +13,8 @@ function checkPokerName(name) {
     if (/\s{2,}/.test(name)) {
         return "Don't use more than one space in a row.";
     }
-    if (RESERVED_NAMES.includes(name.toLowerCase())) {
+    // Guests are called "Guest-1234", so nobody can pretend to be one
+    if (RESERVED_NAMES.includes(name.toLowerCase()) || /^guest/i.test(name)) {
         return "That name is reserved. Please pick another one.";
     }
     return null;
@@ -125,7 +102,8 @@ exports.postChooseUsername = async function(req, res) {
     }
 };
 
-// TT-03: tells the page who is logged in (401 if nobody is)
+// TT-03: tells the page who is logged in (401 if nobody is).
+// Guests get their temporary guest name so they can still join tables.
 exports.getMe = async function(req, res) {
     let userId = req.session ? req.session.userId : null;
 
@@ -136,7 +114,7 @@ exports.getMe = async function(req, res) {
 
     if (user == null) {
         res.status(401);
-        res.send({ loggedIn: false });
+        res.send({ loggedIn: false, guestName: (req.session && req.session.guestName) || null });
         res.end();
         return;
     }
@@ -146,11 +124,14 @@ exports.getMe = async function(req, res) {
         loggedIn: true,
         username: user.username || null,
         email: user.email || null,
-        needsUsername: user.needsUsername === true
+        needsUsername: user.needsUsername === true,
+        friends: user.friends || [],
+        friendRequests: user.friendRequests || []
     });
     res.end();
 };
 
+// Public information about a player (no email, Google id, or friend lists)
 exports.getUser = async function(req, res) {
     let uname = req.params.username;
 
@@ -158,7 +139,11 @@ exports.getUser = async function(req, res) {
 
     if (user != null) {
         res.status(200);
-        res.send(user);
+        res.send({
+            username: user.username,
+            wins: user.wins || 0,
+            losses: user.losses || 0
+        });
     } else {
         res.status(404);
         res.send({msg: 'User with this username does not exist'});
@@ -167,11 +152,21 @@ exports.getUser = async function(req, res) {
     res.end();
 };
 
-// SF-01: Sends a friend request
+// The signed-in player's name (requireLogin makes sure there is one)
+function myName(req) {
+    return req.user ? req.user.username : null;
+}
+
+// SF-01: Sends a friend request from the signed-in player
 // The other player's name goes into their friendRequests list until they accept
 exports.postAddFriend = async function(req, res) {
-    let fromName = req.body.txt_from;
-    let toName = req.body.txt_to.trim();
+    let fromName = myName(req);
+    let toName = String((req.body && req.body.txt_to) || "").trim();
+
+    if (!fromName) {
+        res.redirect('/index.html');
+        return;
+    }
 
     let fromUser = await dao.readByUsername(fromName);
     let toUser = await dao.readByUsername(toName);
@@ -190,13 +185,18 @@ exports.postAddFriend = async function(req, res) {
         }
     }
 
-    res.redirect('/friends.html?username=' + encodeURIComponent(fromName));
+    res.redirect('/friends.html');
 };
 
-// SF-03: Accepts a friend request
-exports.getAcceptFriend = async function(req, res) {
-    let fromName = req.params.from;
-    let toName = req.params.to;
+// SF-03: The signed-in player accepts a friend request from txt_from
+exports.postAcceptFriend = async function(req, res) {
+    let fromName = req.body ? req.body.txt_from : null;
+    let toName = myName(req);
+
+    if (!toName) {
+        res.redirect('/index.html');
+        return;
+    }
 
     let fromUser = await dao.readByUsername(fromName);
     let toUser = await dao.readByUsername(toName);
@@ -206,13 +206,18 @@ exports.getAcceptFriend = async function(req, res) {
         await makeFriends(fromUser, toUser);
     }
 
-    res.redirect('/friends.html?username=' + encodeURIComponent(toName));
+    res.redirect('/friends.html');
 };
 
-// SF-03: Declines a friend request
-exports.getDeclineFriend = async function(req, res) {
-    let fromName = req.params.from;
-    let toName = req.params.to;
+// SF-03: The signed-in player declines a friend request from txt_from
+exports.postDeclineFriend = async function(req, res) {
+    let fromName = req.body ? req.body.txt_from : null;
+    let toName = myName(req);
+
+    if (!toName) {
+        res.redirect('/index.html');
+        return;
+    }
 
     let toUser = await dao.readByUsername(toName);
 
@@ -223,13 +228,18 @@ exports.getDeclineFriend = async function(req, res) {
         await dao.update(toUser);
     }
 
-    res.redirect('/friends.html?username=' + encodeURIComponent(toName));
+    res.redirect('/friends.html');
 };
 
-// SF-04: Removes a friend from both players' friends lists
+// SF-04: The signed-in player removes txt_friend from both friends lists
 exports.postRemoveFriend = async function(req, res) {
-    let userName = req.body.txt_user;
-    let friendName = req.body.txt_friend;
+    let userName = myName(req);
+    let friendName = req.body ? req.body.txt_friend : null;
+
+    if (!userName) {
+        res.redirect('/index.html');
+        return;
+    }
 
     let user = await dao.readByUsername(userName);
     let friend = await dao.readByUsername(friendName);
@@ -246,12 +256,11 @@ exports.postRemoveFriend = async function(req, res) {
         await dao.update(user);
         await dao.update(friend);
 
-        res.redirect('/friends.html?username=' + encodeURIComponent(userName) +
-            '&removed=' + encodeURIComponent(friendName));
+        res.redirect('/friends.html?removed=' + encodeURIComponent(friendName));
         return;
     }
 
-    res.redirect('/friends.html?username=' + encodeURIComponent(userName || ""));
+    res.redirect('/friends.html');
 };
 
 // Removes the request and adds both players to each other's friends list
@@ -266,7 +275,6 @@ async function makeFriends(fromUser, toUser) {
     await dao.update(fromUser);
     await dao.update(toUser);
 }
- 
 
 // ST-01: Get a player's statistics
 exports.getPlayerStats = async function(req, res) {

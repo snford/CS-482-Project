@@ -52,7 +52,6 @@
                     <div class="d-flex flex-wrap gap-2 justify-content-center" id="playerActions">
                         <!-- SF-01: Add friend uses the same form as the Friends page -->
                         <form action="/addfriend" method="post" id="addFriendForm">
-                            <input type="hidden" name="txt_from" id="txt_from">
                             <input type="hidden" name="txt_to" id="txt_to">
                             <button type="submit" class="btn btn-primary" id="addFriendButton">
                                 <i class="bi bi-person-plus-fill"></i>Add Friend
@@ -63,7 +62,6 @@
                         </span>
                         <!-- SF-04: Remove friend (only shown if you're friends) -->
                         <form action="/removefriend" method="post" id="removeFriendForm" hidden>
-                            <input type="hidden" name="txt_user" id="txt_user">
                             <input type="hidden" name="txt_friend" id="txt_friend">
                             <button type="submit" class="btn btn-danger-soft">
                                 <i class="bi bi-person-dash-fill"></i>Remove Friend
@@ -91,11 +89,11 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const playerName = new URLSearchParams(window.location.search).get("name");
-        const me = SOP.user;
-
-        document.getElementById("backLink").href = SOP.withUser("/friends.html");
+        let me = null;
 
         async function loadPlayer() {
+            me = SOP.user;
+
             if (!playerName) {
                 document.getElementById("playerName").textContent = "No player selected";
                 document.getElementById("playerActions").hidden = true;
@@ -104,8 +102,7 @@
 
             document.getElementById("playerName").textContent = playerName;
             document.getElementById("playerAvatar").innerHTML = SOP.avatarHtml(playerName, "avatar-xl");
-            document.getElementById("reportLink").href =
-                SOP.withUser("/report.html?name=" + encodeURIComponent(playerName));
+            document.getElementById("reportLink").href = "/report.html?name=" + encodeURIComponent(playerName);
             document.title = playerName + " - Stack Overflow Poker";
 
             // Add Friend only makes sense for someone else, while signed in
@@ -113,7 +110,6 @@
             if (!me || me === playerName) {
                 addForm.hidden = true;
             } else {
-                document.getElementById("txt_from").value = me;
                 document.getElementById("txt_to").value = playerName;
             }
 
@@ -134,22 +130,15 @@
 
             // Show a badge instead of the button if you're already friends
             if (me && me !== playerName) {
-                try {
-                    const response = await fetch("/users/" + encodeURIComponent(me));
-                    if (response.ok) {
-                        const user = await response.json();
-                        if ((user.friends || []).includes(playerName)) {
-                            addForm.hidden = true;
-                            document.getElementById("friendsBadge").hidden = false;
-                            document.getElementById("txt_user").value = me;
-                            document.getElementById("txt_friend").value = playerName;
-                            document.getElementById("removeFriendForm").hidden = false;
-                        } else if ((user.friendRequests || []).includes(playerName)) {
-                            document.getElementById("addFriendButton").innerHTML =
-                                '<i class="bi bi-person-check-fill"></i>Accept their request';
-                        }
-                    }
-                } catch (error) { /* ignore */ }
+                if (SOP.me.friends.includes(playerName)) {
+                    addForm.hidden = true;
+                    document.getElementById("friendsBadge").hidden = false;
+                    document.getElementById("txt_friend").value = playerName;
+                    document.getElementById("removeFriendForm").hidden = false;
+                } else if (SOP.me.friendRequests.includes(playerName)) {
+                    document.getElementById("addFriendButton").innerHTML =
+                        '<i class="bi bi-person-check-fill"></i>Accept their request';
+                }
             }
         }
 
@@ -160,7 +149,7 @@
             }
         });
 
-        loadPlayer();
+        SOP.ready.then(loadPlayer);
     </script>
 </body>
 </html>

@@ -204,42 +204,30 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Home dashboard: shows the player's friends, win rate, and leaderboard rank.
-        const username = SOP.user;
+        let username = null;
 
-        if (!username) {
-            document.getElementById("signedOut").hidden = false;
-        } else {
-            document.getElementById("dashboard").hidden = false;
-            document.getElementById("welcomeName").textContent = username;
+        SOP.ready.then(function () {
+            username = SOP.user;
 
-            for (const [id, href] of [
-                ["playNowLink", "/lobby.html"],
-                ["createTableLink", "/createtable.html"],
-                ["friendsCard", "/friends.html"],
-                ["statsCard", "/stats.html"],
-                ["leaderboardCard", "/leaderboard.html"]
-            ]) {
-                document.getElementById(id).href = SOP.withUser(href);
+            if (!username) {
+                document.getElementById("signedOut").hidden = false;
+                return;
             }
 
+            document.getElementById("dashboard").hidden = false;
+            document.getElementById("welcomeName").textContent = username;
             loadDashboard();
-        }
+        });
 
         async function loadDashboard() {
             const encoded = encodeURIComponent(username);
 
-            // Friends and pending requests
-            try {
-                const response = await fetch("/users/" + encoded);
-                if (response.ok) {
-                    const user = await response.json();
-                    const friends = (user.friends || []).length;
-                    const requests = (user.friendRequests || []).length;
-                    document.getElementById("friendsMetric").textContent = friends + (friends === 1 ? " friend" : " friends");
-                    document.getElementById("requestsMetric").textContent =
-                        requests > 0 ? requests + " pending request" + (requests === 1 ? "" : "s") : "No pending requests";
-                }
-            } catch (error) { /* leave the dash */ }
+            // Friends and pending requests (sent with the signed-in player's info)
+            const friends = SOP.me.friends.length;
+            const requests = SOP.me.friendRequests.length;
+            document.getElementById("friendsMetric").textContent = friends + (friends === 1 ? " friend" : " friends");
+            document.getElementById("requestsMetric").textContent =
+                requests > 0 ? requests + " pending request" + (requests === 1 ? "" : "s") : "No pending requests";
 
             // Win rate
             try {
