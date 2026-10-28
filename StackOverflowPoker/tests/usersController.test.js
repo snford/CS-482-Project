@@ -295,3 +295,61 @@ describe("SF-04 Remove Friend", function() {
         expect(res.redirect).toHaveBeenCalledWith('/friends.html?username=');
     });
 });
+
+describe("TT-03 Login Sessions", function() {
+
+    test('Login Remembers The User In The Session', async function() {
+        let req = { body: { txt_username: "Ben" }, session: {} };
+
+        await controller.postLogin(req, res);
+        let ben = await dao.readByUsername("Ben");
+
+        expect(req.session.userId).toEqual(ben._id.toString());
+    });
+
+    test('Get Me When Logged In', async function() {
+        let ben = await dao.create({ username: "Ben", email: "ben@example.com" });
+        let req = { session: { userId: ben._id.toString() } };
+
+        await controller.getMe(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(res.send).toHaveBeenCalledWith({ loggedIn: true, username: "Ben", email: "ben@example.com" });
+    });
+
+    test('Get Me When Not Logged In', async function() {
+        let req = { session: {} };
+
+        await controller.getMe(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(401);
+        expect(res.send).toHaveBeenCalledWith({ loggedIn: false });
+    });
+
+    test('Get Me With No Session At All', async function() {
+        let req = {};
+
+        await controller.getMe(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(401);
+    });
+
+    test('Get Me When The Account Was Deleted', async function() {
+        let ben = await dao.create({ username: "Ben" });
+        let req = { session: { userId: ben._id.toString() } };
+        await dao.deleteAll("test");
+
+        await controller.getMe(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(401);
+    });
+
+    test('Get Me Shows No Email When There Is None', async function() {
+        let ben = await dao.create({ username: "Ben" });
+        let req = { session: { userId: ben._id.toString() } };
+
+        await controller.getMe(req, res);
+
+        expect(res.send).toHaveBeenCalledWith({ loggedIn: true, username: "Ben", email: null });
+    });
+});

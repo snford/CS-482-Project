@@ -16,7 +16,37 @@ exports.postLogin = async function(req, res) {
         user = await dao.create({ username: uname });
     }
 
+    // TT-03: remember who is logged in
+    if (req.session) {
+        req.session.userId = user._id.toString();
+    }
+
     res.redirect('home.html?username=' + encodeURIComponent(user.username));
+};
+
+// TT-03: tells the page who is logged in (401 if nobody is)
+exports.getMe = async function(req, res) {
+    let userId = req.session ? req.session.userId : null;
+
+    let user = null;
+    if (userId) {
+        user = await dao.readById(userId);
+    }
+
+    if (user == null) {
+        res.status(401);
+        res.send({ loggedIn: false });
+        res.end();
+        return;
+    }
+
+    res.status(200);
+    res.send({
+        loggedIn: true,
+        username: user.username,
+        email: user.email || null
+    });
+    res.end();
 };
 
 exports.getUser = async function(req, res) {

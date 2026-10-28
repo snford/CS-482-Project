@@ -3,6 +3,11 @@ const mongoose = require("mongoose");
 const userSchema = mongoose.Schema({
     username: { type: String, required: true, unique: true },
 
+    // TT-03: Google account this user signs in with (unique, but older
+    // accounts may not have one yet, hence sparse)
+    googleId: { type: String, unique: true, sparse: true },
+    email: { type: String },
+
     friends: { type: [String], default: [] },
     friendRequests: { type: [String], default: [] },
 
@@ -13,6 +18,15 @@ const userSchema = mongoose.Schema({
 });
 
 const userModel = mongoose.model('user', userSchema);
+
+// TT-03: read a user by their database id (what the login session stores)
+exports.readById = async function(id) {
+    if (!mongoose.isValidObjectId(id)) {
+        return null;
+    }
+    const user = await userModel.findById(id);
+    return user;
+}
 
 exports.readByUsername = async function(username) {
     const user = await userModel.findOne({ username: username });

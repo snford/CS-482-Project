@@ -77,3 +77,35 @@ test('Delete All Only Works For Test', async function() {
 
     expect(found).not.toBeNull();
 });
+
+test('Read User By Id', async function() {
+    let ben = await dao.create({ username: "Ben" });
+
+    let found = await dao.readById(ben._id.toString());
+
+    expect(found.username).toEqual("Ben");
+});
+
+test('Read User By An Invalid Id', async function() {
+    let found = await dao.readById("not-a-real-id");
+
+    expect(found).toBeNull();
+});
+
+test('Save Google Account Information', async function() {
+    await dao.create({ username: "Ben", googleId: "google-123", email: "ben@example.com" });
+
+    let found = await dao.readByUsername("Ben");
+
+    expect(found.googleId).toEqual("google-123");
+    expect(found.email).toEqual("ben@example.com");
+});
+
+test('Many Users Without A Google Account Are Allowed', async function() {
+    await dao.create({ username: "Ben" });
+    await dao.create({ username: "Dennis" });
+
+    let dennis = await dao.readByUsername("Dennis");
+
+    expect(dennis).not.toBeNull();
+});
