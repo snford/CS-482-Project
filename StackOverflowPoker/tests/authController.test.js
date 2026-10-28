@@ -121,7 +121,16 @@ describe("TT-03 Finish Google Login", function() {
 
         expect(req.session.regenerate).toHaveBeenCalled();
         expect(req.session.userId).toEqual(user._id.toString());
-        expect(res.redirect).toHaveBeenCalledWith('/home.html');
+        expect(res.redirect).toHaveBeenCalledWith('/choosename.html');
+    });
+
+    test('Returning Player With A Name Goes Home', async function() {
+        let user = await dao.create({ username: "Ben", googleId: "g-9" });
+        let req = { session: fakeSession(false, false) };
+
+        auth.finishGoogleLogin(req, res, user);
+
+        expect(res.redirect).toHaveBeenCalledWith('/home.html?username=Ben');
     });
 
     test('Login Fails If A New Session Cannot Be Made', async function() {

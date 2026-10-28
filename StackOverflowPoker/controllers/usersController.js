@@ -24,6 +24,107 @@ exports.postLogin = async function(req, res) {
     res.redirect('home.html?username=' + encodeURIComponent(user.username));
 };
 
+// TT-03: rules for a poker name. Returns an error message, or null if it's fine.
+const RESERVED_NAMES = ["guest", "admin", "bot", "dealer", "system"];
+
+function checkPokerName(name) {
+    if (name.length < 3 || name.length > 20) {
+        return "Poker names must be 3 to 20 characters long.";
+    }
+    if (!/^[A-Za-z0-9 _-]+$/.test(name)) {
+        return "Use only letters, numbers, spaces, _ and -.";
+    }
+    if (/\s{2,}/.test(name)) {
+        return "Don't use more than one space in a row.";
+    }
+    if (RESERVED_NAMES.includes(name.toLowerCase())) {
+        return "That name is reserved. Please pick another one.";
+    }
+    return null;
+}
+
+exports.checkPokerName = checkPokerName;
+
+// TT-03: lets the choose-name page check a name while the player types
+exports.getUsernameAvailable = async function(req, res) {
+    let name = String(req.query.name || "").trim();
+
+    let problem = checkPokerName(name);
+    if (problem != null) {
+        res.status(200);
+        res.send({ available: false, message: problem });
+        res.end();
+        return;
+    }
+
+    let existing = await dao.readByUsernameIgnoreCase(name);
+    res.status(200);
+    if (existing != null) {
+        res.send({ available: false, message: "That name is already taken." });
+    } else {
+        res.send({ available: true, message: "That name is available!" });
+    }
+    res.end();
+};
+
+// TT-03: saves the poker name a new player picked after their first Google login
+exports.postChooseUsername = async function(req, res) {
+    let userId = req.session ? req.session.userId : null;
+    let user = userId ? await dao.readById(userId) : null;
+
+    if (user == null) {
+        res.status(401);
+        res.send({ msg: "Please sign in first." });
+        res.end();
+        return;
+    }
+
+    if (!user.needsUsername) {
+        res.status(409);
+        res.send({ msg: "You already have a poker name." });
+        res.end();
+        return;
+    }
+
+    let name = String((req.body && req.body.username) || "").trim();
+    let problem = checkPokerName(name);
+    if (problem != null) {
+        res.status(400);
+        res.send({ msg: problem });
+        res.end();
+        return;
+    }
+
+    if (await dao.readByUsernameIgnoreCase(name) != null) {
+        res.status(409);
+        res.send({ msg: "That name is already taken." });
+        res.end();
+        return;
+    }
+
+    try {
+        let updated = await dao.setUsername(user._id, name);
+        if (updated == null) {
+            res.status(409);
+            res.send({ msg: "You already have a poker name." });
+            res.end();
+            return;
+        }
+        res.status(200);
+        res.send({ ok: true, username: updated.username });
+        res.end();
+    } catch (error) {
+        // Two players grabbed the same name at the same moment
+        if (error && error.code === 11000) {
+            res.status(409);
+            res.send({ msg: "That name is already taken." });
+            res.end();
+            return;
+        }
+        throw error;
+    }
+};
+
 // TT-03: tells the page who is logged in (401 if nobody is)
 exports.getMe = async function(req, res) {
     let userId = req.session ? req.session.userId : null;

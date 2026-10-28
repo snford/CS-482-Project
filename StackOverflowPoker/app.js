@@ -94,6 +94,10 @@ app.get('/auth/google/callback', requireGoogleSetup, function(req, res, next) {
 
 app.post('/logout', authController.postLogout);
 
+// TT-03: new players pick a poker name after their first Google login
+app.get('/api/username-available', controller.getUsernameAvailable);
+app.post('/api/me/username', controller.postChooseUsername);
+
 app.post('/login', controller.postLogin);
 app.get('/users/:username', controller.getUser);
 app.post('/addfriend', controller.postAddFriend);

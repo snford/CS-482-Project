@@ -50,6 +50,29 @@ exports.syncIndexes = async function() {
     }
 }
 
+// TT-03: find a user by name ignoring capitals ("ben" finds "Ben"),
+// so two players can't pick names that only differ by capitals
+exports.readByUsernameIgnoreCase = async function(username) {
+    if (!username) {
+        return null;
+    }
+    // Escape regex symbols so the name is matched literally
+    const escaped = username.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const user = await userModel.findOne({ username: { $regex: "^" + escaped + "$", $options: "i" } });
+    return user;
+}
+
+// TT-03: save the poker name a new player picked. Only works once, while the
+// account still needs a name. Returns null if there was nothing to update.
+exports.setUsername = async function(id, username) {
+    const updated = await userModel.findOneAndUpdate(
+        { _id: id, needsUsername: true },
+        { username: username, needsUsername: false },
+        { new: true }
+    );
+    return updated;
+}
+
 exports.readByUsername = async function(username) {
     // Without this, a missing name would match any user
     if (!username) {

@@ -6,6 +6,7 @@ let res = null;
 
 beforeAll(async function() {
     await dbcon.connect("test");
+    await dao.syncIndexes();
     await dao.deleteAll("test");
 });
 
@@ -363,5 +364,169 @@ describe("TT-03 Get Me For New Google Players", function() {
         await controller.getMe(req, res);
 
         expect(res.send).toHaveBeenCalledWith({ loggedIn: true, username: null, email: "new@example.com", needsUsername: true });
+    });
+});
+
+describe("TT-03 Poker Name Rules", function() {
+
+    test('A Normal Name Is Fine', function() {
+        expect(controller.checkPokerName("Big Al_99")).toBeNull();
+    });
+
+    test('Too Short Or Too Long', function() {
+        expect(controller.checkPokerName("ab")).not.toBeNull();
+        expect(controller.checkPokerName("a".repeat(21))).not.toBeNull();
+    });
+
+    test('Symbols Are Not Allowed', function() {
+        expect(controller.checkPokerName("bad!name")).not.toBeNull();
+    });
+
+    test('Double Spaces Are Not Allowed', function() {
+        expect(controller.checkPokerName("Big  Al")).not.toBeNull();
+    });
+
+    test('Reserved Names Are Not Allowed', function() {
+        expect(controller.checkPokerName("Admin")).not.toBeNull();
+    });
+});
+
+describe("TT-03 Check If A Name Is Available", function() {
+
+    test('Free Name Is Available', async function() {
+        let req = { query: { name: "AceOfStacks" } };
+
+        await controller.getUsernameAvailable(req, res);
+
+        expect(res.send).toHaveBeenCalledWith({ available: true, message: "That name is available!" });
+    });
+
+    test('Taken Name With Different Capitals Is Not Available', async function() {
+        await dao.create({ username: "Ben" });
+        let req = { query: { name: "bEN" } };
+
+        await controller.getUsernameAvailable(req, res);
+
+        expect(res.send).toHaveBeenCalledWith({ available: false, message: "That name is already taken." });
+    });
+
+    test('Invalid Name Is Not Available', async function() {
+        let req = { query: { name: "x" } };
+
+        await controller.getUsernameAvailable(req, res);
+
+        expect(res.send.mock.calls[0][0].available).toBe(false);
+    });
+
+    test('No Name Given', async function() {
+        let req = { query: {} };
+
+        await controller.getUsernameAvailable(req, res);
+
+        expect(res.send.mock.calls[0][0].available).toBe(false);
+    });
+});
+
+describe("TT-03 Choose A Poker Name", function() {
+
+    async function newGooglePlayer() {
+        return await dao.create({ googleId: "g-new", email: "new@example.com", needsUsername: true });
+    }
+
+    test('New Player Saves Their Name', async function() {
+        let user = await newGooglePlayer();
+        let req = { session: { userId: user._id.toString() }, body: { username: "  AceOfStacks " } };
+
+        await controller.postChooseUsername(req, res);
+        let saved = await dao.readById(user._id.toString());
+
+        expect(res.status).toHaveBeenCalledWith(200);
+        expect(saved.username).toEqual("AceOfStacks");
+        expect(saved.needsUsername).toBe(false);
+    });
+
+    test('Choosing A Name When Not Signed In', async function() {
+        let req = { body: { username: "AceOfStacks" } };
+
+        await controller.postChooseUsername(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(401);
+    });
+
+    test('Choosing A Name For A Deleted Account', async function() {
+        let user = await newGooglePlayer();
+        let req = { session: { userId: user._id.toString() }, body: { username: "AceOfStacks" } };
+        await dao.deleteAll("test");
+
+        await controller.postChooseUsername(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(401);
+    });
+
+    test('Player Who Already Has A Name Cannot Change It', async function() {
+        let user = await dao.create({ username: "Ben", googleId: "g-1" });
+        let req = { session: { userId: user._id.toString() }, body: { username: "NewName" } };
+
+        await controller.postChooseUsername(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(409);
+    });
+
+    test('Invalid Name Is Rejected', async function() {
+        let user = await newGooglePlayer();
+        let req = { session: { userId: user._id.toString() }, body: { username: "no!" } };
+
+        await controller.postChooseUsername(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+    });
+
+    test('Missing Name Is Rejected', async function() {
+        let user = await newGooglePlayer();
+        let req = { session: { userId: user._id.toString() } };
+
+        await controller.postChooseUsername(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+    });
+
+    test('Name Taken With Different Capitals Is Rejected', async function() {
+        await dao.create({ username: "Ben" });
+        let user = await newGooglePlayer();
+        let req = { session: { userId: user._id.toString() }, body: { username: "BEN" } };
+
+        await controller.postChooseUsername(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(409);
+    });
+
+    test('Two Players Grabbing The Same Name At Once', async function() {
+        await dao.create({ username: "Ben" });
+        let user = await newGooglePlayer();
+        let req = { session: { userId: user._id.toString() }, body: { username: "Ben" } };
+        // Pretend the name looked free, like when two players submit at the same moment
+        jest.spyOn(dao, "readByUsernameIgnoreCase").mockResolvedValueOnce(null);
+
+        await controller.postChooseUsername(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(409);
+    });
+
+    test('Name Already Set By Another Tab', async function() {
+        let user = await newGooglePlayer();
+        let req = { session: { userId: user._id.toString() }, body: { username: "AceOfStacks" } };
+        jest.spyOn(dao, "setUsername").mockResolvedValueOnce(null);
+
+        await controller.postChooseUsername(req, res);
+
+        expect(res.status).toHaveBeenCalledWith(409);
+    });
+
+    test('Unexpected Database Errors Are Not Hidden', async function() {
+        let user = await newGooglePlayer();
+        let req = { session: { userId: user._id.toString() }, body: { username: "AceOfStacks" } };
+        jest.spyOn(dao, "setUsername").mockRejectedValueOnce(new Error("database down"));
+
+        await expect(controller.postChooseUsername(req, res)).rejects.toThrow("database down");
     });
 });

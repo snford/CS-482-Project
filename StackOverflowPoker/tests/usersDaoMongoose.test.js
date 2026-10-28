@@ -150,3 +150,36 @@ test('Leaderboard Skips Players Without A Poker Name', async function() {
     expect(leaderboard.length).toBe(1);
     expect(leaderboard[0].username).toEqual("Ben");
 });
+
+test('Find A Name Ignoring Capitals', async function() {
+    await dao.create({ username: "Ben" });
+
+    let found = await dao.readByUsernameIgnoreCase("bEN");
+
+    expect(found.username).toEqual("Ben");
+});
+
+test('Name Search Treats Symbols Literally', async function() {
+    await dao.create({ username: "abc" });
+
+    let found = await dao.readByUsernameIgnoreCase("a.c");
+
+    expect(found).toBeNull();
+});
+
+test('Name Search With No Name', async function() {
+    let found = await dao.readByUsernameIgnoreCase("");
+
+    expect(found).toBeNull();
+});
+
+test('A Poker Name Can Only Be Set Once', async function() {
+    await dao.syncIndexes();
+    let user = await dao.create({ googleId: "g-1", needsUsername: true });
+
+    let first = await dao.setUsername(user._id, "AceOfStacks");
+    let second = await dao.setUsername(user._id, "OtherName");
+
+    expect(first.username).toEqual("AceOfStacks");
+    expect(second).toBeNull();
+});

@@ -54,7 +54,11 @@ exports.finishGoogleLogin = function(req, res, user) {
                 res.redirect('/index.html?login=failed');
                 return;
             }
-            res.redirect('/home.html');
+            if (user.needsUsername) {
+                res.redirect('/choosename.html');
+            } else {
+                res.redirect('/home.html?username=' + encodeURIComponent(user.username));
+            }
         });
     });
 };
