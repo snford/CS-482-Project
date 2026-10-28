@@ -162,7 +162,7 @@
                     <span class="eyebrow"><i class="bi bi-suit-heart-fill"></i>Free chips. No real money.</span>
                     <h1 class="welcome-title">
                         Seven-Card Stud,<br>
-                        <span class="text-gradient">stacked to overflow.</span>
+                        <span class="text-gradient">Stack Overflow.</span>
                     </h1>
                     <p class="welcome-lead">
                         Grab a seat at a public table, start a private game with friends,
@@ -184,26 +184,21 @@
                             <h2 class="h3 mb-1">Welcome to the table</h2>
                             <p class="text-secondary mb-4">Sign in to keep your chips, friends, and stats.</p>
 
-                            <form action="/login" method="post" class="text-start">
-                                <label class="form-label" for="txt_username">Username</label>
-                                <div class="input-icon mb-3">
-                                    <i class="bi bi-person"></i>
-                                    <input type="text" id="txt_username" name="txt_username" class="form-control form-control-lg"
-                                           placeholder="Choose a username" autocomplete="username" maxlength="30" required autofocus>
-                                </div>
-                                <button type="submit" class="btn btn-primary btn-lg google-btn">
-                                    <i class="bi bi-google"></i>Sign in with Google
-                                </button>
-                                <p class="form-hint text-center mb-0">
-                                    Google sign-in is coming soon. For now, new usernames create an account automatically.
-                                </p>
-                            </form>
+                            <a href="/auth/google" class="btn btn-primary btn-lg google-btn">
+                                <i class="bi bi-google"></i>Sign in with Google
+                            </a>
+                            <p class="form-hint text-center mb-0">
+                                New here? You'll pick your poker name after signing in.
+                            </p>
 
                             <div class="divider">or</div>
 
-                            <a href="/lobby.html" class="btn btn-light-soft google-btn">
-                                <i class="bi bi-controller"></i>Play as Guest
-                            </a>
+                            <!-- Guests get a temporary name in their session (POST so it can't be triggered by a link) -->
+                            <form action="/guest" method="post">
+                                <button type="submit" class="btn btn-light-soft google-btn">
+                                    <i class="bi bi-controller"></i>Play as Guest
+                                </button>
+                            </form>
                             <p class="form-hint mb-0">Guests don't keep chips or stats.</p>
                         </div>
 
@@ -226,5 +221,16 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Google sent the player back without signing in
+        if (new URLSearchParams(window.location.search).get("login") === "failed") {
+            SOP.toast("Google sign-in didn't finish. Please try again.", "error");
+        }
+
+        // Already signed in? Skip this page.
+        SOP.ready.then(function () {
+            if (SOP.user) window.location.replace("/home.html");
+        });
+    </script>
 </body>
 </html>

@@ -14,19 +14,38 @@ exports.getTables = async function(req, res) {
   }
 };
 
+// TT-03: the player joining/leaving is whoever is signed in, or the guest
+function playerName(req) {
+    if (req.user && req.user.username) {
+        return req.user.username;
+    }
+    if (req.session && req.session.guestName) {
+        return req.session.guestName;
+    }
+    return null;
+}
+
+exports.playerName = playerName;
+
 //LT-02: Join Tables
 exports.joinTable = async function(req, res) {
     const tableId = req.body.tableId;
-    const username = req.body.username;
+    const username = playerName(req);
 
-    if (typeof tableId !== "string" || !mongoose.isValidObjectId(tableId) || typeof username !== "string" || !username.trim()) {
+    if (!username) {
+        return res.status(401).json({
+            msg: "Sign in or play as a guest to join a table."
+        });
+    }
+
+    if (typeof tableId !== "string" || !mongoose.isValidObjectId(tableId)) {
         return res.status(400).json({
             msg: "Invalid table or username"
         });
     }
 
     try {
-        const table = await dao.joinTable(tableId, username.trim());
+        const table = await dao.joinTable(tableId, username);
 
         if (!table) {
             return res.status(400).json({
@@ -36,7 +55,8 @@ exports.joinTable = async function(req, res) {
 
         return res.status(200).json({
             msg: "Joined table successfully",
-            table: table
+            table: table,
+            username: username
         });
 
     } catch (error) {
@@ -82,7 +102,7 @@ exports.createTable = async function(req, res) {
 
 exports.leaveTable = async function(req, res) {
     const tableId = req.body.tableId;
-    const username = req.body.username;
+    const username = playerName(req);
     if (!tableId || !username) {
         return res.status(400).json({
             msg: "Table ID and username are required"

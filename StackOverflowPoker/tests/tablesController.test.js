@@ -8,12 +8,22 @@ jest.mock("../dao/TablesDaoMongoose", () => ({
     readAll: jest.fn(),
     joinTable: jest.fn(),
     createTable: jest.fn(),
-    readById: jest.fn()
+    readById: jest.fn(),
+    leaveTable: jest.fn()
 }));
 const dao = require("../dao/TablesDaoMongoose");
 const controller = require("../controllers/tablesController");
 
 const tableId = "507f1f77bcf86cd799439011";
+
+// TT-03: the player comes from the login session, not from the request body
+function asPlayer(name, body) {
+    return { user: { username: name }, session: {}, body: body };
+}
+
+function asGuest(guestName, body) {
+    return { user: null, session: { guestName: guestName }, body: body };
+}
 
 function makeResponse() {
     return {
@@ -65,31 +75,51 @@ test("LT-02: Join a table", async function() {
     dao.joinTable.mockResolvedValue(table);
     const res = makeResponse();
 
-    await controller.joinTable({ body: { tableId, username: "  Dennis  " } }, res);
+    await controller.joinTable(asPlayer("Dennis", { tableId }), res);
 
     expect(dao.joinTable).toHaveBeenCalledWith(tableId, "Dennis");
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith({
         msg: "Joined table successfully",
-        table: table
+        table: table,
+        username: "Dennis"
     });
+});
+
+test("TT-03: A guest joins with their guest name", async function() {
+    dao.joinTable.mockResolvedValue({ _id: tableId, players: ["Guest-1234"] });
+    const res = makeResponse();
+
+    await controller.joinTable(asGuest("Guest-1234", { tableId }), res);
+
+    expect(dao.joinTable).toHaveBeenCalledWith(tableId, "Guest-1234");
+    expect(res.status).toHaveBeenCalledWith(200);
+});
+
+test("TT-03: Username in the body is ignored", async function() {
+    dao.joinTable.mockResolvedValue({ _id: tableId, players: ["Dennis"] });
+    const res = makeResponse();
+
+    await controller.joinTable(asPlayer("Dennis", { tableId, username: "Shane" }), res);
+
+    expect(dao.joinTable).toHaveBeenCalledWith(tableId, "Dennis");
 });
 
 test("LT-02: Invalid table ID", async function() {
     const res = makeResponse();
 
-    await controller.joinTable({ body: { tableId: "wrong", username: "Dennis" } }, res);
+    await controller.joinTable(asPlayer("Dennis", { tableId: "wrong" }), res);
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(dao.joinTable).not.toHaveBeenCalled();
 });
 
-test("LT-02: Missing username", async function() {
+test("TT-03: Not signed in and not a guest", async function() {
     const res = makeResponse();
 
-    await controller.joinTable({ body: { tableId, username: "   " } }, res);
+    await controller.joinTable({ session: {}, body: { tableId, username: "Dennis" } }, res);
 
-    expect(res.status).toHaveBeenCalledWith(400);
+    expect(res.status).toHaveBeenCalledWith(401);
     expect(dao.joinTable).not.toHaveBeenCalled();
 });
 
@@ -97,7 +127,7 @@ test("LT-02: Cannot join table", async function() {
     dao.joinTable.mockResolvedValue(null);
     const res = makeResponse();
 
-    await controller.joinTable({ body: { tableId, username: "Dennis" } }, res);
+    await controller.joinTable(asPlayer("Dennis", { tableId }), res);
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith({ msg: "Unable to join table" });
@@ -107,7 +137,7 @@ test("LT-02: Database error while joining", async function() {
     dao.joinTable.mockRejectedValue(new Error("Database error"));
     const res = makeResponse();
 
-    await controller.joinTable({ body: { tableId, username: "Dennis" } }, res);
+    await controller.joinTable(asPlayer("Dennis", { tableId }), res);
 
     expect(res.status).toHaveBeenCalledWith(500);
     expect(res.json).toHaveBeenCalledWith({ msg: "Error joining table" });
@@ -261,4 +291,32 @@ test("LT-03: Table not found", async function() {
     await controller.getTable({ params: { tableId } }, res);
 
     expect(res.status).toHaveBeenCalledWith(404);
+});
+
+test("TT-03: Leave a table as the signed-in player", async function() {
+    dao.leaveTable.mockResolvedValue({ _id: tableId, players: [] });
+    const res = makeResponse();
+
+    await controller.leaveTable(asPlayer("Dennis", { tableId, username: "Shane" }), res);
+
+    expect(dao.leaveTable).toHaveBeenCalledWith(tableId, "Dennis");
+    expect(res.status).toHaveBeenCalledWith(200);
+});
+
+test("TT-03: Leave a table when not signed in", async function() {
+    const res = makeResponse();
+
+    await controller.leaveTable({ session: {}, body: { tableId } }, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(dao.leaveTable).not.toHaveBeenCalled();
+});
+
+test("TT-03: Database error while leaving", async function() {
+    dao.leaveTable.mockRejectedValue(new Error("Database error"));
+    const res = makeResponse();
+
+    await controller.leaveTable(asGuest("Guest-1234", { tableId }), res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
 });

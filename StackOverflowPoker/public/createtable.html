@@ -122,10 +122,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-    for (const id of ["backToLobby", "cancelLink"]) {
-        document.getElementById(id).href = SOP.withUser("/lobby.html");
-    }
-
     // Segmented option buttons (one selected per group)
     function setupGroup(selector) {
         const buttons = document.querySelectorAll(selector + " .option-button");
@@ -224,7 +220,6 @@
 
             if (response.ok) {
                 if (result.table && result.table._id) {
-                    sessionStorage.removeItem("currentUsername");
                     sessionStorage.setItem("currentTableId", result.table._id);
 
                     window.location.href = "/table.html?tableId=" +

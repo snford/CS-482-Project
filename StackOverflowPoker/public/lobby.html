@@ -181,35 +181,29 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    document.getElementById("createTableLink").href = SOP.withUser("/createtable.html");
-
     let allTables = [];
     let activeFilter = "all";
     const suits = ["♠", "♥", "♣", "♦"];
 
-    // Uses the signed-in player; guests are asked for a name.
-    function getPlayerName() {
-        if (SOP.user) return SOP.user;
-        const name = prompt("Enter your username:");
-        return name && name.trim() ? name.trim() : null;
-    }
-
     // LT-02: join a table (public or private) and open the table screen.
+    // The server knows who we are from the login cookie (signed in or guest).
     async function joinTable(tableId) {
-        const username = getPlayerName();
-        if (!username) return;
-
         try {
             const response = await fetch("/api/tables/join", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ tableId: tableId, username: username })
+                body: JSON.stringify({ tableId: tableId })
             });
             const result = await response.json();
 
+            if (response.status === 401) {
+                SOP.toast(result.msg || "Sign in or play as a guest first.", "error");
+                setTimeout(function () { window.location.href = "/index.html"; }, 1200);
+                return;
+            }
+
             if (response.ok) {
                 sessionStorage.setItem("currentTableId", tableId);
-                sessionStorage.setItem("currentUsername", username);
                 SOP.toast(result.msg || "Joined table", "success");
                 window.location.href = "/table.html?tableId=" + encodeURIComponent(tableId);
             } else {

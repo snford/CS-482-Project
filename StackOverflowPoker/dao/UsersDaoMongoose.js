@@ -1,7 +1,15 @@
 const mongoose = require("mongoose");
 
 const userSchema = mongoose.Schema({
-    username: { type: String, required: true, unique: true },
+    // Poker name everyone sees. New Google accounts don't have one until they
+    // pick it (needsUsername), so it is unique but not required (sparse).
+    username: { type: String, unique: true, sparse: true },
+    needsUsername: { type: Boolean, default: false },
+
+    // TT-03: Google account this user signs in with (unique, but older
+    // accounts may not have one yet, hence sparse)
+    googleId: { type: String, unique: true, sparse: true },
+    email: { type: String },
 
     friends: { type: [String], default: [] },
     friendRequests: { type: [String], default: [] },
@@ -14,7 +22,62 @@ const userSchema = mongoose.Schema({
 
 const userModel = mongoose.model('user', userSchema);
 
+// TT-03: read a user by their database id (what the login session stores)
+exports.readById = async function(id) {
+    if (!mongoose.isValidObjectId(id)) {
+        return null;
+    }
+    const user = await userModel.findById(id);
+    return user;
+}
+
+// TT-03: find the account that belongs to a Google login
+exports.readByGoogleId = async function(googleId) {
+    if (!googleId) {
+        return null;
+    }
+    const user = await userModel.findOne({ googleId: googleId });
+    return user;
+}
+
+// TT-03: update the database indexes to match the schema (the username index
+// changed to allow accounts that haven't picked a name yet)
+exports.syncIndexes = async function() {
+    try {
+        await userModel.syncIndexes();
+    } catch (error) {
+        console.log("Could not update user indexes: " + error.message);
+    }
+}
+
+// TT-03: find a user by name ignoring capitals ("ben" finds "Ben"),
+// so two players can't pick names that only differ by capitals
+exports.readByUsernameIgnoreCase = async function(username) {
+    if (!username) {
+        return null;
+    }
+    // Escape regex symbols so the name is matched literally
+    const escaped = username.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const user = await userModel.findOne({ username: { $regex: "^" + escaped + "$", $options: "i" } });
+    return user;
+}
+
+// TT-03: save the poker name a new player picked. Only works once, while the
+// account still needs a name. Returns null if there was nothing to update.
+exports.setUsername = async function(id, username) {
+    const updated = await userModel.findOneAndUpdate(
+        { _id: id, needsUsername: true },
+        { username: username, needsUsername: false },
+        { new: true }
+    );
+    return updated;
+}
+
 exports.readByUsername = async function(username) {
+    // Without this, a missing name would match any user
+    if (!username) {
+        return null;
+    }
     const user = await userModel.findOne({ username: username });
     return user;
 }
@@ -60,6 +123,10 @@ exports.getLeaderboard = async function() {
 
     // Get players from MongoDB, sorted by wins
     const players = await userModel.aggregate([
+        {
+            // TT-03: skip accounts that haven't picked a poker name yet
+            $match: { username: { $type: "string" } }
+        },
         {
             $project: {
                 username: 1,

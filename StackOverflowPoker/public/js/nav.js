@@ -2,37 +2,27 @@
  * Shared navigation for every page.
  *
  * - Draws the purple top bar into <div id="siteNav"></div>.
- * - Remembers the logged-in username (from ?username=... after login) in
- *   sessionStorage, so it is no longer lost when moving between pages.
- * - Adds ?username= to every nav link and exposes small helpers on window.SOP.
+ * - Asks the server who is signed in (GET /api/me, using the login cookie).
+ *   Pages wait for that with SOP.ready before using SOP.user.
+ * - Exposes small helpers on window.SOP.
  *
  * Usage on a page:
  *   <div id="siteNav"></div>                      main site nav
  *   <div id="siteNav" data-variant="admin"></div> admin nav
  *   <div id="siteNav" data-variant="minimal"></div> logo only (sign-in page)
  *   <script src="js/nav.js"></script>              right after the div
+ *
+ *   SOP.ready.then(function () {
+ *       SOP.user       // poker name of the signed-in player, or null
+ *       SOP.guestName  // "Guest-1234" when playing as a guest, or null
+ *       SOP.me         // full /api/me answer (friends, friendRequests, ...) or null
+ *   });
  */
 (function () {
-    const USER_KEY = "sopUser";
-
-    // ---- Logged-in user ----------------------------------------------------
-    const params = new URLSearchParams(window.location.search);
-    let user = params.get("username");
-
-    try {
-        if (user) {
-            sessionStorage.setItem(USER_KEY, user);
-        } else {
-            user = sessionStorage.getItem(USER_KEY);
-        }
-    } catch (error) {
-        // Storage can be blocked (private mode); the URL value still works.
-    }
-
+    // Links used to carry ?username=. The login cookie does that job now,
+    // so this just returns the link unchanged (kept so old calls still work).
     function withUser(href) {
-        if (!user) return href;
-        const joiner = href.includes("?") ? "&" : "?";
-        return href + joiner + "username=" + encodeURIComponent(user);
+        return href;
     }
 
     function escapeHtml(text) {
@@ -79,16 +69,53 @@
         }, 3800);
     }
 
+    // Logging out has to happen on the server (it ends the session), so post a form.
     function logOut() {
-        try {
-            sessionStorage.removeItem(USER_KEY);
-            sessionStorage.removeItem("currentUsername");
-        } catch (error) { /* ignore */ }
-        window.location.href = "/index.html";
+        const form = document.createElement("form");
+        form.method = "post";
+        form.action = "/logout";
+        document.body.appendChild(form);
+        form.submit();
     }
 
+    // Send people who aren't signed in back to the sign-in page.
+    function requireUser() {
+        if (!SOP.user) {
+            window.location.replace("/index.html");
+            return false;
+        }
+        return true;
+    }
+
+    const path = window.location.pathname.toLowerCase();
+    const page = path.startsWith("/table/") ? "table.html" : (path.split("/").pop() || "index.html");
+
+    // ---- Who is signed in? -------------------------------------------------
+    const ready = fetch("/api/me", { headers: { Accept: "application/json" }, cache: "no-store" })
+        .then(function (response) { return response.json(); })
+        .catch(function () { return { loggedIn: false }; })
+        .then(function (me) {
+            if (me && me.loggedIn) {
+                // Signed in with Google but no poker name yet: finish that first
+                if (me.needsUsername && page !== "choosename.html") {
+                    window.location.replace("/choosename.html");
+                    return new Promise(function () {}); // never continue on this page
+                }
+                SOP.me = me;
+                SOP.user = me.username || null;
+            } else {
+                SOP.guestName = (me && me.guestName) || null;
+            }
+            drawRight();
+            return SOP;
+        });
+
     window.SOP = {
-        user: user,
+        ready: ready,
+        me: null,
+        user: null,
+        guestName: null,
+        requireUser: requireUser,
         withUser: withUser,
         escapeHtml: escapeHtml,
         avatarHtml: avatarHtml,
@@ -99,11 +126,7 @@
 
     // ---- Draw the nav --------------------------------------------------------
     const mount = document.getElementById("siteNav");
-    if (!mount) return;
-
-    const variant = mount.getAttribute("data-variant") || "main";
-    const path = window.location.pathname.toLowerCase();
-    const page = path.startsWith("/table/") ? "table.html" : (path.split("/").pop() || "index.html");
+    const variant = mount ? (mount.getAttribute("data-variant") || "main") : "main";
 
     const mainLinks = [
         { id: "lobbyLink", href: "/lobby.html", label: "Lobby", icon: "bi-suit-spade-fill", pages: ["lobby.html", "createtable.html", "table.html"] },
@@ -120,43 +143,64 @@
     ];
 
     const links = variant === "admin" ? adminLinks : variant === "minimal" ? [] : mainLinks;
-    const homeHref = user ? withUser("/home.html") : "/index.html";
+
+    // The right side (user chip / sign in) is filled in once /api/me answers
+    function drawRight() {
+        const right = document.getElementById("siteNavRight");
+        if (!right) return;
+
+        const home = document.getElementById("homeLink");
+        if (home) home.href = SOP.user ? "/home.html" : "/index.html";
+
+        const logoutButtonHtml =
+            '<button type="button" class="nav-icon-btn" id="logoutButton" title="Log out" aria-label="Log out">' +
+            '<i class="bi bi-box-arrow-right"></i></button>';
+
+        if (SOP.user) {
+            right.innerHTML =
+                '<div class="d-flex align-items-center gap-2 mt-3 mt-lg-0">' +
+                '<a class="user-chip" href="/profile.html" title="Your profile">' +
+                avatarHtml(SOP.user, "avatar-sm") + '<span class="name">' + escapeHtml(SOP.user) + "</span></a>" +
+                logoutButtonHtml + "</div>";
+        } else if (SOP.guestName) {
+            right.innerHTML =
+                '<div class="d-flex align-items-center gap-2 mt-3 mt-lg-0">' +
+                '<span class="user-chip" title="Playing as a guest">' +
+                avatarHtml(SOP.guestName, "avatar-sm") + '<span class="name">' + escapeHtml(SOP.guestName) + "</span></span>" +
+                '<a class="btn btn-sm btn-outline-light-glass" href="/index.html">' +
+                '<i class="bi bi-google"></i>Sign in</a>' +
+                logoutButtonHtml + "</div>";
+        } else {
+            right.innerHTML =
+                '<a class="btn btn-sm btn-outline-light-glass mt-3 mt-lg-0" href="/index.html">' +
+                '<i class="bi bi-person-fill"></i>Sign in</a>';
+        }
+
+        const logoutButton = document.getElementById("logoutButton");
+        if (logoutButton) logoutButton.addEventListener("click", logOut);
+    }
+
+    if (!mount) return;
 
     let linksHtml = "";
     for (const link of links) {
         const active = link.pages.includes(page);
         linksHtml +=
             '<li class="nav-item">' +
-            '<a class="nav-link' + (active ? " active" : "") + '" id="' + link.id + '" href="' + withUser(link.href) + '"' +
+            '<a class="nav-link' + (active ? " active" : "") + '" id="' + link.id + '" href="' + link.href + '"' +
             (active ? ' aria-current="page"' : "") + ">" +
             '<i class="bi ' + link.icon + '" aria-hidden="true"></i>' + link.label +
             "</a></li>";
     }
 
-    let rightHtml = "";
-    if (variant !== "minimal") {
-        if (user) {
-            rightHtml =
-                '<div class="d-flex align-items-center gap-2 mt-3 mt-lg-0">' +
-                '<a class="user-chip" href="' + withUser("/profile.html") + '" title="Your profile">' +
-                avatarHtml(user, "avatar-sm") + '<span class="name">' + escapeHtml(user) + "</span></a>" +
-                '<button type="button" class="nav-icon-btn" id="logoutButton" title="Log out" aria-label="Log out">' +
-                '<i class="bi bi-box-arrow-right"></i></button>' +
-                "</div>";
-        } else {
-            rightHtml =
-                '<a class="btn btn-sm btn-outline-light-glass mt-3 mt-lg-0" href="/index.html">' +
-                '<i class="bi bi-person-fill"></i>Sign in</a>';
-        }
-    }
-
+    const rightHtml = variant !== "minimal" ? '<div id="siteNavRight"></div>' : "";
     const brandSub = variant === "admin" ? "Admin" : "Seven-Card Stud";
 
     mount.outerHTML =
         '<header class="site-nav">' +
         '<nav class="navbar navbar-expand-lg navbar-dark" aria-label="Main navigation">' +
         '<div class="container">' +
-        '<a class="brand-link me-lg-4" id="homeLink" href="' + homeHref + '">' +
+        '<a class="brand-link me-lg-4" id="homeLink" href="/index.html">' +
         '<img class="brand-logo" src="/images/logo.svg" alt="">' +
         '<span class="brand-name">Stack Overflow<small>' + brandSub + "</small></span></a>" +
         (links.length || rightHtml
@@ -169,7 +213,4 @@
               "</div>"
             : "") +
         "</div></nav></header>";
-
-    const logoutButton = document.getElementById("logoutButton");
-    if (logoutButton) logoutButton.addEventListener("click", logOut);
 })();

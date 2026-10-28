@@ -1,6 +1,11 @@
 require('dotenv').config();
 const dbcon = require('./DbConnection');
-dbcon.connect("prod");
+const usersDao = require('./dao/UsersDaoMongoose');
+
+// TT-03: once connected, make the user indexes match the schema
+dbcon.connect("prod").then(function() {
+    return usersDao.syncIndexes();
+});
 
 const ExpApp = require('./app');
 

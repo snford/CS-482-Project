@@ -65,7 +65,6 @@
     <script>
         const reported = new URLSearchParams(window.location.search).get("name");
         if (reported) document.getElementById("reportedName").textContent = reported;
-        document.getElementById("cancelLink").href = SOP.withUser("/friends.html");
 
         const reasonButtons = document.querySelectorAll("#reason-options .option-button");
         reasonButtons.forEach(button => {

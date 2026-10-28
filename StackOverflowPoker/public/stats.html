@@ -157,11 +157,8 @@
 
     <!-- ST-01 JavaScript -->
     <script>
-        // The username comes from the URL, or from the signed-in player (nav.js)
-        let username = SOP.user;
-
-        document.getElementById("backLink").href = SOP.withUser("/home.html");
-        document.getElementById("toLeaderboard").href = SOP.withUser("/leaderboard.html");
+        // The signed-in player (filled in once nav.js asks the server)
+        let username = null;
 
         // Load player statistics from MongoDB through the server
         async function loadStats() {
@@ -212,7 +209,10 @@
             errorBox.classList.remove("d-none");
         }
 
-        loadStats();
+        SOP.ready.then(function () {
+            username = SOP.user;
+            loadStats();
+        });
     </script>
 </body>
 </html>
