@@ -1,7 +1,10 @@
 const mongoose = require("mongoose");
 
 const userSchema = mongoose.Schema({
-    username: { type: String, required: true, unique: true },
+    // Poker name everyone sees. New Google accounts don't have one until they
+    // pick it (needsUsername), so it is unique but not required (sparse).
+    username: { type: String, unique: true, sparse: true },
+    needsUsername: { type: Boolean, default: false },
 
     // TT-03: Google account this user signs in with (unique, but older
     // accounts may not have one yet, hence sparse)
@@ -28,7 +31,30 @@ exports.readById = async function(id) {
     return user;
 }
 
+// TT-03: find the account that belongs to a Google login
+exports.readByGoogleId = async function(googleId) {
+    if (!googleId) {
+        return null;
+    }
+    const user = await userModel.findOne({ googleId: googleId });
+    return user;
+}
+
+// TT-03: update the database indexes to match the schema (the username index
+// changed to allow accounts that haven't picked a name yet)
+exports.syncIndexes = async function() {
+    try {
+        await userModel.syncIndexes();
+    } catch (error) {
+        console.log("Could not update user indexes: " + error.message);
+    }
+}
+
 exports.readByUsername = async function(username) {
+    // Without this, a missing name would match any user
+    if (!username) {
+        return null;
+    }
     const user = await userModel.findOne({ username: username });
     return user;
 }
@@ -74,6 +100,10 @@ exports.getLeaderboard = async function() {
 
     // Get players from MongoDB, sorted by wins
     const players = await userModel.aggregate([
+        {
+            // TT-03: skip accounts that haven't picked a poker name yet
+            $match: { username: { $type: "string" } }
+        },
         {
             $project: {
                 username: 1,

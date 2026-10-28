@@ -109,3 +109,44 @@ test('Many Users Without A Google Account Are Allowed', async function() {
 
     expect(dennis).not.toBeNull();
 });
+
+test('Read User By Google Id', async function() {
+    await dao.create({ username: "Ben", googleId: "g-1" });
+
+    let found = await dao.readByGoogleId("g-1");
+
+    expect(found.username).toEqual("Ben");
+});
+
+test('Read User By A Google Id Nobody Has', async function() {
+    let found = await dao.readByGoogleId("g-unknown");
+
+    expect(found).toBeNull();
+});
+
+test('Read User With No Google Id', async function() {
+    await dao.create({ username: "Ben" });
+
+    let found = await dao.readByGoogleId(undefined);
+
+    expect(found).toBeNull();
+});
+
+test('Read User With No Username Does Not Match Anyone', async function() {
+    await dao.create({ username: "Ben" });
+
+    let found = await dao.readByUsername(undefined);
+
+    expect(found).toBeNull();
+});
+
+test('Leaderboard Skips Players Without A Poker Name', async function() {
+    await dao.syncIndexes();
+    await dao.create({ username: "Ben" });
+    await dao.create({ googleId: "g-1", needsUsername: true });
+
+    let leaderboard = await dao.getLeaderboard();
+
+    expect(leaderboard.length).toBe(1);
+    expect(leaderboard[0].username).toEqual("Ben");
+});

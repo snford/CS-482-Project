@@ -61,6 +61,10 @@ test("ST-02: DAO sorts and limits players", async function() {
 
     expect(mockAggregate).toHaveBeenCalledWith([
         {
+            // TT-03: players who haven't picked a poker name are skipped
+            $match: { username: { $type: "string" } }
+        },
+        {
             $project: {
                 username: 1,
                 wins: { $ifNull: ["$wins", 0] },

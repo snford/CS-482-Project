@@ -314,7 +314,7 @@ describe("TT-03 Login Sessions", function() {
         await controller.getMe(req, res);
 
         expect(res.status).toHaveBeenCalledWith(200);
-        expect(res.send).toHaveBeenCalledWith({ loggedIn: true, username: "Ben", email: "ben@example.com" });
+        expect(res.send).toHaveBeenCalledWith({ loggedIn: true, username: "Ben", email: "ben@example.com", needsUsername: false });
     });
 
     test('Get Me When Not Logged In', async function() {
@@ -350,6 +350,18 @@ describe("TT-03 Login Sessions", function() {
 
         await controller.getMe(req, res);
 
-        expect(res.send).toHaveBeenCalledWith({ loggedIn: true, username: "Ben", email: null });
+        expect(res.send).toHaveBeenCalledWith({ loggedIn: true, username: "Ben", email: null, needsUsername: false });
+    });
+});
+
+describe("TT-03 Get Me For New Google Players", function() {
+
+    test('Get Me Says A Poker Name Is Still Needed', async function() {
+        let user = await dao.create({ googleId: "g-1", email: "new@example.com", needsUsername: true });
+        let req = { session: { userId: user._id.toString() } };
+
+        await controller.getMe(req, res);
+
+        expect(res.send).toHaveBeenCalledWith({ loggedIn: true, username: null, email: "new@example.com", needsUsername: true });
     });
 });

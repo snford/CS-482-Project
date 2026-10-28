@@ -43,8 +43,9 @@ exports.getMe = async function(req, res) {
     res.status(200);
     res.send({
         loggedIn: true,
-        username: user.username,
-        email: user.email || null
+        username: user.username || null,
+        email: user.email || null,
+        needsUsername: user.needsUsername === true
     });
     res.end();
 };
