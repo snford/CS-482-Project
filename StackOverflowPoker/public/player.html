@@ -61,6 +61,14 @@
                         <span class="pill pill-success align-self-center" id="friendsBadge" hidden>
                             <i class="bi bi-check-circle-fill"></i>Friends
                         </span>
+                        <!-- SF-04: Remove friend (only shown if you're friends) -->
+                        <form action="/removefriend" method="post" id="removeFriendForm" hidden>
+                            <input type="hidden" name="txt_user" id="txt_user">
+                            <input type="hidden" name="txt_friend" id="txt_friend">
+                            <button type="submit" class="btn btn-danger-soft">
+                                <i class="bi bi-person-dash-fill"></i>Remove Friend
+                            </button>
+                        </form>
                         <button type="button" class="btn btn-light-soft" disabled title="Messaging is coming soon">
                             <i class="bi bi-chat-dots-fill"></i>Message
                         </button>
@@ -133,6 +141,9 @@
                         if ((user.friends || []).includes(playerName)) {
                             addForm.hidden = true;
                             document.getElementById("friendsBadge").hidden = false;
+                            document.getElementById("txt_user").value = me;
+                            document.getElementById("txt_friend").value = playerName;
+                            document.getElementById("removeFriendForm").hidden = false;
                         } else if ((user.friendRequests || []).includes(playerName)) {
                             document.getElementById("addFriendButton").innerHTML =
                                 '<i class="bi bi-person-check-fill"></i>Accept their request';
@@ -141,6 +152,13 @@
                 } catch (error) { /* ignore */ }
             }
         }
+
+        // SF-04: ask before removing a friend
+        document.getElementById("removeFriendForm").addEventListener("submit", function (event) {
+            if (!confirm("Remove " + playerName + " from your friends? You'll both be removed from each other's lists.")) {
+                event.preventDefault();
+            }
+        });
 
         loadPlayer();
     </script>

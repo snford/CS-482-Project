@@ -239,3 +239,59 @@ describe("SF-03 Accept And Decline", function() {
         expect(res.redirect).toHaveBeenCalledWith('/friends.html?username=Ghost');
     });
 });
+
+describe("SF-04 Remove Friend", function() {
+
+    test('Remove Friend From Both Lists', async function() {
+        await dao.create({ username: "Ben", friends: ["Dennis", "Shane"] });
+        await dao.create({ username: "Dennis", friends: ["Ben"] });
+        let req = { body: { txt_user: "Ben", txt_friend: "Dennis" } };
+
+        await controller.postRemoveFriend(req, res);
+        let ben = await dao.readByUsername("Ben");
+        let dennis = await dao.readByUsername("Dennis");
+
+        expect(ben.friends).toEqual(["Shane"]);
+        expect(dennis.friends.length).toBe(0);
+    });
+
+    test('Remove Friend Goes Back To Friends Page', async function() {
+        await dao.create({ username: "Ben", friends: ["Dennis"] });
+        await dao.create({ username: "Dennis", friends: ["Ben"] });
+        let req = { body: { txt_user: "Ben", txt_friend: "Dennis" } };
+
+        await controller.postRemoveFriend(req, res);
+
+        expect(res.redirect).toHaveBeenCalledWith('/friends.html?username=Ben&removed=Dennis');
+    });
+
+    test('Remove Someone Who Is Not A Friend', async function() {
+        await dao.create({ username: "Ben", friends: ["Shane"] });
+        await dao.create({ username: "Dennis" });
+        let req = { body: { txt_user: "Ben", txt_friend: "Dennis" } };
+
+        await controller.postRemoveFriend(req, res);
+        let ben = await dao.readByUsername("Ben");
+
+        expect(ben.friends).toEqual(["Shane"]);
+        expect(res.redirect).toHaveBeenCalledWith('/friends.html?username=Ben');
+    });
+
+    test('Remove Friend Who Does Not Exist', async function() {
+        await dao.create({ username: "Ben", friends: ["Ghost"] });
+        let req = { body: { txt_user: "Ben", txt_friend: "Ghost" } };
+
+        await controller.postRemoveFriend(req, res);
+        let ben = await dao.readByUsername("Ben");
+
+        expect(ben.friends).toEqual(["Ghost"]);
+    });
+
+    test('Remove Friend When Not Logged In', async function() {
+        let req = { body: {} };
+
+        await controller.postRemoveFriend(req, res);
+
+        expect(res.redirect).toHaveBeenCalledWith('/friends.html?username=');
+    });
+});

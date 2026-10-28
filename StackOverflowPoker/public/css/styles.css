@@ -486,7 +486,8 @@ fieldset:disabled .btn {
 .input-group .btn { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
 .input-group > .form-control,
 .input-group > .input-icon > .form-control { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
-.input-group > .input-icon { flex: 1 1 auto; }
+/* Let an icon input shrink so the button stays on the same line */
+.input-group > .input-icon { flex: 1 1 auto; width: 1%; min-width: 0; }
 
 .form-hint { font-size: .82rem; color: var(--ink-muted); margin-top: .35rem; }
 

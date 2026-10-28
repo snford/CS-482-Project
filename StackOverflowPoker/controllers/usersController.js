@@ -94,6 +94,34 @@ exports.getDeclineFriend = async function(req, res) {
     res.redirect('/friends.html?username=' + encodeURIComponent(toName));
 };
 
+// SF-04: Removes a friend from both players' friends lists
+exports.postRemoveFriend = async function(req, res) {
+    let userName = req.body.txt_user;
+    let friendName = req.body.txt_friend;
+
+    let user = await dao.readByUsername(userName);
+    let friend = await dao.readByUsername(friendName);
+
+    // Only remove if both players exist and they really are friends
+    if (user != null && friend != null && user.friends.includes(friendName)) {
+        user.friends = user.friends.filter(function(name) {
+            return name != friendName;
+        });
+        friend.friends = friend.friends.filter(function(name) {
+            return name != userName;
+        });
+
+        await dao.update(user);
+        await dao.update(friend);
+
+        res.redirect('/friends.html?username=' + encodeURIComponent(userName) +
+            '&removed=' + encodeURIComponent(friendName));
+        return;
+    }
+
+    res.redirect('/friends.html?username=' + encodeURIComponent(userName || ""));
+};
+
 // Removes the request and adds both players to each other's friends list
 async function makeFriends(fromUser, toUser) {
     toUser.friendRequests = toUser.friendRequests.filter(function(name) {

@@ -17,6 +17,8 @@ app.get('/users/:username', controller.getUser);
 app.post('/addfriend', controller.postAddFriend);
 app.get('/acceptfriend/:from/:to', controller.getAcceptFriend);
 app.get('/declinefriend/:from/:to', controller.getDeclineFriend);
+// SF-04: Remove Friend
+app.post('/removefriend', controller.postRemoveFriend);
 // ST-01: Player Statistics
 app.get('/stats/:username', controller.getPlayerStats);
 // ST-02: Leaderboard API

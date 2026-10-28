@@ -235,6 +235,12 @@
       }
   }
 
+  // SF-04: confirm a friend was removed (the server adds ?removed=Name)
+  const removedName = new URLSearchParams(window.location.search).get("removed");
+  if (removedName) {
+    SOP.toast(removedName + " was removed from your friends.", "success");
+  }
+
   readUserData();
 </script>
 </body>
