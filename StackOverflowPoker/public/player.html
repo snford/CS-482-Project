@@ -2,48 +2,147 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Player - Stack Overflow Poker</title>
+    <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
 
-    <!-- Bootstrap CSS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
 
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .player-hero { text-align: center; padding-top: 2.6rem; }
+        .player-hero .avatar { margin-bottom: 1rem; }
+    </style>
 </head>
 <body>
+    <div id="siteNav"></div>
+    <script src="/js/nav.js"></script>
 
-    <!-- Navigation bar -->
-    <nav class="navbar navbar-expand-sm navbar-dark navbar-purple">
-        <div class="container-fluid">
-          <!-- Links -->
-              <ul class="navbar-nav">
-                <li class="nav-item">
-                  <a class="nav-link" href="home.html"><span class="logo-placeholder">Logo</span></a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="lobby.html">Lobby</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="friends.html">Friends</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="stats.html">Stats</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="profile.html">Profile</a>
-                </li>
-              </ul>
+    <main class="container pb-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-7">
+                <a id="backLink" href="/friends.html" class="d-inline-block mt-4 small fw-semibold text-decoration-none">
+                    <i class="bi bi-arrow-left"></i> Back to friends
+                </a>
+
+                <div class="hero-card player-hero mt-3 fade-up">
+                    <div class="hero-suits" aria-hidden="true"><span>♣</span><span>♦</span><span>♠</span></div>
+                    <div id="playerAvatar"></div>
+                    <h1 class="h2 mb-1" id="playerName">Player</h1>
+                    <p class="mb-0" id="playerTagline">Stack Overflow Poker player</p>
+                </div>
+
+                <div class="so-card fade-up delay-1" style="margin-top: -1rem; position: relative;">
+                    <div class="row g-3 text-center mb-4">
+                        <div class="col-4">
+                            <div class="stat-tile tile-success"><div class="label">Wins</div><div class="value" id="pWins">–</div></div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stat-tile tile-danger"><div class="label">Losses</div><div class="value" id="pLosses">–</div></div>
+                        </div>
+                        <div class="col-4">
+                            <div class="stat-tile"><div class="label">Win %</div><div class="value" id="pRate">–</div></div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 justify-content-center" id="playerActions">
+                        <!-- SF-01: Add friend uses the same form as the Friends page -->
+                        <form action="/addfriend" method="post" id="addFriendForm">
+                            <input type="hidden" name="txt_from" id="txt_from">
+                            <input type="hidden" name="txt_to" id="txt_to">
+                            <button type="submit" class="btn btn-primary" id="addFriendButton">
+                                <i class="bi bi-person-plus-fill"></i>Add Friend
+                            </button>
+                        </form>
+                        <span class="pill pill-success align-self-center" id="friendsBadge" hidden>
+                            <i class="bi bi-check-circle-fill"></i>Friends
+                        </span>
+                        <button type="button" class="btn btn-light-soft" disabled title="Messaging is coming soon">
+                            <i class="bi bi-chat-dots-fill"></i>Message
+                        </button>
+                        <a id="reportLink" href="/report.html" class="btn btn-danger-soft">
+                            <i class="bi bi-flag-fill"></i>Report Player
+                        </a>
+                    </div>
+                </div>
+            </div>
         </div>
-    </nav>
+    </main>
 
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">
-          Player
-        </h1>
-        <a href="report.html" class="btn btn-primary">Report Player</a>
-    </div>
+    <footer class="site-footer">
+        <div class="container d-flex flex-wrap justify-content-between gap-2">
+            <span>&copy; Stack Overflow Chips &middot; Virtual chips only, no real-money gambling.</span>
+            <span class="suits" aria-hidden="true">♠ ♥ ♣ ♦</span>
+        </div>
+    </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const playerName = new URLSearchParams(window.location.search).get("name");
+        const me = SOP.user;
+
+        document.getElementById("backLink").href = SOP.withUser("/friends.html");
+
+        async function loadPlayer() {
+            if (!playerName) {
+                document.getElementById("playerName").textContent = "No player selected";
+                document.getElementById("playerActions").hidden = true;
+                return;
+            }
+
+            document.getElementById("playerName").textContent = playerName;
+            document.getElementById("playerAvatar").innerHTML = SOP.avatarHtml(playerName, "avatar-xl");
+            document.getElementById("reportLink").href =
+                SOP.withUser("/report.html?name=" + encodeURIComponent(playerName));
+            document.title = playerName + " - Stack Overflow Poker";
+
+            // Add Friend only makes sense for someone else, while signed in
+            const addForm = document.getElementById("addFriendForm");
+            if (!me || me === playerName) {
+                addForm.hidden = true;
+            } else {
+                document.getElementById("txt_from").value = me;
+                document.getElementById("txt_to").value = playerName;
+            }
+
+            try {
+                const response = await fetch("/stats/" + encodeURIComponent(playerName));
+                if (response.status === 404) {
+                    document.getElementById("playerTagline").textContent = "This player doesn't exist.";
+                    document.getElementById("playerActions").hidden = true;
+                    return;
+                }
+                if (response.ok) {
+                    const stats = await response.json();
+                    document.getElementById("pWins").textContent = stats.wins;
+                    document.getElementById("pLosses").textContent = stats.losses;
+                    document.getElementById("pRate").textContent = Math.round(stats.winPercentage) + "%";
+                }
+            } catch (error) { /* keep the dashes */ }
+
+            // Show a badge instead of the button if you're already friends
+            if (me && me !== playerName) {
+                try {
+                    const response = await fetch("/users/" + encodeURIComponent(me));
+                    if (response.ok) {
+                        const user = await response.json();
+                        if ((user.friends || []).includes(playerName)) {
+                            addForm.hidden = true;
+                            document.getElementById("friendsBadge").hidden = false;
+                        } else if ((user.friendRequests || []).includes(playerName)) {
+                            document.getElementById("addFriendButton").innerHTML =
+                                '<i class="bi bi-person-check-fill"></i>Accept their request';
+                        }
+                    }
+                } catch (error) { /* ignore */ }
+            }
+        }
+
+        loadPlayer();
+    </script>
 </body>
 </html>
- 

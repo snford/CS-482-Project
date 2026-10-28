@@ -2,75 +2,266 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Home - Stack Overflow Poker</title>
+    <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
 
-    <!-- Bootstrap CSS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
 
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .quick-link {
+            display: flex;
+            flex-direction: column;
+            gap: .35rem;
+            height: 100%;
+            text-decoration: none;
+            color: var(--ink);
+        }
+
+        .quick-link:hover { color: var(--ink); }
+
+        .quick-link .icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.35rem;
+            margin-bottom: .6rem;
+        }
+
+        .quick-link .metric {
+            font-family: var(--font-display);
+            font-size: 1.6rem;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+
+        .quick-link .go {
+            margin-top: auto;
+            padding-top: .6rem;
+            font-weight: 600;
+            font-size: .9rem;
+            color: var(--brand-700);
+        }
+
+        .quick-link:hover .go .bi { transform: translateX(4px); }
+        .quick-link .go .bi { display: inline-block; transition: transform .2s ease; }
+
+        .chip-balance {
+            display: inline-flex;
+            align-items: center;
+            gap: .6rem;
+            padding: .55rem 1rem;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .14);
+            border: 1px solid rgba(255, 255, 255, .25);
+            font-weight: 600;
+        }
+
+        /* White poker chip, like the white chips in the logo */
+        .chip-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background:
+                radial-gradient(circle, #fff 0 36%, var(--brand-700) 37% 44%, #fff 45% 55%, transparent 56%),
+                repeating-conic-gradient(var(--brand-700) 0 20deg, #fff 20deg 45deg);
+            box-shadow: 0 0 0 2px #fff, 0 2px 6px rgba(40, 10, 45, .3);
+        }
+    </style>
 </head>
 <body>
+    <div id="siteNav"></div>
+    <script src="/js/nav.js"></script>
 
-    <!-- Navigation bar -->
-    <nav class="navbar navbar-expand-sm navbar-dark navbar-purple">
-        <div class="container-fluid">
-          <!-- Links -->
-              <ul class="navbar-nav">
-                <li class="nav-item">
-                  <a class="nav-link" href="home.html"><span class="logo-placeholder">Logo</span></a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="lobby.html">Lobby</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="friends.html" id="friendsLink">Friends</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="stats.html" id="statsLink">Stats</a>
-                </li>
-                <!-- ST-02: Leaderboard -->
-                <li class="nav-item">
-                  <a class="nav-link mt-2"
-                    href="leaderboard.html"
-                    id="leaderboardLink">
-                    Leaderboard
-                  </a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="profile.html">Profile</a>
-                </li>
-              </ul>
+    <main class="container py-4 py-lg-5">
+
+        <!-- Signed-out message -->
+        <div id="signedOut" class="so-card text-center fade-up" hidden>
+            <div class="empty-state">
+                <i class="bi bi-person-lock"></i>
+                <strong>You're not signed in</strong>
+                Sign in to see your chips, friends, and stats.
+            </div>
+            <a href="/index.html" class="btn btn-primary">Sign in</a>
         </div>
-    </nav>
 
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">
-          Home
-        </h1>
+        <div id="dashboard" hidden>
+            <!-- Welcome banner -->
+            <section class="hero-card fade-up mb-4">
+                <div class="hero-suits" aria-hidden="true"><span>♠</span><span>♥</span><span>♦</span></div>
+                <div class="row align-items-center g-4">
+                    <div class="col-lg-8">
+                        <span class="pill pill-dark mb-3"><i class="bi bi-stars"></i>Welcome back</span>
+                        <h1 class="display-6 fw-bold mb-2">Hey, <span id="welcomeName">player</span>!</h1>
+                        <p class="mb-4 fs-5">Ready for another hand? Your seat is waiting.</p>
+                        <div class="d-flex flex-wrap gap-2">
+                            <a id="playNowLink" href="/lobby.html" class="btn btn-gold btn-lg">
+                                <i class="bi bi-play-fill"></i>Play Now
+                            </a>
+                            <a id="createTableLink" href="/createtable.html" class="btn btn-outline-light-glass btn-lg">
+                                <i class="bi bi-plus-lg"></i>Create Table
+                            </a>
+                        </div>
+                    </div>
+                    <div class="col-lg-4 text-lg-end">
+                        <div class="chip-balance">
+                            <span class="chip-icon" aria-hidden="true"></span>
+                            Virtual chips only
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-    </div>
+            <!-- Quick links with live numbers -->
+            <div class="row g-4 mb-4">
+                <div class="col-sm-6 col-lg-3 fade-up delay-1">
+                    <a id="friendsCard" class="so-card card-hover quick-link" href="/friends.html">
+                        <span class="icon" style="background: var(--brand-50); color: var(--brand);"><i class="bi bi-people-fill"></i></span>
+                        <span class="text-secondary fw-semibold">Friends</span>
+                        <span class="metric" id="friendsMetric">–</span>
+                        <span class="text-secondary small" id="requestsMetric">&nbsp;</span>
+                        <span class="go">Open friends <i class="bi bi-arrow-right"></i></span>
+                    </a>
+                </div>
+                <div class="col-sm-6 col-lg-3 fade-up delay-2">
+                    <a id="statsCard" class="so-card card-hover quick-link" href="/stats.html">
+                        <span class="icon" style="background: #e8f7ef; color: var(--success);"><i class="bi bi-graph-up-arrow"></i></span>
+                        <span class="text-secondary fw-semibold">Win rate</span>
+                        <span class="metric" id="winRateMetric">–</span>
+                        <span class="text-secondary small" id="gamesMetric">&nbsp;</span>
+                        <span class="go">View stats <i class="bi bi-arrow-right"></i></span>
+                    </a>
+                </div>
+                <div class="col-sm-6 col-lg-3 fade-up delay-3">
+                    <a id="leaderboardCard" class="so-card card-hover quick-link" href="/leaderboard.html">
+                        <span class="icon" style="background: #fff6dc; color: var(--gold-600);"><i class="bi bi-trophy-fill"></i></span>
+                        <span class="text-secondary fw-semibold">Leaderboard</span>
+                        <span class="metric" id="rankMetric">–</span>
+                        <span class="text-secondary small">Your rank among top players</span>
+                        <span class="go">See rankings <i class="bi bi-arrow-right"></i></span>
+                    </a>
+                </div>
+                <div class="col-sm-6 col-lg-3 fade-up delay-4">
+                    <div class="so-card placeholder-box quick-link">
+                        <span class="icon" style="background: #eef2ff; color: #5b6ef0;"><i class="bi bi-mortarboard-fill"></i></span>
+                        <span class="text-secondary fw-semibold">Tutorial &amp; practice</span>
+                        <span class="metric">Soon</span>
+                        <span class="text-secondary small">Learn Seven-Card Stud and practice against bots.</span>
+                        <span class="go text-secondary">Coming soon</span>
+                    </div>
+                </div>
+            </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-  // Keeps the logged in username when going to the friends page
-  // (temporary until Google sign in is added)
-  let params = new URLSearchParams(window.location.search);
-  let username = params.get("username");
+            <div class="row g-4">
+                <!-- How to play -->
+                <div class="col-lg-8 fade-up delay-2">
+                    <div class="so-card h-100">
+                        <h2 class="so-card-title"><i class="bi bi-lightbulb-fill"></i>How Seven-Card Stud works</h2>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <span class="pill mb-2">1 · Ante up</span>
+                                <p class="text-secondary small mb-0">Everyone puts a small ante in the pot before any cards are dealt.</p>
+                            </div>
+                            <div class="col-md-4">
+                                <span class="pill mb-2">2 · Seven cards</span>
+                                <p class="text-secondary small mb-0">You get 3 cards face down and 4 face up, with betting after each new card.</p>
+                            </div>
+                            <div class="col-md-4">
+                                <span class="pill mb-2">3 · Best five win</span>
+                                <p class="text-secondary small mb-0">At showdown, the best five-card poker hand takes the pot.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-  if (username != null) {
-    document.getElementById("friendsLink").href =
-        "friends.html?username=" + encodeURIComponent(username);
+                <!-- Ad -->
+                <div class="col-lg-4 fade-up delay-3">
+                    <div class="ad-slot h-100">
+                        <i class="bi bi-badge-ad"></i>
+                        <strong>ADVERTISEMENT</strong>
+                        <span class="small">Ad space</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 
-    // ST-01: Player Statistics navigation
-    document.getElementById("statsLink").href =
-        "stats.html?username=" + encodeURIComponent(username);
+    <footer class="site-footer">
+        <div class="container d-flex flex-wrap justify-content-between gap-2">
+            <span>&copy; Stack Overflow Chips &middot; Virtual chips only, no real-money gambling.</span>
+            <span class="suits" aria-hidden="true">♠ ♥ ♣ ♦</span>
+        </div>
+    </footer>
 
-    // ST-02: Leaderboard navigation
-    document.getElementById("leaderboardLink").href =
-        "leaderboard.html?username=" + encodeURIComponent(username);
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Home dashboard: shows the player's friends, win rate, and leaderboard rank.
+        const username = SOP.user;
 
-  }
-</script>
+        if (!username) {
+            document.getElementById("signedOut").hidden = false;
+        } else {
+            document.getElementById("dashboard").hidden = false;
+            document.getElementById("welcomeName").textContent = username;
+
+            for (const [id, href] of [
+                ["playNowLink", "/lobby.html"],
+                ["createTableLink", "/createtable.html"],
+                ["friendsCard", "/friends.html"],
+                ["statsCard", "/stats.html"],
+                ["leaderboardCard", "/leaderboard.html"]
+            ]) {
+                document.getElementById(id).href = SOP.withUser(href);
+            }
+
+            loadDashboard();
+        }
+
+        async function loadDashboard() {
+            const encoded = encodeURIComponent(username);
+
+            // Friends and pending requests
+            try {
+                const response = await fetch("/users/" + encoded);
+                if (response.ok) {
+                    const user = await response.json();
+                    const friends = (user.friends || []).length;
+                    const requests = (user.friendRequests || []).length;
+                    document.getElementById("friendsMetric").textContent = friends + (friends === 1 ? " friend" : " friends");
+                    document.getElementById("requestsMetric").textContent =
+                        requests > 0 ? requests + " pending request" + (requests === 1 ? "" : "s") : "No pending requests";
+                }
+            } catch (error) { /* leave the dash */ }
+
+            // Win rate
+            try {
+                const response = await fetch("/stats/" + encoded);
+                if (response.ok) {
+                    const stats = await response.json();
+                    document.getElementById("winRateMetric").textContent = stats.winPercentage + "%";
+                    document.getElementById("gamesMetric").textContent =
+                        stats.totalGames + (stats.totalGames === 1 ? " game played" : " games played");
+                }
+            } catch (error) { /* leave the dash */ }
+
+            // Leaderboard rank
+            try {
+                const response = await fetch("/api/leaderboard");
+                if (response.ok) {
+                    const players = await response.json();
+                    const me = players.find(function (player) { return player.username === username; });
+                    document.getElementById("rankMetric").textContent = me ? "#" + me.rank : "Unranked";
+                }
+            } catch (error) { /* leave the dash */ }
+        }
+    </script>
 </body>
 </html>

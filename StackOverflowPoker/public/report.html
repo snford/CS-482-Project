@@ -2,48 +2,89 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Report Player - Stack Overflow Poker</title>
+    <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
 
-    <!-- Bootstrap CSS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/createTable.css">
 </head>
 <body>
+    <div id="siteNav"></div>
+    <script src="/js/nav.js"></script>
 
-    <!-- Navigation bar -->
-    <nav class="navbar navbar-expand-sm navbar-dark navbar-purple">
-        <div class="container-fluid">
-          <!-- Links -->
-              <ul class="navbar-nav">
-                <li class="nav-item">
-                  <a class="nav-link" href="home.html"><span class="logo-placeholder">Logo</span></a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="lobby.html">Lobby</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="friends.html">Friends</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="stats.html">Stats</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="profile.html">Profile</a>
-                </li>
-              </ul>
+    <main class="container pb-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-7">
+                <header class="page-header fade-up">
+                    <span class="eyebrow"><i class="bi bi-flag-fill"></i>Report</span>
+                    <h1 class="page-title">Report <span id="reportedName" class="text-gradient">a player</span></h1>
+                    <p class="page-subtitle">Reports go to the admins, who review the chat logs. Thanks for keeping the tables fun.</p>
+                </header>
+
+                <form class="so-card fade-up delay-1" id="reportForm">
+                    <div class="mb-4">
+                        <label class="form-label d-block">Reason</label>
+                        <div class="button-group" id="reason-options" role="group" aria-label="Reason">
+                            <button type="button" class="option-button selected" data-value="harassment"><i class="bi bi-chat-square-x"></i>Harassment</button>
+                            <button type="button" class="option-button" data-value="cheating"><i class="bi bi-eye-slash"></i>Cheating</button>
+                            <button type="button" class="option-button" data-value="username"><i class="bi bi-person-x"></i>Bad username</button>
+                            <button type="button" class="option-button" data-value="other"><i class="bi bi-three-dots"></i>Other</button>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label" for="details">What happened?</label>
+                        <textarea class="form-control" id="details" rows="5" maxlength="500"
+                                  placeholder="Describe what happened and when."></textarea>
+                        <div class="form-hint text-end"><span id="charCount">0</span>/500</div>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 justify-content-end">
+                        <a href="/friends.html" id="cancelLink" class="btn btn-light-soft">Cancel</a>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-send-fill"></i>Send report</button>
+                    </div>
+                </form>
+            </div>
         </div>
-    </nav>
+    </main>
 
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">
-          Report Player
-        </h1>
+    <footer class="site-footer">
+        <div class="container d-flex flex-wrap justify-content-between gap-2">
+            <span>&copy; Stack Overflow Chips &middot; Virtual chips only, no real-money gambling.</span>
+            <span class="suits" aria-hidden="true">♠ ♥ ♣ ♦</span>
+        </div>
+    </footer>
 
-    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const reported = new URLSearchParams(window.location.search).get("name");
+        if (reported) document.getElementById("reportedName").textContent = reported;
+        document.getElementById("cancelLink").href = SOP.withUser("/friends.html");
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        const reasonButtons = document.querySelectorAll("#reason-options .option-button");
+        reasonButtons.forEach(button => {
+            button.addEventListener("click", () => {
+                reasonButtons.forEach(option => option.classList.remove("selected"));
+                button.classList.add("selected");
+            });
+        });
+
+        const details = document.getElementById("details");
+        details.addEventListener("input", () => {
+            document.getElementById("charCount").textContent = details.value.length;
+        });
+
+        // Reports are not saved yet (moderation story); the form is ready for it.
+        document.getElementById("reportForm").addEventListener("submit", event => {
+            event.preventDefault();
+            SOP.toast("Reporting isn't connected yet, so this report was not sent.", "info");
+        });
+    </script>
 </body>
 </html>
- 

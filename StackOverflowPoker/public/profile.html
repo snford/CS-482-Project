@@ -2,49 +2,197 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Profile - Stack Overflow Poker</title>
+    <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
 
-    <!-- Bootstrap CSS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
 
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .profile-cover {
+            height: 140px;
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            margin: -1.6rem -1.6rem 0;
+            background:
+                radial-gradient(300px 140px at 85% 0%, rgba(245, 197, 66, .45), transparent 70%),
+                linear-gradient(120deg, #6d1f6e, #bf40bf);
+        }
+
+        .profile-avatar { margin-top: -56px; }
+
+        .mini-stat {
+            text-align: center;
+            padding: .8rem .5rem;
+            border-radius: var(--radius);
+            background: var(--brand-50);
+        }
+
+        .mini-stat strong {
+            display: block;
+            font-family: var(--font-display);
+            font-size: 1.4rem;
+        }
+
+        .mini-stat span { font-size: .78rem; color: var(--ink-muted); font-weight: 600; }
+
+        .premade-avatars { display: flex; gap: .6rem; flex-wrap: wrap; }
+        .premade-avatars .avatar { cursor: not-allowed; opacity: .75; }
+
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: .9rem 0;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .setting-row:last-child { border-bottom: 0; }
+        .setting-row .form-check-input { width: 2.6em; height: 1.4em; cursor: pointer; }
+    </style>
 </head>
 <body>
+    <div id="siteNav"></div>
+    <script src="/js/nav.js"></script>
 
-    <!-- Navigation bar -->
-    <nav class="navbar navbar-expand-sm navbar-dark navbar-purple">
-        <div class="container-fluid">
-          <!-- Links -->
-              <ul class="navbar-nav">
-                <li class="nav-item">
-                  <a class="nav-link" href="home.html"><span class="logo-placeholder">Logo</span></a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="lobby.html">Lobby</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="friends.html">Friends</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="stats.html">Stats</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="profile.html">Profile</a>
-                </li>
-              </ul>
+    <main class="container py-4 py-lg-5">
+
+        <div id="signedOut" class="so-card text-center" hidden>
+            <div class="empty-state">
+                <i class="bi bi-person-lock"></i>
+                <strong>You're not signed in</strong>
+                Sign in to see your profile.
+            </div>
+            <a href="/index.html" class="btn btn-primary">Sign in</a>
         </div>
-    </nav>
 
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">
-          Profile
-        </h1>
-        <a href="index.html" class="btn btn-primary">Log Out</a>
-        <a href="admin.html" class="btn btn-primary">Admin Dashboard</a>
-    </div>
+        <div class="row g-4" id="profilePage">
+            <!-- Profile card -->
+            <div class="col-lg-5 fade-up">
+                <div class="so-card text-center">
+                    <div class="profile-cover"></div>
+                    <div class="profile-avatar" id="profileAvatar"></div>
+                    <h1 class="h3 mt-3 mb-1" id="profileName">Player</h1>
+                    <p class="text-secondary mb-4"><i class="bi bi-suit-spade-fill text-primary me-1"></i>Stack Overflow Poker player</p>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+                    <div class="row g-2 mb-4">
+                        <div class="col-4"><div class="mini-stat"><strong id="statWins">–</strong><span>Wins</span></div></div>
+                        <div class="col-4"><div class="mini-stat"><strong id="statGames">–</strong><span>Games</span></div></div>
+                        <div class="col-4"><div class="mini-stat"><strong id="statRate">–</strong><span>Win %</span></div></div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <a id="statsLinkBtn" href="/stats.html" class="btn btn-light-soft"><i class="bi bi-bar-chart-fill"></i>Full statistics</a>
+                        <a href="/admin.html" class="btn btn-light-soft"><i class="bi bi-shield-lock-fill"></i>Admin Dashboard</a>
+                        <button type="button" class="btn btn-danger-soft" onclick="SOP.logOut()"><i class="bi bi-box-arrow-right"></i>Log Out</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-7 d-flex flex-column gap-4">
+                <!-- Settings -->
+                <div class="so-card fade-up delay-1">
+                    <h2 class="so-card-title"><i class="bi bi-sliders"></i>Game settings</h2>
+                    <div class="setting-row">
+                        <div>
+                            <div class="fw-semibold">Hand helper</div>
+                            <div class="text-secondary small">Shows how strong your hand is while you play. Great for beginners.</div>
+                        </div>
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input" type="checkbox" role="switch" id="handHelper" checked>
+                        </div>
+                    </div>
+                    <div class="setting-row">
+                        <div>
+                            <div class="fw-semibold">Sound effects</div>
+                            <div class="text-secondary small">Chip and card sounds at the table.</div>
+                        </div>
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input" type="checkbox" role="switch" id="soundEffects" checked>
+                        </div>
+                    </div>
+                    <p class="form-hint mb-0"><i class="bi bi-info-circle me-1"></i>Settings are saved on this device.</p>
+                </div>
+
+                <!-- Edit profile (not connected yet) -->
+                <div class="so-card placeholder-box fade-up delay-2">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h2 class="so-card-title mb-0"><i class="bi bi-pencil-square"></i>Edit profile</h2>
+                        <span class="pill pill-muted"><i class="bi bi-hourglass-split"></i>Coming soon</span>
+                    </div>
+                    <fieldset disabled>
+                        <label class="form-label" for="editUsername">Username</label>
+                        <input class="form-control mb-3" id="editUsername" type="text">
+
+                        <label class="form-label">Avatar</label>
+                        <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+                            <button type="button" class="btn btn-light-soft"><i class="bi bi-upload"></i>Upload picture</button>
+                            <div class="premade-avatars" aria-label="Premade avatars">
+                                <span class="avatar tone-1">♠</span>
+                                <span class="avatar tone-2">♦</span>
+                                <span class="avatar tone-3">♣</span>
+                                <span class="avatar tone-4">♥</span>
+                                <span class="avatar tone-5">★</span>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-primary">Save changes</button>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container d-flex flex-wrap justify-content-between gap-2">
+            <span>&copy; Stack Overflow Chips &middot; Virtual chips only, no real-money gambling.</span>
+            <span class="suits" aria-hidden="true">♠ ♥ ♣ ♦</span>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const username = SOP.user;
+
+        if (!username) {
+            document.getElementById("signedOut").hidden = false;
+            document.getElementById("profilePage").hidden = true;
+        } else {
+            document.getElementById("profileName").textContent = username;
+            document.getElementById("editUsername").value = username;
+            document.getElementById("profileAvatar").innerHTML = SOP.avatarHtml(username, "avatar-xl");
+            document.getElementById("statsLinkBtn").href = SOP.withUser("/stats.html");
+            loadStats();
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch("/stats/" + encodeURIComponent(username));
+                if (!response.ok) return;
+                const stats = await response.json();
+                document.getElementById("statWins").textContent = stats.wins;
+                document.getElementById("statGames").textContent = stats.totalGames;
+                document.getElementById("statRate").textContent = Math.round(stats.winPercentage) + "%";
+            } catch (error) { /* keep the dashes */ }
+        }
+
+        // Device-only settings until profile settings are saved to the account
+        for (const id of ["handHelper", "soundEffects"]) {
+            const box = document.getElementById(id);
+            try {
+                const saved = localStorage.getItem("sop-" + id);
+                if (saved !== null) box.checked = saved === "true";
+            } catch (error) { /* storage blocked */ }
+
+            box.addEventListener("change", function () {
+                try { localStorage.setItem("sop-" + id, box.checked); } catch (error) { /* ignore */ }
+                SOP.toast((id === "handHelper" ? "Hand helper " : "Sound effects ") + (box.checked ? "on" : "off"), "success");
+            });
+        }
+    </script>
 </body>
 </html>
- 

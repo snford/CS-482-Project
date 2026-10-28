@@ -2,153 +2,237 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Friends - Stack Overflow Poker</title>
+    <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
 
-    <!-- Bootstrap CSS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
 
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .friend-link {
+            color: var(--ink);
+            text-decoration: none;
+        }
+
+        .friend-link:hover { color: var(--brand-700); }
+
+        .request-row {
+            background: var(--brand-50);
+            border: 1px solid var(--brand-100);
+            border-radius: var(--radius);
+            padding: .7rem .8rem;
+            margin-bottom: .6rem;
+        }
+
+        .chat-box {
+            min-height: 420px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-preview {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            gap: .6rem;
+            padding: 1rem 0;
+        }
+
+        .bubble {
+            max-width: 70%;
+            padding: .6rem .9rem;
+            border-radius: 16px;
+            font-size: .92rem;
+            filter: blur(.6px);
+            opacity: .55;
+        }
+
+        .bubble.them { background: #f2eef5; border-bottom-left-radius: 4px; }
+        .bubble.me { align-self: flex-end; color: #fff; background: linear-gradient(135deg, #cf55cf, var(--brand-700)); border-bottom-right-radius: 4px; }
+    </style>
 </head>
 <body>
+    <div id="siteNav"></div>
+    <script src="/js/nav.js"></script>
 
-    <!-- Navigation bar -->
-    <nav class="navbar navbar-expand-sm navbar-dark navbar-purple">
-        <div class="container-fluid">
-          <!-- Links -->
-              <ul class="navbar-nav">
-                <li class="nav-item">
-                  <a class="nav-link" href="home.html"><span class="logo-placeholder">Logo</span></a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="lobby.html">Lobby</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="friends.html">Friends</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="stats.html">Stats</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="profile.html">Profile</a>
-                </li>
-              </ul>
+    <main class="container pb-5">
+        <header class="page-header d-flex flex-wrap align-items-end justify-content-between gap-3 fade-up">
+            <div>
+                <span class="eyebrow"><i class="bi bi-people-fill"></i>Friends</span>
+                <h1 class="page-title">Your poker circle</h1>
+                <p class="page-subtitle">Send friend requests and see who wants to play.</p>
+            </div>
+            <span class="pill" id="friendCount"><i class="bi bi-people"></i>0 friends</span>
+        </header>
+
+        <div id="signedOut" class="so-card text-center" hidden>
+            <div class="empty-state">
+                <i class="bi bi-person-lock"></i>
+                <strong>Sign in to see your friends</strong>
+                Friends are saved to your account.
+            </div>
+            <a href="/index.html" class="btn btn-primary">Sign in</a>
         </div>
-    </nav>
 
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">
-          Friends
-        </h1>
-
-        <div class="row g-4">
+        <div class="row g-4" id="friendsPage">
 
             <!-- Requests and Friends -->
-            <div class="col-md-5">
-                <div class="card shadow p-4 h-100">
+            <div class="col-lg-5">
+                <div class="so-card mb-4 fade-up delay-1">
+                    <h2 class="so-card-title"><i class="bi bi-person-plus-fill"></i>Add a friend</h2>
 
-                    <!-- Search Players -->
+                    <!-- SF-01: Send a friend request -->
                     <form action="/addfriend" method="post">
+                        <!-- Hidden username of the player who is logged in -->
+                        <input type="hidden" name="txt_from" id="txt_from">
 
-                      <!-- Hidden username of the player who is logged in -->
-                      <input type="hidden" name="txt_from" id="txt_from">
-
-                      <div class="input-group mb-4">
-                          <input type="text" name="txt_to" class="form-control" placeholder="Search players" required>
-                          <button type="submit" class="btn btn-primary">
-                            Add Friend
-                          </button>
-                      </div>
+                        <div class="input-group">
+                            <div class="input-icon">
+                                <i class="bi bi-search"></i>
+                                <input type="text" name="txt_to" class="form-control" placeholder="Enter a username" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-send-fill"></i>Send
+                            </button>
+                        </div>
+                        <p class="form-hint mb-0">They'll see your request on their Friends page.</p>
                     </form>
+                </div>
 
-                    <h3>Requests</h3>
-                    <div id="requestsContainer" class="mb-4"></div>
+                <!-- SF-03: Friend requests -->
+                <div class="so-card mb-4 fade-up delay-2">
+                    <h2 class="so-card-title">
+                        <i class="bi bi-envelope-heart-fill"></i>Requests
+                        <span class="pill ms-auto" id="requestCount">0</span>
+                    </h2>
+                    <div id="requestsContainer"></div>
+                </div>
 
-                    <h3>Friends</h3>
+                <!-- SF-02: Friends list -->
+                <div class="so-card fade-up delay-3">
+                    <h2 class="so-card-title"><i class="bi bi-people-fill"></i>Friends</h2>
                     <div id="friendsContainer"></div>
                 </div>
             </div>
 
             <!-- Chat (not made yet) -->
-            <div class="col-md-7">
-                <div class="card placeholder-box p-4 h-100">
-                    <h3>Chat</h3>
-                    <p class="text-muted">
-                      Messaging with friends is coming soon.
-                    </p>
-                    <div style="height: 150px;"></div>
-                    <input type="text" class="form-control" placeholder="Type message" disabled>
+            <div class="col-lg-7 fade-up delay-2">
+                <div class="so-card placeholder-box chat-box">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <h2 class="so-card-title mb-0"><i class="bi bi-chat-dots-fill"></i>Messages</h2>
+                        <span class="pill pill-muted"><i class="bi bi-hourglass-split"></i>Coming soon</span>
+                    </div>
+                    <div class="chat-preview" aria-hidden="true">
+                        <div class="bubble them">Want to join my table tonight?</div>
+                        <div class="bubble me">I'm in. Save me a seat!</div>
+                        <div class="bubble them">Bring your best hand 😎</div>
+                    </div>
+                    <p class="text-secondary small text-center">Messaging with friends is coming soon.</p>
+                    <div class="input-group">
+                        <input type="text" class="form-control" placeholder="Type message" disabled>
+                        <button class="btn btn-primary" type="button" disabled><i class="bi bi-send-fill"></i></button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container d-flex flex-wrap justify-content-between gap-2">
+            <span>&copy; Stack Overflow Chips &middot; Virtual chips only, no real-money gambling.</span>
+            <span class="suits" aria-hidden="true">♠ ♥ ♣ ♦</span>
+        </div>
+    </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
   // Loads the friend requests and the friends list of the player who is logged in
   let lstRequests = [];
   let lstFriends = [];
-  let username = getUsernameFromUrl();
-
-  function getUsernameFromUrl() {
-    let params = new URLSearchParams(window.location.search);
-    return params.get("username");
-  }
+  const username = SOP.user;
 
   async function readUserData() {
+      if (!username) {
+        document.getElementById("signedOut").hidden = false;
+        document.getElementById("friendsPage").hidden = true;
+        return;
+      }
+
       document.getElementById("txt_from").value = username;
 
-      let response = await fetch('/users/' + username);
-      if (response.status == 200) {
-        let user = await response.json();
-        lstRequests = user.friendRequests;
-        lstFriends = user.friends;
+      try {
+        const response = await fetch("/users/" + encodeURIComponent(username));
+        if (response.status == 200) {
+          const user = await response.json();
+          lstRequests = user.friendRequests || [];
+          lstFriends = user.friends || [];
+        }
+      } catch (error) {
+        SOP.toast("Could not load your friends.", "error");
       }
 
       readRequestData();
       readFriendData();
   }
 
+  // SF-03: requests waiting for this player to accept or decline
   function readRequestData() {
-      let output = "";
+      const container = document.getElementById("requestsContainer");
+      document.getElementById("requestCount").textContent = lstRequests.length;
 
       if (lstRequests.length == 0) {
-        output = "<p>No friend requests right now.</p>";
+        container.innerHTML =
+          '<div class="empty-state py-3"><i class="bi bi-inbox"></i>No friend requests right now.</div>';
+        return;
       }
 
-      for (let i = 0; i < lstRequests.length; i++) {
-        output += `
-        <p class="fs-5">
-          ${lstRequests[i]}
-          <span class="float-end">
-            <a href="/acceptfriend/${lstRequests[i]}/${username}" class="btn btn-primary btn-sm">Accept</a>
-            <a href="/declinefriend/${lstRequests[i]}/${username}" class="btn btn-secondary btn-sm">Decline</a>
-          </span>
-        </p>
-        <hr>
-        `;
+      container.replaceChildren();
+      for (const name of lstRequests) {
+        const from = encodeURIComponent(name);
+        const to = encodeURIComponent(username);
+        const row = document.createElement("div");
+        row.className = "list-row request-row";
+        row.innerHTML =
+          SOP.avatarHtml(name) +
+          '<div class="grow"><div class="title"></div><div class="sub">wants to be friends</div></div>' +
+          '<a href="/acceptfriend/' + from + "/" + to + '" class="btn btn-primary btn-sm"><i class="bi bi-check-lg"></i>Accept</a>' +
+          '<a href="/declinefriend/' + from + "/" + to + '" class="btn btn-light-soft btn-sm" aria-label="Decline request from ' + SOP.escapeHtml(name) + '"><i class="bi bi-x-lg"></i></a>';
+        row.querySelector(".title").textContent = name;
+        container.appendChild(row);
       }
-
-      document.getElementById("requestsContainer").innerHTML = output;
   }
 
+  // SF-02: the player's friends
   function readFriendData() {
-      let output = "";
+      const container = document.getElementById("friendsContainer");
+      document.getElementById("friendCount").innerHTML =
+        '<i class="bi bi-people"></i>' + lstFriends.length + (lstFriends.length === 1 ? " friend" : " friends");
 
       if (lstFriends.length == 0) {
-        output = "<p>You have not added any friends yet.</p>";
+        container.innerHTML =
+          '<div class="empty-state py-3"><i class="bi bi-person-heart"></i>' +
+          "<strong>No friends yet</strong>Send a request to start your circle.</div>";
+        return;
       }
 
-      for (let i = 0; i < lstFriends.length; i++) {
-        output += `
-        <p class="fs-5">
-          <a href="player.html?name=${lstFriends[i]}">${lstFriends[i]}</a>
-        </p>
-        <hr>
-        `;
+      container.replaceChildren();
+      for (const name of lstFriends) {
+        const row = document.createElement("a");
+        row.className = "list-row friend-link";
+        row.href = SOP.withUser("/player.html?name=" + encodeURIComponent(name));
+        row.innerHTML =
+          SOP.avatarHtml(name) +
+          '<div class="grow"><div class="title"></div><div class="sub">View profile</div></div>' +
+          '<i class="bi bi-chevron-right text-secondary"></i>';
+        row.querySelector(".title").textContent = name;
+        container.appendChild(row);
       }
-
-      document.getElementById("friendsContainer").innerHTML = output;
   }
 
   readUserData();

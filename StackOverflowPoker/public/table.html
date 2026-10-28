@@ -4,233 +4,115 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Poker Table - Stack Overflow Poker</title>
-  <style>
-    /* LT-03: Table screen  */
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: Arial, Helvetica, sans-serif; color: #222; background: white; }
+  <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
 
-    .top-bar {
-      display: flex; align-items: center; gap: 34px;
-      min-height: 86px; background: #b338b8; color: #fff;
-      padding: 0 24px 0 0;
-    }
-    .logo {
-      width: 86px; height: 86px; flex-shrink: 0;
-      border: 2px solid #555; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 17px; color: #111; text-decoration: none;
-    }
-    .room-name { font-size: 30px; font-weight: normal; margin: 0; overflow-wrap: anywhere; }
-    .room-detail { font-size: 26px; white-space: nowrap; }
-    .leave-button {
-      margin-left: auto; padding: 10px 4px; border: 0;
-      background: transparent; color: white; font: inherit;
-      font-size: 25px; cursor: pointer; white-space: nowrap;
-    }
-    .leave-button:hover, .leave-button:focus-visible { text-decoration: underline; }
-
-    .notice {
-      display: none; margin: 14px 22px 0; padding: 12px 16px;
-      background: #f4edf4; border: 1px solid #bb88bb; border-radius: 8px;
-      color: #503050; line-height: 1.35;
-    }
-    .notice.show { display: block; }
-    .table-info {
-      display: flex; justify-content: space-between; flex-wrap: wrap;
-      gap: 8px; margin: 12px 25px 0; font-size: 15px; color: #555;
-    }
-    .table-actions { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
-    .join-button, .invite-button {
-      padding: 8px 15px; border-radius: 8px; border: 1px solid #92319a;
-      background: #b338b8; color: white; font: inherit; cursor: pointer;
-    }
-    .invite-button { background: white; color: #81328c; }
-    .join-button:hover, .invite-button:hover { filter: brightness(0.94); }
-    .join-button:disabled { background: #ccc; color: #555; cursor: not-allowed; }
-    .refresh-button {
-      padding: 0; border: 0; background: none;
-      color: #81328c; text-decoration: underline; cursor: pointer;
-      font: inherit;
-    }
-
-    .content {
-      display: grid; grid-template-columns: minmax(0, 1fr) 25%;
-      gap: 22px; padding: 14px 22px 0;
-    }
-    .table-area { position: relative; min-width: 0; min-height: 485px; }
-    .table-outline {
-      position: absolute; left: 2%; right: 2%; top: 2%; bottom: 2%;
-      border: 6px dashed #626262; border-radius: 48% / 49%;
-    }
-    .table-center {
-      position: absolute; top: 48%; left: 50%; transform: translate(-50%, -50%);
-      text-align: center; color: #606060; z-index: 1;
-      min-width: 180px; pointer-events: none;
-    }
-    .pot { font-size: 31px; }
-    .street { margin-top: 4px; font-size: 26px; }
-    .status { margin-top: 10px; font-size: 15px; }
-
-    .seat {
-      position: absolute; z-index: 2; width: 24%; min-width: 132px;
-      height: 29%; min-height: 115px;
-      border: 5px dashed #626262; border-radius: 49%;
-      background: #fff; padding: 12px 7px;
-      text-align: center; display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      font-size: 17px; line-height: 1.3;
-    }
-    .seat strong { font-weight: normal; overflow-wrap: anywhere; }
-    .seat .seat-note { font-size: 15px; margin-top: 5px; }
-    .seat.empty { color: #565656; }
-    .seat.yours { background: #faf2fb; border-color: #ae42b4; }
-    .seat.top-left { left: 8%; top: 1%; }
-    .seat.top-center { left: 38%; top: 1%; }
-    .seat.top-right { left: 68%; top: 1%; }
-    .seat.middle-left { left: 0; top: 35%; }
-    .seat.bottom-left { left: 8%; bottom: 1%; }
-    .seat.bottom-center { left: 38%; bottom: 1%; }
-    .seat.bottom-right { left: 68%; bottom: 1%; }
-
-    .side-panel { display: flex; flex-direction: column; gap: 20px; }
-    .chat-panel, .ad-panel, .action-panel {
-      border: 2px solid #626262; border-radius: 34px;
-      background: #efefef;
-    }
-    .chat-panel { flex: 1; min-height: 280px; padding: 23px 20px 16px; display: flex; flex-direction: column; }
-    .panel-title { font-size: 24px; margin: 0 0 18px; font-weight: normal; }
-    .chat-messages { flex: 1; display: flex; align-items: center; justify-content: center; }
-    .coming-soon { color: #686868; font-size: 15px; line-height: 1.4; text-align: center; }
-    .chat-input {
-      width: 100%; font: inherit; font-size: 19px;
-      padding: 8px 11px; border: 2px solid #777; border-radius: 8px;
-      background: white;
-    }
-    .chat-input:disabled { cursor: not-allowed; }
-    .ad-panel { min-height: 150px; padding: 22px 20px; font-size: 22px; }
-    .ad-note { font-size: 14px; color: #666; margin-top: 12px; }
-
-    .action-panel {
-      margin: 16px 22px 22px; padding: 23px 30px 35px;
-      min-height: 166px; text-align: center;
-    }
-    .turn-message { font-size: 24px; margin-bottom: 8px; }
-    .game-note { color: #666; font-size: 15px; }
-    .action-buttons {
-      display: flex; justify-content: center; gap: 26px; margin-top: 24px;
-    }
-    .game-button {
-      min-width: 155px; padding: 10px 17px; border: 2px solid #777;
-      border-radius: 10px; background: #f5f5f5;
-      font: inherit; font-size: 20px; color: #666; cursor: not-allowed;
-    }
-
-    @media (max-width: 1100px) {
-      .top-bar { gap: 18px; }
-      .room-name { font-size: 24px; }
-      .room-detail, .leave-button { font-size: 19px; }
-      .content { grid-template-columns: minmax(0, 1fr) 27%; gap: 13px; padding: 14px 13px 0; }
-      .seat { min-width: 0; font-size: 14px; border-width: 4px; }
-      .seat .seat-note { font-size: 12px; }
-      .action-buttons { gap: 12px; flex-wrap: wrap; }
-      .game-button { min-width: 135px; font-size: 17px; }
-    }
-    @media (max-width: 750px) {
-      .top-bar { display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 5px 12px; padding: 9px 12px; }
-      .logo { grid-row: 1 / 3; width: 52px; height: 52px; font-size: 13px; }
-      .room-name { grid-column: 2; grid-row: 1; font-size: 21px; }
-      #anteText { grid-column: 2; grid-row: 2; }
-      #limitsText { grid-column: 3; grid-row: 2; }
-      .room-detail { font-size: 15px; }
-      .leave-button { grid-column: 3; grid-row: 1; margin-left: 0; font-size: 15px; }
-      .content { display: block; }
-      .table-area { min-height: 0; padding: 18px 0; }
-      .table-outline { display: none; }
-      .table-center { position: static; transform: none; margin: 0 auto 15px; }
-      .pot { font-size: 25px; }
-      .street { font-size: 21px; }
-      .seats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
-      .seat { position: static; width: auto; min-height: 115px; height: auto; }
-      .side-panel { flex-direction: row; }
-      .chat-panel, .ad-panel { flex: 1; min-width: 0; }
-      .chat-panel { min-height: 210px; }
-      .ad-panel { min-height: 210px; }
-      .action-panel { margin: 16px 13px; padding: 20px 12px; }
-      .turn-message { font-size: 20px; }
-    }
-    @media (max-width: 480px) {
-      .side-panel { flex-direction: column; }
-      .chat-panel, .ad-panel { min-height: 160px; }
-      .action-buttons { gap: 8px; }
-      .game-button { min-width: 0; flex: 1 1 42%; }
-    }
-  </style>
+  <!-- Absolute paths: this page is also served at /table/:tableId -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/table.css">
 </head>
 <body>
-  <header class="top-bar">
-    <a class="logo" href="lobby.html" aria-label="Go to lobby">Logo</a>
-    <h1 class="room-name" id="roomName">Poker Table</h1>
-    <span class="room-detail" id="anteText">Ante -</span>
-    <span class="room-detail" id="limitsText">-</span>
-    <button type="button" class="leave-button" id="leaveButton">Leave table</button>
-  </header>
+  <div id="siteNav"></div>
+  <script src="/js/nav.js"></script>
 
-  <div id="notice" class="notice" role="status" aria-live="polite"></div>
+  <main class="container-xl pb-5">
+    <header class="table-header fade-up">
+      <h1 class="room-name" id="roomName">Poker Table</h1>
+      <span class="pill" id="anteText">Ante -</span>
+      <span class="pill pill-muted room-detail" id="limitsText">-</span>
+      <button type="button" class="btn btn-danger-soft leave-button" id="leaveButton">
+        <i class="bi bi-box-arrow-left"></i>Leave table
+      </button>
+    </header>
 
-  <div class="table-info">
-    <span id="playerCount">Waiting for table information...</span>
-    <div class="table-actions">
-      <button type="button" class="join-button" id="joinButton" hidden>Join this table</button>
-      <button type="button" class="invite-button" id="inviteButton" hidden>Copy invite link</button>
-      <button type="button" class="refresh-button" id="refreshButton">Refresh players</button>
+    <div id="notice" class="notice" role="status" aria-live="polite"></div>
+
+    <div class="table-info fade-up delay-1">
+      <span id="playerCount">Waiting for table information...</span>
+      <div class="table-actions">
+        <button type="button" class="btn btn-primary" id="joinButton" hidden>
+          <i class="bi bi-box-arrow-in-right"></i>Join this table
+        </button>
+        <button type="button" class="btn btn-light-soft" id="inviteButton" hidden>
+          <i class="bi bi-link-45deg"></i>Copy invite link
+        </button>
+        <button type="button" class="btn btn-sm btn-light-soft" id="refreshButton">
+          <i class="bi bi-arrow-clockwise"></i>Refresh players
+        </button>
+      </div>
     </div>
-  </div>
 
-  <main>
-    <div class="content">
-      <section class="table-area" aria-label="Poker table and player seats">
-        <div class="table-outline" aria-hidden="true"></div>
-        <div class="table-center">
-          <div class="pot">Pot: --</div>
-          <div class="street">Waiting</div>
-          <div class="status" id="tableStatus">No hand in progress</div>
-        </div>
-        <div class="seats" id="seats"></div>
-      </section>
-
-      <aside class="side-panel">
-        <section class="chat-panel" aria-label="Table chat">
-          <h2 class="panel-title">Table chat</h2>
-          <div class="chat-messages">
-            <p class="coming-soon">Chat will be available when the game is connected.</p>
+    <div class="row g-4">
+      <div class="col-lg-9">
+        <section class="table-area fade-up delay-1" aria-label="Poker table and player seats">
+          <div class="table-rail" aria-hidden="true">
+            <div class="table-felt">
+              <img class="felt-logo" src="/images/logo.svg" alt="">
+            </div>
           </div>
-          <input class="chat-input" type="text" placeholder="Type message" disabled aria-label="Table chat unavailable">
+          <div class="table-center">
+            <div class="pot">
+              <span class="chip-stack" aria-hidden="true"><i></i><i></i><i></i></span>
+              Pot: --
+            </div>
+            <div class="street">Waiting</div>
+            <div class="status" id="tableStatus">No hand in progress</div>
+          </div>
+          <div class="seats" id="seats"></div>
         </section>
-        <section class="ad-panel" aria-label="Advertisement placeholder">
-          <div>Ad (every 5 minutes)</div>
-          <div class="ad-note">Ad space</div>
+      </div>
+
+      <aside class="col-lg-3 d-flex flex-column gap-4">
+        <section class="so-card chat-panel fade-up delay-2" aria-label="Table chat">
+          <h2 class="so-card-title mb-2"><i class="bi bi-chat-dots-fill"></i>Table chat</h2>
+          <div class="chat-messages">
+            <div class="empty-state p-0">
+              <i class="bi bi-chat-square-heart"></i>
+              Chat will be available when the game is connected.
+            </div>
+          </div>
+          <input class="form-control" type="text" placeholder="Type message" disabled aria-label="Table chat unavailable">
+        </section>
+        <section class="ad-slot fade-up delay-3" aria-label="Advertisement placeholder">
+          <i class="bi bi-badge-ad"></i>
+          <strong>ADVERTISEMENT</strong>
+          <span class="small">Shown every 5 minutes</span>
         </section>
       </aside>
     </div>
 
-    <section class="action-panel" aria-label="Poker actions">
-      <div class="turn-message">Turn timer: --</div>
-      <div class="game-note">Poker gameplay has not been connected yet.</div>
+    <section class="action-panel fade-up delay-2" aria-label="Poker actions">
+      <div class="turn-timer" style="--progress: 0;" aria-hidden="true">--</div>
+      <div>
+        <div class="turn-message">Turn timer: --</div>
+        <div class="game-note">Poker gameplay has not been connected yet.</div>
+      </div>
       <div class="action-buttons">
-        <button class="game-button" type="button" disabled>Fold</button>
+        <button class="game-button fold" type="button" disabled><i class="bi bi-x-lg me-1"></i>Fold</button>
         <button class="game-button" type="button" disabled>Check</button>
         <button class="game-button" type="button" disabled>Call</button>
-        <button class="game-button" type="button" disabled>Raise/Complete</button>
+        <button class="game-button raise" type="button" disabled><i class="bi bi-arrow-up me-1"></i>Raise / Complete</button>
       </div>
     </section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     // LT-03: The table view uses the same MongoDB record as the lobby and Create Table.
     const params = new URLSearchParams(window.location.search);
-    const tableId = params.get("tableId") || params.get("id") || sessionStorage.getItem("currentTableId");
-    let username = params.get("username") || sessionStorage.getItem("currentUsername") || "";
+    const pathMatch = window.location.pathname.match(/^\/table\/([^/]+)/);
+    const tableId = params.get("tableId") || params.get("id") ||
+                    (pathMatch ? decodeURIComponent(pathMatch[1]) : null) ||
+                    sessionStorage.getItem("currentTableId");
+    let username = params.get("username") || sessionStorage.getItem("currentUsername") || SOP.user || "";
     let currentTable = null;
+    // What each seat showed last time, so polling only redraws when something changed
+    let lastSeatKey = "";
+    let lastSeatNames = [];
 
     const seatPositions = {
       2: ["top-center", "bottom-center"],
@@ -255,7 +137,6 @@
 
     function showSeats(table) {
       const seats = document.getElementById("seats");
-      seats.replaceChildren();
 
       const maxPlayers = Math.min(7, Math.max(2, Number(table.maxPlayers) || 7));
       const positions = seatPositions[maxPlayers];
@@ -264,7 +145,7 @@
 
       // Display the current user's seat near the bottom whenever they have joined.
       if (username && players.includes(username)) {
-        const preferred = positions.indexOf("bottom-left");
+        const preferred = positions.indexOf("bottom-center") >= 0 ? positions.indexOf("bottom-center") : positions.indexOf("bottom-left");
         seatNames[preferred >= 0 ? preferred : maxPlayers - 1] = username;
       }
       let nextSeat = 0;
@@ -274,27 +155,60 @@
         if (nextSeat < maxPlayers) seatNames[nextSeat] = name;
       }
 
+      // Nothing changed since the last check: keep the seats as they are (no flicker)
+      const seatKey = maxPlayers + "|" + username + "|" + seatNames.join(",");
+      if (seatKey === lastSeatKey) return;
+
+      const firstDraw = lastSeatKey === "";
+      const previousNames = lastSeatNames;
+      lastSeatKey = seatKey;
+      lastSeatNames = seatNames;
+      seats.replaceChildren();
+
       for (let i = 0; i < maxPlayers; i++) {
         const seat = document.createElement("div");
         seat.className = "seat " + positions[i];
+        const name = seatNames[i];
+
+        // Animate every seat on the first draw; after that, only seats that changed
+        if (firstDraw) {
+          seat.style.animationDelay = (i * 0.04) + "s";
+        } else if (previousNames.length === maxPlayers && previousNames[i] === name) {
+          seat.style.animation = "none";
+        }
+
+        const avatar = document.createElement("span");
+        const text = document.createElement("span");
+        text.className = "seat-text";
         const title = document.createElement("strong");
         const note = document.createElement("span");
         note.className = "seat-note";
-        const name = seatNames[i];
 
         if (!name) {
           seat.classList.add("empty");
+          avatar.className = "avatar";
+          avatar.innerHTML = '<i class="bi bi-plus-lg"></i>';
           title.textContent = "Empty";
           note.textContent = "Open seat";
-        } else if (name === username) {
-          seat.classList.add("yours");
-          title.textContent = "Your seat";
-          note.textContent = name + " - Waiting";
         } else {
-          title.textContent = "Seat: " + name;
+          avatar.className = "avatar " + SOP.avatarTone(name);
+          avatar.textContent = name.charAt(0);
+          title.textContent = name;
           note.textContent = "Waiting";
+          if (name === username) seat.classList.add("yours");
         }
-        seat.append(title, note);
+
+        text.append(title, note);
+        seat.append(avatar, text);
+
+        if (name) {
+          const cards = document.createElement("span");
+          cards.className = "cards";
+          cards.setAttribute("aria-hidden", "true");
+          cards.innerHTML = "<span></span><span></span>";
+          seat.appendChild(cards);
+        }
+
         seats.appendChild(seat);
       }
     }
@@ -302,18 +216,20 @@
     function showTable(table) {
       currentTable = table;
       document.getElementById("roomName").textContent = table.name || "Poker Table";
+      document.title = (table.name || "Poker Table") + " - Stack Overflow Poker";
       const anteParts = String(table.ante || "").split("/").map(part => part.trim()).filter(Boolean);
-      document.getElementById("anteText").textContent = "Ante " + (anteParts[0] || "-");
+      document.getElementById("anteText").innerHTML = '<i class="bi bi-coin"></i>Ante ' + SOP.escapeHtml(anteParts[0] || "-");
       const limits = anteParts.length >= 4 ? anteParts[2] + "-" + anteParts[3] :
                      anteParts.length >= 3 ? anteParts[1] + "-" + anteParts[2] : "-";
-      document.getElementById("limitsText").textContent = limits;
+      document.getElementById("limitsText").textContent = "Limits " + limits;
 
       const players = Array.isArray(table.players) ? table.players : [];
       const count = players.length;
       const maxPlayers = Number(table.maxPlayers) || 7;
       const privacy = table.privacy === "private" ? "Private" : "Public";
-      document.getElementById("playerCount").textContent =
-        privacy + " table | Players: " + count + "/" + maxPlayers + " | Bots: " + (table.bots || "off");
+      document.getElementById("playerCount").innerHTML =
+        '<i class="bi ' + (privacy === "Private" ? "bi-lock-fill" : "bi-globe2") + ' me-1"></i>' +
+        privacy + " table · " + count + "/" + maxPlayers + " players · Bots: " + SOP.escapeHtml(table.bots || "off");
       document.getElementById("tableStatus").textContent =
         table.status === "playing" ? "Game in progress (game controls not connected)" : "Waiting for players";
       showSeats(table);
@@ -354,7 +270,8 @@
 
     async function joinCurrentTable() {
       if (!tableId || !currentTable) return;
-      const name = prompt("Enter your username to join this table:", username);
+      // Signed-in players join as themselves; guests are asked for a name.
+      const name = SOP.user || prompt("Enter your username to join this table:", username);
       if (!name || !name.trim()) return;
       const joinButton = document.getElementById("joinButton");
       joinButton.disabled = true;
@@ -372,6 +289,7 @@
         username = name.trim();
         sessionStorage.setItem("currentUsername", username);
         clearNotice();
+        SOP.toast("You joined " + (currentTable.name || "the table") + "!", "success");
         // Update immediately using the returned saved table, then refresh from MongoDB.
         if (result.table) showTable(result.table);
         await loadTable(true);
@@ -384,10 +302,10 @@
 
     async function copyInviteLink() {
       if (!tableId) return;
-      const link = new URL("table.html?tableId=" + encodeURIComponent(tableId), location.href).href;
+      const link = new URL("/table.html?tableId=" + encodeURIComponent(tableId), location.href).href;
       try {
         await navigator.clipboard.writeText(link);
-        showNotice("Invite link copied. Anyone with this private table link can open it and join.");
+        SOP.toast("Invite link copied. Anyone with this link can open the table and join.", "success");
       } catch (error) {
         prompt("Copy this invite link:", link);
       }
@@ -397,9 +315,8 @@
     document.getElementById("inviteButton").addEventListener("click", copyInviteLink);
     document.getElementById("refreshButton").addEventListener("click", () => loadTable());
     document.getElementById("leaveButton").addEventListener("click", function () {
-
       if (confirm("Return to the lobby? Your seat stays reserved until a leave-table feature is added.")) {
-        location.href = "lobby.html";
+        location.href = SOP.withUser("/lobby.html");
       }
     });
 

@@ -2,201 +2,347 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Lobby - Stack Overflow Poker</title>
+    <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
 
-    <!-- Bootstrap CSS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
 
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/styles.css">
-</head>
-<body>
-
-    <!-- Navigation bar -->
-    <nav class="navbar navbar-expand-sm navbar-dark navbar-purple">
-        <div class="container-fluid">
-          <!-- Links -->
-              <ul class="navbar-nav">
-                <li class="nav-item">
-                  <a class="nav-link" href="home.html"><span class="logo-placeholder">Logo</span></a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="lobby.html">Lobby</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="friends.html">Friends</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="stats.html">Stats</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="profile.html">Profile</a>
-                </li>
-              </ul>
-        </div>
-    </nav>
-
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">
-          Lobby
-        </h1>
-        
-        <a href="createtable.html" class="btn btn-primary">Create Table</a>
-        
-        <div class="mt-3 mb-4">
-            <label for="privateTableCode">Private Table Invite Code:</label>
-        
-            <input
-                type="text"
-                id="privateTableCode"
-                class="form-control"
-                placeholder="Enter invite code">
-        
-            <button
-                type="button"
-                class="btn btn-primary mt-2"
-                onclick="joinPrivateTable()">
-                Join Private Table
-            </button>
-        </div>
-        
-        <h3 class="mt-4">Available Tables</h3>
-
-        <p id="tableMessage">Loading tables...</p>
-
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Table Name</th>
-                    <th>Players</th>
-                    <th>Status</th>
-                    <th>Join</th>
-                </tr>
-            </thead>
-            <tbody id="tablesList">
-            </tbody>
-        </table>
-    </div>
-
-<script>
-
-async function joinPrivateTable() {
-    const code = document.getElementById("privateTableCode").value.trim();
-
-    if (!code) {
-        alert("Please enter an invite code.");
-        return;
-    }
-    const username = prompt("Enter your username:");
-
-    if (!username || !username.trim()) {
-        return;
-    }
-    try {
-        const response = await fetch("/api/tables/join", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                tableId: code,
-                username: username.trim()
-            })
-        });
-        const result = await response.json();
-        alert(result.msg);
-        
-        if (response.ok) {
-            sessionStorage.setItem("currentTableId", code);
-            sessionStorage.setItem("currentUsername", username.trim());
-        
-            window.location.href = "table.html?tableId=" +
-                encodeURIComponent(code);
+    <style>
+        .table-card {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            padding: 0;
+            overflow: hidden;
         }
 
-    } catch (error) {
-        alert("Could not join private table.");
+        .table-card .felt {
+            position: relative;
+            height: 112px;
+            background:
+                radial-gradient(ellipse at 50% 30%, #1aa362 0%, var(--felt) 50%, var(--felt-dark) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .table-card .felt::after {
+            content: "";
+            position: absolute;
+            inset: 14px 22px;
+            border-radius: 999px;
+            border: 2px solid rgba(255, 255, 255, .18);
+        }
+
+        .table-card .felt .suit {
+            font-size: 2.4rem;
+            color: rgba(255, 255, 255, .25);
+        }
+
+        .table-card .felt .pill { position: absolute; top: .75rem; left: .75rem; z-index: 1; }
+
+        .table-card .body {
+            padding: 1.15rem 1.25rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: .7rem;
+            flex: 1;
+        }
+
+        .table-card h3 {
+            font-size: 1.15rem;
+            margin: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .seat-dots { display: flex; gap: .3rem; flex-wrap: wrap; }
+
+        .seat-dots span {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #eee6f1;
+            border: 1px solid #e0d3e6;
+        }
+
+        .seat-dots span.taken {
+            background: linear-gradient(135deg, #cf55cf, var(--brand-700));
+            border-color: transparent;
+        }
+
+        .table-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: .88rem;
+            color: var(--ink-muted);
+        }
+
+        .table-card .btn { margin-top: auto; }
+
+        .skeleton {
+            border-radius: var(--radius-lg);
+            height: 250px;
+            background: linear-gradient(90deg, #f1e9f4 25%, #f8f2fa 37%, #f1e9f4 63%);
+            background-size: 400% 100%;
+            animation: shimmer 1.4s ease infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 100% 50%; }
+            100% { background-position: 0 50%; }
+        }
+    </style>
+</head>
+<body>
+    <div id="siteNav"></div>
+    <script src="/js/nav.js"></script>
+
+    <main class="container pb-5">
+        <header class="page-header d-flex flex-wrap align-items-end justify-content-between gap-3">
+            <div class="fade-up">
+                <span class="eyebrow"><i class="bi bi-suit-spade-fill"></i>Lobby</span>
+                <h1 class="page-title">Find your table</h1>
+                <p class="page-subtitle">Join an open public table or enter a private invite code.</p>
+            </div>
+            <a id="createTableLink" href="/createtable.html" class="btn btn-primary btn-lg fade-up delay-1">
+                <i class="bi bi-plus-lg"></i>Create Table
+            </a>
+        </header>
+
+        <div class="row g-4 mb-4">
+            <!-- Search -->
+            <div class="col-lg-7 fade-up delay-1">
+                <div class="so-card h-100">
+                    <label class="form-label" for="tableSearch">Search public tables</label>
+                    <div class="input-icon">
+                        <i class="bi bi-search"></i>
+                        <input id="tableSearch" type="search" class="form-control" placeholder="Search by table name">
+                    </div>
+                    <div class="d-flex flex-wrap gap-2 mt-3" role="group" aria-label="Filter tables">
+                        <button type="button" class="btn btn-sm btn-primary" data-filter="all">All</button>
+                        <button type="button" class="btn btn-sm btn-light-soft" data-filter="open">Open seats</button>
+                        <button type="button" class="btn btn-sm btn-light-soft" data-filter="playing">In progress</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Private table -->
+            <div class="col-lg-5 fade-up delay-2">
+                <div class="so-card h-100">
+                    <label class="form-label" for="privateTableCode">
+                        <i class="bi bi-lock-fill me-1"></i>Private table invite code
+                    </label>
+                    <div class="input-group">
+                        <input type="text" id="privateTableCode" class="form-control" placeholder="Enter invite code">
+                        <button type="button" class="btn btn-primary" onclick="joinPrivateTable()">
+                            Join
+                        </button>
+                    </div>
+                    <p class="form-hint mb-0">Ask the table creator to copy their invite link or code.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center justify-content-between mb-3 fade-up delay-2">
+            <h2 class="h4 mb-0">Available tables</h2>
+            <div class="d-flex align-items-center gap-2">
+                <span class="text-secondary small" id="tableMessage">Loading tables...</span>
+                <button type="button" class="btn btn-sm btn-light-soft" id="refreshTables" aria-label="Refresh tables">
+                    <i class="bi bi-arrow-clockwise"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="row g-4" id="tablesList">
+            <div class="col-sm-6 col-lg-4"><div class="skeleton"></div></div>
+            <div class="col-sm-6 col-lg-4"><div class="skeleton"></div></div>
+            <div class="col-sm-6 col-lg-4 d-none d-lg-block"><div class="skeleton"></div></div>
+        </div>
+
+        <div class="ad-slot mt-5">
+            <i class="bi bi-badge-ad"></i>
+            <strong>ADVERTISEMENT</strong>
+            <span class="small">Ad space</span>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container d-flex flex-wrap justify-content-between gap-2">
+            <span>&copy; Stack Overflow Chips &middot; Virtual chips only, no real-money gambling.</span>
+            <span class="suits" aria-hidden="true">♠ ♥ ♣ ♦</span>
+        </div>
+    </footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.getElementById("createTableLink").href = SOP.withUser("/createtable.html");
+
+    let allTables = [];
+    let activeFilter = "all";
+    const suits = ["♠", "♥", "♣", "♦"];
+
+    // Uses the signed-in player; guests are asked for a name.
+    function getPlayerName() {
+        if (SOP.user) return SOP.user;
+        const name = prompt("Enter your username:");
+        return name && name.trim() ? name.trim() : null;
     }
-}
-    
-async function showTables() {
-    const message = document.getElementById("tableMessage");
-    const list = document.getElementById("tablesList");
 
-    try {
-        const response = await fetch("/api/tables");
-        const tables = await response.json();
+    // LT-02: join a table (public or private) and open the table screen.
+    async function joinTable(tableId) {
+        const username = getPlayerName();
+        if (!username) return;
 
-        if (tables.length === 0) {
-            message.textContent = "No tables available.";
+        try {
+            const response = await fetch("/api/tables/join", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ tableId: tableId, username: username })
+            });
+            const result = await response.json();
+
+            if (response.ok) {
+                sessionStorage.setItem("currentTableId", tableId);
+                sessionStorage.setItem("currentUsername", username);
+                SOP.toast(result.msg || "Joined table", "success");
+                window.location.href = "/table.html?tableId=" + encodeURIComponent(tableId);
+            } else {
+                SOP.toast(result.msg || "Unable to join table", "error");
+            }
+        } catch (error) {
+            SOP.toast("Could not join table.", "error");
+        }
+    }
+
+    function joinPrivateTable() {
+        const code = document.getElementById("privateTableCode").value.trim();
+        if (!code) {
+            SOP.toast("Please enter an invite code.", "error");
+            return;
+        }
+        joinTable(code);
+    }
+
+    document.getElementById("privateTableCode").addEventListener("keydown", function (event) {
+        if (event.key === "Enter") joinPrivateTable();
+    });
+
+    function tableCard(table, index) {
+        const players = Array.isArray(table.players) ? table.players : [];
+        const max = Number(table.maxPlayers) || 7;
+        const open = table.status === "waiting" && players.length < max;
+        const playing = table.status === "playing";
+        const anteParts = String(table.ante || "").split("/").map(function (p) { return p.trim(); }).filter(Boolean);
+
+        const col = document.createElement("div");
+        col.className = "col-sm-6 col-lg-4 fade-up";
+        col.style.animationDelay = (index * 0.05) + "s";
+
+        const status = playing
+            ? '<span class="pill pill-warning"><i class="bi bi-lightning-charge-fill"></i>In progress</span>'
+            : open
+                ? '<span class="pill pill-success"><span class="dot"></span>Waiting for players</span>'
+                : '<span class="pill pill-muted"><i class="bi bi-slash-circle"></i>Full</span>';
+
+        let dots = "";
+        for (let i = 0; i < max; i++) dots += '<span class="' + (i < players.length ? "taken" : "") + '"></span>';
+
+        col.innerHTML =
+            '<article class="so-card card-hover table-card">' +
+                '<div class="felt">' + status + '<span class="suit">' + suits[index % 4] + "</span></div>" +
+                '<div class="body">' +
+                    "<h3></h3>" +
+                    '<div class="table-meta"><span><i class="bi bi-people me-1"></i>' + players.length + "/" + max + " players</span>" +
+                    "<span><i class=\"bi bi-coin me-1\"></i>Ante " + SOP.escapeHtml(anteParts[0] || "-") + "</span></div>" +
+                    '<div class="seat-dots" aria-label="' + players.length + " of " + max + ' seats taken">' + dots + "</div>" +
+                "</div>" +
+            "</article>";
+
+        col.querySelector("h3").textContent = table.name;
+
+        const button = document.createElement("button");
+        button.type = "button";
+        if (open) {
+            button.className = "btn btn-primary w-100";
+            button.innerHTML = '<i class="bi bi-box-arrow-in-right"></i>Join table';
+            button.addEventListener("click", function () { joinTable(table._id); });
+        } else {
+            button.className = "btn btn-light-soft w-100";
+            button.innerHTML = '<i class="bi bi-eye"></i>View table';
+            button.addEventListener("click", function () {
+                window.location.href = "/table.html?tableId=" + encodeURIComponent(table._id);
+            });
+        }
+        col.querySelector(".body").appendChild(button);
+        return col;
+    }
+
+    function renderTables() {
+        const list = document.getElementById("tablesList");
+        const message = document.getElementById("tableMessage");
+        const search = document.getElementById("tableSearch").value.trim().toLowerCase();
+
+        const shown = allTables.filter(function (table) {
+            const players = Array.isArray(table.players) ? table.players.length : 0;
+            const open = table.status === "waiting" && players < (Number(table.maxPlayers) || 7);
+            if (search && !String(table.name).toLowerCase().includes(search)) return false;
+            if (activeFilter === "open") return open;
+            if (activeFilter === "playing") return table.status === "playing";
+            return true;
+        });
+
+        list.replaceChildren();
+        message.textContent = allTables.length + (allTables.length === 1 ? " table" : " tables") + " live";
+
+        if (shown.length === 0) {
+            list.innerHTML =
+                '<div class="col-12"><div class="so-card empty-state">' +
+                '<i class="bi bi-suit-club"></i><strong>' +
+                (allTables.length === 0 ? "No tables yet" : "No tables match") + "</strong>" +
+                (allTables.length === 0 ? "Be the first to create one!" : "Try a different search or filter.") +
+                "</div></div>";
             return;
         }
 
-        message.textContent = "";
-
-        for (const table of tables) {
-            const row = list.insertRow();
-
-            row.insertCell().textContent = table.name;
-            row.insertCell().textContent =
-                table.players.length + "/" + table.maxPlayers;
-            row.insertCell().textContent = table.status;
-
-            const joinCell = row.insertCell();
-
-            if (table.status === "waiting" &&
-                table.players.length < table.maxPlayers) {
-
-                const button = document.createElement("button");
-                button.textContent = "Join";
-                button.className = "btn btn-primary btn-sm";
-                
-                button.onclick = async function() {
-                    const username = prompt("Enter your username:");
-                
-                    if (!username || username.trim() === "") {
-                        return;
-                    }
-                
-                    try {
-                        const response = await fetch("/api/tables/join", {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json"
-                            },
-                            body: JSON.stringify({
-                                tableId: table._id,
-                                username: username.trim()
-                            })
-                        });
-                
-                        const result = await response.json();
-                        alert(result.msg);
-                
-                        if (response.ok) {
-                            sessionStorage.setItem("currentTableId", table._id);
-                            sessionStorage.setItem("currentUsername", username.trim());
-                            window.location.href = "table.html?tableId=" + encodeURIComponent(table._id);
-                        }
-                
-                    } catch (error) {
-                        alert("Could not join table.");
-                    }
-                };
-                
-                joinCell.appendChild(button);
-            }
-        }
-
-    } catch (error) {
-        message.textContent = "Could not load tables.";
+        shown.forEach(function (table, index) { list.appendChild(tableCard(table, index)); });
     }
-}
 
-showTables();
+    // LT-01: load the public tables from MongoDB.
+    async function showTables() {
+        const message = document.getElementById("tableMessage");
+        try {
+            const response = await fetch("/api/tables", { cache: "no-store" });
+            if (!response.ok) throw new Error();
+            allTables = await response.json();
+            renderTables();
+        } catch (error) {
+            message.textContent = "";
+            document.getElementById("tablesList").innerHTML =
+                '<div class="col-12"><div class="so-card empty-state"><i class="bi bi-wifi-off"></i>' +
+                "<strong>Could not load tables</strong>Check your connection and try again.</div></div>";
+        }
+    }
+
+    document.getElementById("tableSearch").addEventListener("input", renderTables);
+    document.getElementById("refreshTables").addEventListener("click", showTables);
+
+    document.querySelectorAll("[data-filter]").forEach(function (button) {
+        button.addEventListener("click", function () {
+            activeFilter = button.getAttribute("data-filter");
+            document.querySelectorAll("[data-filter]").forEach(function (other) {
+                other.className = "btn btn-sm " + (other === button ? "btn-primary" : "btn-light-soft");
+            });
+            renderTables();
+        });
+    });
+
+    showTables();
 </script>
-    
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
- 

@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Stack Overflow Poker logo">
+  <title>Stack Overflow Poker</title><path d="M68.6 66.4 Q 98.6 26.400000000000006 118.6 64.4"
+      fill="none" stroke="#bf40bf" stroke-width="3" stroke-linecap="round" stroke-dasharray="1 7" opacity=".55"/>
+  <g transform="rotate(0 42.00 115.30)">
+    <defs>
+      <linearGradient id="c0" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7d2a86"/><stop offset="1" stop-color="#5a1a63"/></linearGradient>
+      <clipPath id="c0c"><path d="M20.00 112.00 v6.60 a22 7.48 0 0 0 44 0 v-6.60 z"/></clipPath>
+    </defs>
+    <ellipse cx="42.00" cy="118.60" rx="22" ry="7.48" fill="#24082a"/>
+    <rect x="20.00" y="112.00" width="44" height="6.60" fill="#3b0f42"/>
+    <g clip-path="url(#c0c)"><rect x="21.98" y="112.00" width="3.08" height="6.60" fill="#ffffff" opacity=".8"/><rect x="31.22" y="112.00" width="3.08" height="6.60" fill="#ffffff" opacity=".8"/><rect x="40.46" y="112.00" width="3.08" height="6.60" fill="#ffffff" opacity=".8"/><rect x="49.70" y="112.00" width="3.08" height="6.60" fill="#ffffff" opacity=".8"/><rect x="58.94" y="112.00" width="3.08" height="6.60" fill="#ffffff" opacity=".8"/></g>
+    <ellipse cx="42.00" cy="112.00" rx="22" ry="7.48" fill="url(#c0)"/>
+    <ellipse cx="42.00" cy="112.00" rx="15.84" ry="5.39" fill="none" stroke="#ffffff" stroke-width="1.76" stroke-dasharray="5.72 4.40" opacity=".85"/>
+  </g>
+  <g transform="rotate(0 42.35 108.70)">
+    <defs>
+      <linearGradient id="c1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d65cd6"/><stop offset="1" stop-color="#bf40bf"/></linearGradient>
+      <clipPath id="c1c"><path d="M20.35 105.40 v6.60 a22 7.48 0 0 0 44 0 v-6.60 z"/></clipPath>
+    </defs>
+    <ellipse cx="42.35" cy="112.00" rx="22" ry="7.48" fill="#5e1a5f"/>
+    <rect x="20.35" y="105.40" width="44" height="6.60" fill="#8e2a8e"/>
+    <g clip-path="url(#c1c)"><rect x="22.33" y="105.40" width="3.08" height="6.60" fill="#ffffff" opacity=".8"/><rect x="31.57" y="105.40" width="3.08" height="6.60" fill="#ffffff" opacity=".8"/><rect x="40.81" y="105.40" width="3.08" height="6.60" fill="#ffffff" opacity=".8"/><rect x="50.05" y="105.40" width="3.08" height="6.60" fill="#ffffff" opacity=".8"/><rect x="59.29" y="105.40" width="3.08" height="6.60" fill="#ffffff" opacity=".8"/></g>
+    <ellipse cx="42.35" cy="105.40" rx="22" ry="7.48" fill="url(#c1)"/>
+    <ellipse cx="42.35" cy="105.40" rx="15.84" ry="5.39" fill="none" stroke="#ffffff" stroke-width="1.76" stroke-dasharray="5.72 4.40" opacity=".85"/>
+  </g>
+  <g transform="rotate(0 43.40 102.10)">
+    <defs>
+      <linearGradient id="c2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#f3eef6"/></linearGradient>
+      <clipPath id="c2c"><path d="M21.40 98.80 v6.60 a22 7.48 0 0 0 44 0 v-6.60 z"/></clipPath>
+    </defs>
+    <ellipse cx="43.40" cy="105.40" rx="22" ry="7.48" fill="#ab9db6"/>
+    <rect x="21.40" y="98.80" width="44" height="6.60" fill="#d6cbdc"/>
+    <g clip-path="url(#c2c)"><rect x="23.38" y="98.80" width="3.08" height="6.60" fill="#8e2a8e" opacity=".8"/><rect x="32.62" y="98.80" width="3.08" height="6.60" fill="#8e2a8e" opacity=".8"/><rect x="41.86" y="98.80" width="3.08" height="6.60" fill="#8e2a8e" opacity=".8"/><rect x="51.10" y="98.80" width="3.08" height="6.60" fill="#8e2a8e" opacity=".8"/><rect x="60.34" y="98.80" width="3.08" height="6.60" fill="#8e2a8e" opacity=".8"/></g>
+    <ellipse cx="43.40" cy="98.80" rx="22" ry="7.48" fill="url(#c2)"/>
+    <ellipse cx="43.40" cy="98.80" rx="15.84" ry="5.39" fill="none" stroke="#8e2a8e" stroke-width="1.76" stroke-dasharray="5.72 4.40" opacity=".85"/>
+  </g>
+  <g transform="rotate(0 45.15 95.50)">
+    <defs>
+      <linearGradient id="c3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7d2a86"/><stop offset="1" stop-color="#5a1a63"/></linearGradient>
+      <clipPath id="c3c"><path d="M23.15 92.20 v6.60 a22 7.48 0 0 0 44 0 v-6.60 z"/></clipPath>
+    </defs>
+    <ellipse cx="45.15" cy="98.80" rx="22" ry="7.48" fill="#24082a"/>
+    <rect x="23.15" y="92.20" width="44" height="6.60" fill="#3b0f42"/>
+    <g clip-path="url(#c3c)"><rect x="25.13" y="92.20" width="3.08" height="6.60" fill="#ffffff" opacity=".8"/><rect x="34.37" y="92.20" width="3.08" height="6.60" fill="#ffffff" opacity=".8"/><rect x="43.61" y="92.20" width="3.08" height="6.60" fill="#ffffff" opacity=".8"/><rect x="52.85" y="92.20" width="3.08" height="6.60" fill="#ffffff" opacity=".8"/><rect x="62.09" y="92.20" width="3.08" height="6.60" fill="#ffffff" opacity=".8"/></g>
+    <ellipse cx="45.15" cy="92.20" rx="22" ry="7.48" fill="url(#c3)"/>
+    <ellipse cx="45.15" cy="92.20" rx="15.84" ry="5.39" fill="none" stroke="#ffffff" stroke-width="1.76" stroke-dasharray="5.72 4.40" opacity=".85"/>
+  </g>
+  <g transform="rotate(0 47.60 88.90)">
+    <defs>
+      <linearGradient id="c4" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d65cd6"/><stop offset="1" stop-color="#bf40bf"/></linearGradient>
+      <clipPath id="c4c"><path d="M25.60 85.60 v6.60 a22 7.48 0 0 0 44 0 v-6.60 z"/></clipPath>
+    </defs>
+    <ellipse cx="47.60" cy="92.20" rx="22" ry="7.48" fill="#5e1a5f"/>
+    <rect x="25.60" y="85.60" width="44" height="6.60" fill="#8e2a8e"/>
+    <g clip-path="url(#c4c)"><rect x="27.58" y="85.60" width="3.08" height="6.60" fill="#ffffff" opacity=".8"/><rect x="36.82" y="85.60" width="3.08" height="6.60" fill="#ffffff" opacity=".8"/><rect x="46.06" y="85.60" width="3.08" height="6.60" fill="#ffffff" opacity=".8"/><rect x="55.30" y="85.60" width="3.08" height="6.60" fill="#ffffff" opacity=".8"/><rect x="64.54" y="85.60" width="3.08" height="6.60" fill="#ffffff" opacity=".8"/></g>
+    <ellipse cx="47.60" cy="85.60" rx="22" ry="7.48" fill="url(#c4)"/>
+    <ellipse cx="47.60" cy="85.60" rx="15.84" ry="5.39" fill="none" stroke="#ffffff" stroke-width="1.76" stroke-dasharray="5.72 4.40" opacity=".85"/>
+  </g>
+  <g transform="rotate(0 50.75 82.30)">
+    <defs>
+      <linearGradient id="c5" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#f3eef6"/></linearGradient>
+      <clipPath id="c5c"><path d="M28.75 79.00 v6.60 a22 7.48 0 0 0 44 0 v-6.60 z"/></clipPath>
+    </defs>
+    <ellipse cx="50.75" cy="85.60" rx="22" ry="7.48" fill="#ab9db6"/>
+    <rect x="28.75" y="79.00" width="44" height="6.60" fill="#d6cbdc"/>
+    <g clip-path="url(#c5c)"><rect x="30.73" y="79.00" width="3.08" height="6.60" fill="#8e2a8e" opacity=".8"/><rect x="39.97" y="79.00" width="3.08" height="6.60" fill="#8e2a8e" opacity=".8"/><rect x="49.21" y="79.00" width="3.08" height="6.60" fill="#8e2a8e" opacity=".8"/><rect x="58.45" y="79.00" width="3.08" height="6.60" fill="#8e2a8e" opacity=".8"/><rect x="67.69" y="79.00" width="3.08" height="6.60" fill="#8e2a8e" opacity=".8"/></g>
+    <ellipse cx="50.75" cy="79.00" rx="22" ry="7.48" fill="url(#c5)"/>
+    <ellipse cx="50.75" cy="79.00" rx="15.84" ry="5.39" fill="none" stroke="#8e2a8e" stroke-width="1.76" stroke-dasharray="5.72 4.40" opacity=".85"/>
+  </g>
+  <g transform="rotate(0 54.60 75.70)">
+    <defs>
+      <linearGradient id="c6" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7d2a86"/><stop offset="1" stop-color="#5a1a63"/></linearGradient>
+      <clipPath id="c6c"><path d="M32.60 72.40 v6.60 a22 7.48 0 0 0 44 0 v-6.60 z"/></clipPath>
+    </defs>
+    <ellipse cx="54.60" cy="79.00" rx="22" ry="7.48" fill="#24082a"/>
+    <rect x="32.60" y="72.40" width="44" height="6.60" fill="#3b0f42"/>
+    <g clip-path="url(#c6c)"><rect x="34.58" y="72.40" width="3.08" height="6.60" fill="#ffffff" opacity=".8"/><rect x="43.82" y="72.40" width="3.08" height="6.60" fill="#ffffff" opacity=".8"/><rect x="53.06" y="72.40" width="3.08" height="6.60" fill="#ffffff" opacity=".8"/><rect x="62.30" y="72.40" width="3.08" height="6.60" fill="#ffffff" opacity=".8"/><rect x="71.54" y="72.40" width="3.08" height="6.60" fill="#ffffff" opacity=".8"/></g>
+    <ellipse cx="54.60" cy="72.40" rx="22" ry="7.48" fill="url(#c6)"/>
+    <ellipse cx="54.60" cy="72.40" rx="15.84" ry="5.39" fill="none" stroke="#ffffff" stroke-width="1.76" stroke-dasharray="5.72 4.40" opacity=".85"/>
+  </g>
+  <g transform="rotate(18 72.60 63.40)">
+    <defs>
+      <linearGradient id="c7" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d65cd6"/><stop offset="1" stop-color="#bf40bf"/></linearGradient>
+      <clipPath id="c7c"><path d="M52.60 60.40 v6.00 a20 6.80 0 0 0 40 0 v-6.00 z"/></clipPath>
+    </defs>
+    <ellipse cx="72.60" cy="66.40" rx="20" ry="6.80" fill="#5e1a5f"/>
+    <rect x="52.60" y="60.40" width="40" height="6.00" fill="#8e2a8e"/>
+    <g clip-path="url(#c7c)"><rect x="54.40" y="60.40" width="2.80" height="6.00" fill="#ffffff" opacity=".8"/><rect x="62.80" y="60.40" width="2.80" height="6.00" fill="#ffffff" opacity=".8"/><rect x="71.20" y="60.40" width="2.80" height="6.00" fill="#ffffff" opacity=".8"/><rect x="79.60" y="60.40" width="2.80" height="6.00" fill="#ffffff" opacity=".8"/><rect x="88.00" y="60.40" width="2.80" height="6.00" fill="#ffffff" opacity=".8"/></g>
+    <ellipse cx="72.60" cy="60.40" rx="20" ry="6.80" fill="url(#c7)"/>
+    <ellipse cx="72.60" cy="60.40" rx="14.40" ry="4.90" fill="none" stroke="#ffffff" stroke-width="1.60" stroke-dasharray="5.20 4.00" opacity=".85"/>
+  </g>
+  <g transform="rotate(52 94.60 42.10)">
+    <defs>
+      <linearGradient id="c8" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#f3eef6"/></linearGradient>
+      <clipPath id="c8c"><path d="M76.60 39.40 v5.40 a18 6.12 0 0 0 36 0 v-5.40 z"/></clipPath>
+    </defs>
+    <ellipse cx="94.60" cy="44.80" rx="18" ry="6.12" fill="#ab9db6"/>
+    <rect x="76.60" y="39.40" width="36" height="5.40" fill="#d6cbdc"/>
+    <g clip-path="url(#c8c)"><rect x="78.22" y="39.40" width="2.52" height="5.40" fill="#8e2a8e" opacity=".8"/><rect x="85.78" y="39.40" width="2.52" height="5.40" fill="#8e2a8e" opacity=".8"/><rect x="93.34" y="39.40" width="2.52" height="5.40" fill="#8e2a8e" opacity=".8"/><rect x="100.90" y="39.40" width="2.52" height="5.40" fill="#8e2a8e" opacity=".8"/><rect x="108.46" y="39.40" width="2.52" height="5.40" fill="#8e2a8e" opacity=".8"/></g>
+    <ellipse cx="94.60" cy="39.40" rx="18" ry="6.12" fill="url(#c8)"/>
+    <ellipse cx="94.60" cy="39.40" rx="12.96" ry="4.41" fill="none" stroke="#8e2a8e" stroke-width="1.44" stroke-dasharray="4.68 3.60" opacity=".85"/>
+  </g>
+  <g transform="rotate(96 114.60 54.80)">
+    <defs>
+      <linearGradient id="c9" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7d2a86"/><stop offset="1" stop-color="#5a1a63"/></linearGradient>
+      <clipPath id="c9c"><path d="M98.60 52.40 v4.80 a16 5.44 0 0 0 32 0 v-4.80 z"/></clipPath>
+    </defs>
+    <ellipse cx="114.60" cy="57.20" rx="16" ry="5.44" fill="#24082a"/>
+    <rect x="98.60" y="52.40" width="32" height="4.80" fill="#3b0f42"/>
+    <g clip-path="url(#c9c)"><rect x="100.04" y="52.40" width="2.24" height="4.80" fill="#ffffff" opacity=".8"/><rect x="106.76" y="52.40" width="2.24" height="4.80" fill="#ffffff" opacity=".8"/><rect x="113.48" y="52.40" width="2.24" height="4.80" fill="#ffffff" opacity=".8"/><rect x="120.20" y="52.40" width="2.24" height="4.80" fill="#ffffff" opacity=".8"/><rect x="126.92" y="52.40" width="2.24" height="4.80" fill="#ffffff" opacity=".8"/></g>
+    <ellipse cx="114.60" cy="52.40" rx="16" ry="5.44" fill="url(#c9)"/>
+    <ellipse cx="114.60" cy="52.40" rx="11.52" ry="3.92" fill="none" stroke="#ffffff" stroke-width="1.28" stroke-dasharray="4.16 3.20" opacity=".85"/>
+  </g>
+</svg>

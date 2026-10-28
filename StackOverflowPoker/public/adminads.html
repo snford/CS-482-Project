@@ -2,45 +2,91 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Admin Ads - Stack Overflow Poker</title>
+    <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
 
-    <!-- Bootstrap CSS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="/css/createTable.css">
 </head>
 <body>
+    <div id="siteNav" data-variant="admin"></div>
+    <script src="/js/nav.js"></script>
 
-    <!-- Admin Navigation bar -->
-    <nav class="navbar navbar-expand-sm navbar-dark navbar-purple">
-        <div class="container-fluid">
-          <!-- Links -->
-              <ul class="navbar-nav">
-                <li class="nav-item">
-                  <a class="nav-link" href="home.html"><span class="logo-placeholder">Logo</span></a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="admin.html">Reports</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="adminads.html">Ads</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="home.html">Back to Site</a>
-                </li>
-              </ul>
+    <main class="container pb-5">
+        <header class="page-header d-flex flex-wrap align-items-end justify-content-between gap-3 fade-up">
+            <div>
+                <span class="eyebrow"><i class="bi bi-megaphone-fill"></i>Admin dashboard</span>
+                <h1 class="page-title">Manage ads</h1>
+                <p class="page-subtitle">Create, edit, and delete ads and choose where they appear.</p>
+            </div>
+            <span class="pill pill-warning"><i class="bi bi-cone-striped"></i>Preview: not connected yet</span>
+        </header>
+
+        <div class="row g-4">
+            <div class="col-lg-7 fade-up delay-1">
+                <div class="so-card p-0 overflow-hidden h-100">
+                    <table class="so-table">
+                        <thead>
+                            <tr><th>Ad</th><th>Placement</th><th>Active</th><th></th></tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="4">
+                                <div class="empty-state">
+                                    <i class="bi bi-badge-ad"></i>
+                                    <strong>No ads yet</strong>
+                                    Ads you create will be listed here.
+                                </div>
+                            </td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="col-lg-5 fade-up delay-2">
+                <div class="so-card">
+                    <h2 class="so-card-title"><i class="bi bi-plus-square-fill"></i>New ad</h2>
+                    <fieldset disabled>
+                        <label class="form-label" for="adName">Ad name</label>
+                        <input class="form-control mb-3" id="adName" type="text" placeholder="Casino promo">
+
+                        <label class="form-label" for="adImage">Image</label>
+                        <input class="form-control mb-3" id="adImage" type="file" accept="image/*">
+
+                        <label class="form-label" for="adLink">Link URL</label>
+                        <input class="form-control mb-3" id="adLink" type="url" placeholder="https://">
+
+                        <label class="form-label d-block">Placement</label>
+                        <div class="button-group mb-3" role="group" aria-label="Placement">
+                            <button type="button" class="option-button selected">Lobby</button>
+                            <button type="button" class="option-button">Table</button>
+                            <button type="button" class="option-button">Reward video</button>
+                        </div>
+
+                        <div class="form-check form-switch mb-4">
+                            <input class="form-check-input" type="checkbox" role="switch" id="adActive" checked>
+                            <label class="form-check-label" for="adActive">Active</label>
+                        </div>
+
+                        <button type="button" class="btn btn-primary w-100"><i class="bi bi-floppy-fill"></i>Save ad</button>
+                    </fieldset>
+                </div>
+            </div>
         </div>
-    </nav>
+    </main>
 
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">
-          Admin Ads
-        </h1>
+    <footer class="site-footer">
+        <div class="container d-flex flex-wrap justify-content-between gap-2">
+            <span>&copy; Stack Overflow Chips &middot; Admin tools</span>
+            <span class="suits" aria-hidden="true">♠ ♥ ♣ ♦</span>
+        </div>
+    </footer>
 
-    </div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
- 

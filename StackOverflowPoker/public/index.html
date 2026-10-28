@@ -2,57 +2,229 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Welcome - Stack Overflow Poker</title>
+    <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
 
-    <!-- Bootstrap CSS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
 
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .welcome {
+            min-height: calc(100vh - 140px);
+            display: flex;
+            align-items: center;
+            padding: 3rem 0;
+        }
+
+        .welcome-title {
+            font-size: clamp(2.4rem, 5vw, 3.8rem);
+            font-weight: 700;
+            line-height: 1.08;
+            margin: 1rem 0;
+        }
+
+        .welcome-lead {
+            font-size: 1.15rem;
+            color: var(--ink-soft);
+            max-width: 34rem;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 1.8rem 0 0;
+            display: grid;
+            gap: .8rem;
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            font-weight: 500;
+        }
+
+        .feature-list .bi {
+            width: 36px;
+            height: 36px;
+            border-radius: 11px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            color: var(--brand);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* A fanned hand of two cards resting on the sign-in card's top corner */
+        .card-fan {
+            position: absolute;
+            top: -58px;
+            right: -34px;
+            width: 150px;
+            height: 140px;
+            z-index: 2;
+            pointer-events: none;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .play-card {
+            position: absolute;
+            width: 88px;
+            height: 124px;
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 14px 30px rgba(59, 18, 64, .22);
+            border: 1px solid var(--line);
+            font-family: var(--font-display);
+            font-weight: 700;
+            padding: .5rem .6rem;
+            transform-origin: 50% 100%;
+        }
+
+        .play-card .corner { font-size: 1.15rem; line-height: 1; }
+        .play-card .center {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.6rem;
+        }
+
+        .play-card.red { color: #d43c52; }
+        .play-card.black { color: #22142b; }
+        .play-card.c1 { left: 6px; top: 8px; transform: rotate(-12deg); }
+        .play-card.c2 { left: 52px; top: 0; transform: rotate(10deg); }
+
+        .signin-card {
+            position: relative;
+            border-radius: 26px;
+            padding: 2.4rem;
+            background: rgba(255, 255, 255, .92);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, .8);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .signin-logo {
+            width: 84px;
+            height: 84px;
+            border-radius: 50%;
+            padding: 6px;
+            background: #fff;
+            box-shadow: 0 10px 30px rgba(191, 64, 191, .25);
+        }
+
+        .google-btn {
+            width: 100%;
+            border-radius: 999px;
+            padding: .8rem 1.2rem;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: .8rem;
+            color: var(--ink-muted);
+            font-size: .82rem;
+            margin: 1.2rem 0;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: var(--line);
+        }
+
+        @media (max-width: 991.98px) {
+            .card-fan { display: none; }
+        }
+    </style>
 </head>
 <body>
+    <div id="siteNav" data-variant="minimal"></div>
+    <script src="/js/nav.js"></script>
 
-    <!-- Navigation bar -->
-    <nav class="navbar navbar-expand-sm navbar-dark navbar-purple">
-        <div class="container-fluid">
-          <!-- Links -->
-              <ul class="navbar-nav">
-                <li class="nav-item">
-                  <a class="nav-link" href="home.html"><span class="logo-placeholder">Logo</span></a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="lobby.html">Lobby</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="friends.html">Friends</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="stats.html">Stats</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link mt-2" href="profile.html">Profile</a>
-                </li>
-              </ul>
+    <main class="welcome">
+        <div class="container">
+            <div class="row align-items-center g-5">
+
+                <!-- Pitch -->
+                <div class="col-lg-6 fade-up">
+                    <span class="eyebrow"><i class="bi bi-suit-heart-fill"></i>Free chips. No real money.</span>
+                    <h1 class="welcome-title">
+                        Seven-Card Stud,<br>
+                        <span class="text-gradient">stacked to overflow.</span>
+                    </h1>
+                    <p class="welcome-lead">
+                        Grab a seat at a public table, start a private game with friends,
+                        and climb the leaderboard, all with free virtual chips.
+                    </p>
+
+                    <ul class="feature-list">
+                        <li><i class="bi bi-suit-spade-fill"></i>Join live tables from the lobby</li>
+                        <li><i class="bi bi-people-fill"></i>Add friends and play together</li>
+                        <li><i class="bi bi-trophy-fill"></i>Track your stats and chase the top spot</li>
+                    </ul>
+                </div>
+
+                <!-- Sign in -->
+                <div class="col-lg-5 offset-lg-1 fade-up delay-2">
+                    <div class="position-relative">
+                        <div class="signin-card text-center">
+                            <img class="signin-logo mb-3" src="/images/logo.svg" alt="Stack Overflow logo">
+                            <h2 class="h3 mb-1">Welcome to the table</h2>
+                            <p class="text-secondary mb-4">Sign in to keep your chips, friends, and stats.</p>
+
+                            <form action="/login" method="post" class="text-start">
+                                <label class="form-label" for="txt_username">Username</label>
+                                <div class="input-icon mb-3">
+                                    <i class="bi bi-person"></i>
+                                    <input type="text" id="txt_username" name="txt_username" class="form-control form-control-lg"
+                                           placeholder="Choose a username" autocomplete="username" maxlength="30" required autofocus>
+                                </div>
+                                <button type="submit" class="btn btn-primary btn-lg google-btn">
+                                    <i class="bi bi-google"></i>Sign in with Google
+                                </button>
+                                <p class="form-hint text-center mb-0">
+                                    Google sign-in is coming soon. For now, new usernames create an account automatically.
+                                </p>
+                            </form>
+
+                            <div class="divider">or</div>
+
+                            <a href="/lobby.html" class="btn btn-light-soft google-btn">
+                                <i class="bi bi-controller"></i>Play as Guest
+                            </a>
+                            <p class="form-hint mb-0">Guests don't keep chips or stats.</p>
+                        </div>
+
+                        <div class="card-fan" aria-hidden="true">
+                            <div class="play-card red c1"><div class="corner">A<br>♥</div><div class="center">♥</div></div>
+                            <div class="play-card black c2"><div class="corner">K<br>♠</div><div class="center">♠</div></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
-    </nav>
+    </main>
 
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">
-          Welcome
-        </h1>
-        <form action="/login" method="post">
-          <div class="mb-3">
-              <label class="form-label">
-                Username
-              </label>
-              <input type="text" name="txt_username" class="form-control" required>
-          </div>
-          <button type="submit" class="btn btn-primary">Sign in with Google</button>
-        </form>
-        <a href="lobby.html" class="btn btn-primary">Play as Guest</a>
-    </div>
+    <footer class="site-footer">
+        <div class="container d-flex flex-wrap justify-content-between gap-2">
+            <span>&copy; Stack Overflow Chips &middot; Virtual chips only, no real-money gambling.</span>
+            <span class="suits" aria-hidden="true">♠ ♥ ♣ ♦</span>
+        </div>
+    </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
- 
