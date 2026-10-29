@@ -36,6 +36,11 @@
             margin-bottom: .6rem;
         }
 
+        .icon-brand { background: var(--brand-50); color: var(--brand); }
+        .icon-success { background: #e8f7ef; color: var(--success); }
+        .icon-gold { background: #fff6dc; color: var(--gold-600); }
+        .icon-blue { background: #eef2ff; color: #5b6ef0; }
+
         .quick-link .metric {
             font-family: var(--font-display);
             font-size: 1.6rem;
@@ -124,7 +129,7 @@
             <div class="row g-4 mb-4">
                 <div class="col-sm-6 col-lg-3 fade-up delay-1">
                     <a id="friendsCard" class="so-card card-hover quick-link" href="/friends.html">
-                        <span class="icon" style="background: var(--brand-50); color: var(--brand);"><i class="bi bi-people-fill"></i></span>
+                        <span class="icon icon-brand"><i class="bi bi-people-fill"></i></span>
                         <span class="text-secondary fw-semibold">Friends</span>
                         <span class="metric" id="friendsMetric">–</span>
                         <span class="text-secondary small" id="requestsMetric">&nbsp;</span>
@@ -133,7 +138,7 @@
                 </div>
                 <div class="col-sm-6 col-lg-3 fade-up delay-2">
                     <a id="statsCard" class="so-card card-hover quick-link" href="/stats.html">
-                        <span class="icon" style="background: #e8f7ef; color: var(--success);"><i class="bi bi-graph-up-arrow"></i></span>
+                        <span class="icon icon-success"><i class="bi bi-graph-up-arrow"></i></span>
                         <span class="text-secondary fw-semibold">Win rate</span>
                         <span class="metric" id="winRateMetric">–</span>
                         <span class="text-secondary small" id="gamesMetric">&nbsp;</span>
@@ -142,7 +147,7 @@
                 </div>
                 <div class="col-sm-6 col-lg-3 fade-up delay-3">
                     <a id="leaderboardCard" class="so-card card-hover quick-link" href="/leaderboard.html">
-                        <span class="icon" style="background: #fff6dc; color: var(--gold-600);"><i class="bi bi-trophy-fill"></i></span>
+                        <span class="icon icon-gold"><i class="bi bi-trophy-fill"></i></span>
                         <span class="text-secondary fw-semibold">Leaderboard</span>
                         <span class="metric" id="rankMetric">–</span>
                         <span class="text-secondary small">Your rank among top players</span>
@@ -151,7 +156,7 @@
                 </div>
                 <div class="col-sm-6 col-lg-3 fade-up delay-4">
                     <div class="so-card placeholder-box quick-link">
-                        <span class="icon" style="background: #eef2ff; color: #5b6ef0;"><i class="bi bi-mortarboard-fill"></i></span>
+                        <span class="icon icon-blue"><i class="bi bi-mortarboard-fill"></i></span>
                         <span class="text-secondary fw-semibold">Tutorial &amp; practice</span>
                         <span class="metric">Soon</span>
                         <span class="text-secondary small">Learn Seven-Card Stud and practice against bots.</span>

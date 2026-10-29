@@ -116,6 +116,15 @@
                             <input class="form-check-input" type="checkbox" role="switch" id="soundEffects" checked>
                         </div>
                     </div>
+                    <div class="setting-row">
+                        <div>
+                            <div class="fw-semibold"><i class="bi bi-moon-stars-fill me-1"></i>Dark mode</div>
+                            <div class="text-secondary small">Easier on the eyes for late-night games.</div>
+                        </div>
+                        <div class="form-check form-switch m-0">
+                            <input class="form-check-input" type="checkbox" role="switch" id="darkMode" aria-label="Dark mode">
+                        </div>
+                    </div>
                     <p class="form-hint mb-0"><i class="bi bi-info-circle me-1"></i>Settings are saved on this device.</p>
                 </div>
 
@@ -183,6 +192,14 @@
                 document.getElementById("statRate").textContent = Math.round(stats.winPercentage) + "%";
             } catch (error) { /* keep the dashes */ }
         }
+
+        // Dark mode switches the whole site right away (nav.js remembers it)
+        const darkMode = document.getElementById("darkMode");
+        darkMode.checked = SOP.getTheme() === "dark";
+        darkMode.addEventListener("change", function () {
+            SOP.setTheme(darkMode.checked ? "dark" : "light");
+            SOP.toast("Dark mode " + (darkMode.checked ? "on" : "off"), "success");
+        });
 
         // Device-only settings until profile settings are saved to the account
         for (const id of ["handHelper", "soundEffects"]) {
