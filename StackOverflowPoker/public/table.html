@@ -43,6 +43,9 @@
         <button type="button" class="btn btn-sm btn-light-soft" id="refreshButton">
           <i class="bi bi-arrow-clockwise"></i>Refresh players
         </button>
+        <button type="button" class="btn btn-success" id="startRoundButton">
+         Start Game
+        </button>
       </div>
     </div>
 
@@ -111,6 +114,7 @@
     // Filled in once nav.js knows who is signed in (or which guest this is)
     let username = "";
     let currentTable = null;
+    let currentRound = null;
     // What each seat showed last time, so polling only redraws when something changed
     let lastSeatKey = "";
     let lastSeatNames = [];
@@ -157,7 +161,9 @@
       }
 
       // Nothing changed since the last check: keep the seats as they are (no flicker)
-      const seatKey = maxPlayers + "|" + username + "|" + seatNames.join(",");
+      const cardKey = JSON.stringify(currentRound?.players || []);
+      const seatKey =
+          maxPlayers + "|" + username + "|" + seatNames.join(",") + "|" + cardKey;
       if (seatKey === lastSeatKey) return;
 
       const firstDraw = lastSeatKey === "";
@@ -202,14 +208,73 @@
         text.append(title, note);
         seat.append(avatar, text);
 
-        if (name) {
-          const cards = document.createElement("span");
-          cards.className = "cards";
-          cards.setAttribute("aria-hidden", "true");
-          cards.innerHTML = "<span></span><span></span>";
-          seat.appendChild(cards);
-        }
+          if (name) {
+              const cardsContainer = document.createElement("div");
+              cardsContainer.className = "cards";
 
+              const roundPlayer = currentRound?.players?.find(
+                  player => player.username === name
+              );
+
+              const dealtCards = roundPlayer?.cards || [];
+
+              dealtCards.forEach(card => {
+                  const cardElement = document.createElement("div");
+
+                  if (card.hidden) {
+                      // Opponents' hidden cards.
+                      cardElement.className = "playing-card face-down";
+                      cardElement.setAttribute("aria-label", "Face-down card");
+                  } else {
+                      // A visible card.
+                      cardElement.className = "playing-card face-up";
+
+                      const rankMap = {
+                          "1": "A",
+                          "11": "J",
+                          "12": "Q",
+                          "13": "K"
+                      };
+
+                    const rank = card.rank;
+
+                    const suitMap = {
+                        Hearts: "♥",
+                        Diamonds: "♦",
+                        Clubs: "♣",
+                        Spades: "♠"
+                    };
+
+                    const suit = suitMap[card.suit] || card.suit;
+
+                    cardElement.classList.toggle(
+                        "red-suit",
+                        card.suit === "Hearts" || card.suit === "Diamonds"
+                    );
+
+                    const rankElement = document.createElement("span");
+                    rankElement.className = "card-rank";
+                    rankElement.textContent = rank;
+
+                    const suitElement = document.createElement("span");
+                    suitElement.className = "card-suit";
+                    suitElement.textContent = suit;
+
+                    cardElement.append(rankElement, suitElement);
+
+                    cardElement.setAttribute(
+                        "aria-label",
+                        `${rank} of ${card.suit}`
+                    );
+                  }
+
+                  cardsContainer.appendChild(cardElement);
+              });
+
+              if (dealtCards.length > 0) {
+                  seat.appendChild(cardsContainer);
+              }
+          }
         seats.appendChild(seat);
       }
     }
@@ -231,16 +296,38 @@
       document.getElementById("playerCount").innerHTML =
         '<i class="bi ' + (privacy === "Private" ? "bi-lock-fill" : "bi-globe2") + ' me-1"></i>' +
         privacy + " table · " + count + "/" + maxPlayers + " players · Bots: " + SOP.escapeHtml(table.bots || "off");
-      document.getElementById("tableStatus").textContent =
-        table.status === "playing" ? "Game in progress (game controls not connected)" : "Waiting for players";
-      showSeats(table);
+      const tableStatus = document.getElementById("tableStatus");
+      const streetElement = document.querySelector(".street");
 
+if (table.status === "playing") {
+    tableStatus.textContent = "";
+    streetElement.textContent = "";
+} else if (table.status === "closed") {
+    tableStatus.textContent = "Closed";
+    streetElement.textContent = "";
+} else {
+    tableStatus.textContent = "Waiting for players";
+    streetElement.textContent = "Waiting";
+}
+
+      // Update the Start Game button.
+      const startRoundButton = document.getElementById("startRoundButton");
+
+      if (startRoundButton) {
+         startRoundButton.disabled = table.status !== "waiting";
+         startRoundButton.textContent =
+            table.status === "playing"
+                  ? "Game Started"
+                  : "Start Game";
+                }
+      showSeats(table);
+      
       const joinButton = document.getElementById("joinButton");
       const alreadyJoined = username && players.includes(username);
       joinButton.hidden = !!alreadyJoined || table.status !== "waiting" || count >= maxPlayers;
       document.getElementById("inviteButton").hidden = table.privacy !== "private";
     }
-
+  
     async function loadTable(silent = false) {
       if (!tableId) {
         showNotice("No table selected. Create or join a table from the lobby.");
@@ -258,6 +345,7 @@
         if (!silent) clearNotice();
         sessionStorage.setItem("currentTableId", tableId);
         showTable(result);
+        await loadRound();
       } catch (error) {
         if (!silent || !currentTable) showNotice(error.message || "Could not load table. Check your connection.");
         if (!currentTable) {
@@ -346,6 +434,84 @@
     loadTable();
     // Lightweight polling lets another player appear without having to reload the page.
     setInterval(() => { if (!document.hidden) loadTable(true); }, 5000);
+
+const startRoundButton = document.getElementById("startRoundButton");
+
+startRoundButton.addEventListener("click", async function () {
+    if (!tableId) {
+        showNotice("Error: No table ID found.");
+        return;
+    }
+
+    startRoundButton.disabled = true;
+    startRoundButton.textContent = "Starting...";
+
+    try {
+        const response = await fetch(
+            `/api/tables/${encodeURIComponent(tableId)}/start-round`,
+            {
+                method: "POST"
+            }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            showNotice(result.msg || "Could not start the game.");
+            await loadTable(true);
+            return;
+        }
+
+        clearNotice();
+        showNotice("Game started successfully!");
+
+        // Refresh the table using the latest server data.
+        await loadTable(true);
+
+    } catch (error) {
+        console.error("Start game error:", error);
+        showNotice("Could not start the game. Check the server.");
+    } finally {
+        startRoundButton.disabled = false;
+        if (currentTable) {
+            startRoundButton.textContent =
+                currentTable.status === "playing"
+                    ? "Game Started"
+                    : "Start Game";
+        }
+    }
+});
+
+async function loadRound() {
+    if (!tableId || !currentTable || currentTable.status !== "playing") {
+        currentRound = null;
+
+        if (currentTable) {
+            showSeats(currentTable);
+        }
+
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `/api/tables/${encodeURIComponent(tableId)}/game`,
+            { cache: "no-store" }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.msg || "Could not load cards.");
+        }
+
+        currentRound = result;
+
+        showSeats(currentTable);
+    } catch (error) {
+        console.error("Could not load cards:", error);
+    }
+}
   </script>
 </body>
 </html>

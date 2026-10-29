@@ -360,3 +360,117 @@ exports.getLeaderboard = async function(req, res) {
 
     }
 };
+
+// PG-02: Sets chips to a user's account.
+exports.setChips = async function(req, res) {
+    try {
+        const username = req.params.username;
+        const { amount } = req.body;
+
+        if (!Number.isSafeInteger(amount) || amount < 0) {
+            return res.status(400).json({
+                msg: "Chip amount must be a non-negative integer"
+            });
+        }
+
+        const chips = await dao.setChips(username, amount);
+
+        return res.status(200).json({
+            msg: "Chip balance updated successfully",
+            chips: chips
+        });
+
+    } catch (error) {
+        console.error(error);
+
+        return res.status(500).json({
+            msg: "Failed to update chip balance"
+        });
+    }
+};
+
+//PG-02: Gets chips from a user's account.
+exports.getChips = async function(req, res) {
+        try {
+        const username = req.params.username;
+
+        const chips = await dao.getChips(username);
+
+        return res.status(200).json({
+            chips: chips
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            msg: "Failed to retrieve chips"
+        });
+    }
+};
+
+//PG-02: Adds chips to a user's account.
+exports.addChips = async function(req, res) {
+    try {
+        const username = req.user.username;
+        const { amount } = req.body;
+
+        if (!Number.isSafeInteger(amount) || amount <= 0) {
+            return res.status(400).json({
+                msg: "Amount must be a positive integer"
+            });
+        }
+
+        const chips = await dao.addChips(username, amount);
+
+        return res.status(200).json({
+            msg: "Chips added successfully",
+            chips: chips
+        });
+
+    } catch (error) {
+        console.error("Error adding chips:", error);
+
+        if (error.message === "User not found") {
+            return res.status(404).json({
+                msg: "User not found"
+            });
+        }
+
+        return res.status(500).json({
+            msg: "Failed to add chips"
+        });
+    }
+};
+
+//PG-02: Removes chips from a user's account.
+exports.removeChips = async function(req, res) {
+    try {
+        const username = req.user.username;
+        const { amount } = req.body;
+
+        if (!Number.isSafeInteger(amount) || amount <= 0) {
+            return res.status(400).json({
+                msg: "Amount must be a positive integer"
+            });
+        }
+
+        const chips = await dao.removeChips(username, amount);
+
+        return res.status(200).json({
+            msg: "Chips removed successfully",
+            chips: chips
+        });
+
+    } catch (error) {
+        console.error("Error removing chips:", error);
+
+        if (error.message === "User not found or insufficient chips") {
+            return res.status(400).json({
+                msg: error.message
+            });
+        }
+
+        return res.status(500).json({
+            msg: "Failed to remove chips"
+        });
+    }
+};

@@ -1,5 +1,6 @@
 const dao = require("../dao/TablesDaoMongoose");
 const mongoose = require("mongoose");
+const gameRounds = require("../game/sevenStud");
 
 //Lt-01: View Lobbys
 exports.getTables = async function(req, res) {
@@ -136,4 +137,137 @@ exports.getTable = async function (req, res) {
     console.error("Error loading table:", error);
     return res.status(500).json({ msg: "Error loading table" });
   }
+};
+
+//PG-01: Start a new round of poker
+exports.startRound = async function (req, res) {
+    const tableId = req.params.tableId;
+
+    if (!tableId || !mongoose.isValidObjectId(tableId)) {
+        return res.status(400).json({
+            msg: "Invalid table ID."
+        });
+    }
+
+    try {
+        const table = await dao.readById(tableId);
+
+        if (!table) {
+            return res.status(404).json({
+                msg: "Table not found."
+            });
+        }
+
+        if (table.status !== "waiting") {
+            return res.status(400).json({
+                msg: "This table has already started a game."
+            });
+        }
+
+        const players = table.players || [];
+
+        if (players.length < 2 || players.length > 7) {
+            return res.status(400).json({
+                msg: "Seven-Card Stud requires 2 to 7 players."
+            });
+        }
+
+        const round = gameRounds.startRound(
+            String(table._id),
+            players.map(username => ({ username }))
+        );
+
+        const updatedTable = await dao.updateStatus(tableId, "playing");
+
+        if (!updatedTable) {
+            return res.status(404).json({
+                msg: "Table not found when updating status."
+            });
+        }
+
+        return res.status(201).json({
+            msg: "Round started successfully.",
+            tableId: String(table._id),
+            status: updatedTable.status,
+            street: round.street,
+            players: round.players.map(player => ({
+                username: player.username,
+                cardCount: player.hand.cards.length
+            }))
+        });
+
+    } catch (error) {
+        console.error("Error starting round:", error);
+
+        return res.status(500).json({
+            msg: "Unable to start the round."
+        });
+    }
+};
+
+exports.getRound = async function (req, res) {
+    const tableId = req.params.tableId;
+
+    if (!tableId || !mongoose.isValidObjectId(tableId)) {
+        return res.status(400).json({ msg: "Invalid table ID." });
+    }
+
+    try {
+        const round = gameRounds.getRound(String(tableId));
+
+        if (!round) {
+            return res.status(404).json({
+                msg: "No active round found for this table."
+            });
+        }
+
+        const username = playerName(req);
+
+        if (!username) {
+            return res.status(401).json({
+                msg: "You must be signed in or playing as a guest."
+            });
+        }
+
+        const currentPlayer = round.players.find(
+            player => player.username === username
+        );
+
+        if (!currentPlayer) {
+            return res.status(403).json({
+                msg: "You are not part of this round."
+            });
+        }
+
+        const players = round.players.map(player => ({
+            username: player.username,
+            cards: player.hand.cards.map((card, index) => {
+                const isOwnCard = player.username === username;
+                const isFaceUp = index >= 2;
+
+                // Only reveal a card if it belongs to the
+                // requesting player or is face-up.
+                if (isOwnCard || isFaceUp) {
+                    return {
+                        rank: card.rank,
+                        suit: card.suit,
+                        hidden: false
+                    };
+                }
+
+                return { hidden: true };
+            })
+        }));
+
+        return res.json({
+            tableId: String(tableId),
+            street: round.street,
+            players
+        });
+    } catch (error) {
+        console.error("Error retrieving round:", error);
+        return res.status(500).json({
+            msg: "Unable to retrieve the round."
+        });
+    }
 };

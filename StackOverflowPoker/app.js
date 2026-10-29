@@ -143,6 +143,18 @@ app.get("/table/:tableId", (req, res) => {
 });
 
 app.post("/api/tables/leave", tablesController.leaveTable);
+// PG-02: Retrieve chip balance
+app.get('/users/:username/chips', controller.getChips);
+// PG-02: Add chips
+app.post('/users/:username/chips/add', controller.addChips);
+// PG-02: Remove chips
+app.post('/users/:username/chips/remove', controller.removeChips);
+// PG-02: Set chip balance
+app.put('/users/:username/chips', controller.setChips);
+//PG-01: Start a new round of Seven-Card Stud
+app.post("/api/tables/:tableId/start-round",tablesController.startRound);   
+//PG-01: Start the game
+app.get("/api/tables/:tableId/game", tablesController.getRound);
 
 exports.app = app;
 

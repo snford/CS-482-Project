@@ -49,19 +49,26 @@
 
 /* ---- The table itself ---- */
 .table-area {
-    position: relative;
-    min-height: 520px;
+    min-height: 680px;
+    width: 100%;
 }
 
 .table-rail {
     position: absolute;
-    left: 4%;
-    right: 4%;
-    top: 13%;
-    bottom: 13%;
+    left: 1%;
+    right: 1%;
+    top: 10%;
+    bottom: 10%;
     border-radius: 999px;
-    background: linear-gradient(160deg, #7a3d22 0%, #4d2210 55%, #3a190b 100%);
-    box-shadow: 0 30px 60px rgba(40, 14, 30, .35), inset 0 2px 0 rgba(255, 255, 255, .15);
+    background: linear-gradient(
+        160deg,
+        #7a3d22 0%,
+        #4d2210 55%,
+        #3a190b 100%
+    );
+    box-shadow:
+        0 30px 60px rgba(40, 14, 30, .35),
+        inset 0 2px 0 rgba(255, 255, 255, .15);
     padding: 18px;
 }
 
@@ -181,7 +188,7 @@
     margin-left: auto;
 }
 
-.seat .cards span {
+.seat .cards > span:not(.playing-card) {
     width: 18px;
     height: 26px;
     border-radius: 4px;
@@ -192,7 +199,7 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, .2);
 }
 
-.seat .cards span + span { margin-left: -8px; transform: rotate(8deg); }
+.seat .cards > span:not(.playing-card) + span:not(.playing-card) { margin-left: -8px; transform: rotate(8deg); }
 
 .seat.empty {
     background: rgba(255, 255, 255, .55);
@@ -231,7 +238,7 @@
 .seat.top-left { left: 10%; top: 0; }
 .seat.top-center { left: 40%; top: 0; }
 .seat.top-right { left: 70%; top: 0; }
-.seat.middle-left { left: 0; top: 43%; }
+.seat.middle-left { left: -15%; top: 43%; }
 .seat.bottom-left { left: 10%; bottom: 0; }
 .seat.bottom-center { left: 40%; bottom: 0; }
 .seat.bottom-right { left: 70%; bottom: 0; }
@@ -307,6 +314,107 @@
 .game-button.fold { background: rgba(214, 69, 83, .25); border-color: rgba(214, 69, 83, .45); }
 .game-button.raise { color: #3a2a00; background: linear-gradient(135deg, #ffe08a, var(--gold)); border: 0; }
 .game-button:disabled { opacity: .55; cursor: not-allowed; }
+
+/*Playing cards design*/
+.cards {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    position: relative;
+    z-index: 2;
+}
+.playing-card {
+    width: 52px;
+    height: 74px;
+    flex-shrink: 0;
+    position: relative  ;
+    overflow: hidden;
+    border-radius: 6px;
+    border: 1px solid #c9c4b8;
+    box-shadow:
+        0 3px 6px rgba(0, 0, 0, 0.24),
+        0 1px 2px rgba(0, 0, 0, 0.12);
+}
+.playing-card.face-up {
+    box-sizing: border-box;
+    background: linear-gradient(135deg, #fffefa, #f7f4eb);
+    color: #202020;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 5px 4px;
+    font-family: Georgia, "Times New Roman", serif;
+    font-weight: bold;
+}
+.playing-card.face-up::before {
+    content: "";
+    position: absolute;
+    inset: 2px;
+    border: 1px solid rgba(160, 150, 130, 0.25);
+    border-radius: 4px;
+    pointer-events: none;
+}
+.playing-card.face-up.red-suit {
+    color: #dc2626;
+}
+
+.card-rank {
+    font-size: 17px;
+    line-height: 1;
+    position: relative;
+    z-index: 1;
+}
+.card-suit {
+    font-size: 23px;
+    line-height: 1;
+    align-self: flex-end;
+    position: relative;
+    z-index: 1;
+    margin-top: auto;
+    padding-bottom: 1px;
+}
+
+
+.playing-card.face-down {
+    background-color: #173b70;
+    border: 2px solid #fff;
+    outline: 1px solid #173b70;
+}
+
+.playing-card.face-down::after {
+    content: "✦";
+    position: absolute;
+    inset: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.65);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 18px;
+}
+
+.seat.top-center .cards,
+.seat.top-left .cards,
+.seat.top-right .cards {
+    transform: translateY(75px);
+}
+
+.seat.bottom-center .cards,
+.seat.bottom-left .cards,
+.seat.bottom-right .cards {
+    transform: translateY(-75px);
+}
+
+.seat.middle-left .cards {
+    transform: translateX(75px);
+}
+
+.seat.middle-right .cards {
+    transform: translateX(-75px);
+}
+
 
 /* ---- Responsive ---- */
 @media (max-width: 991.98px) {
