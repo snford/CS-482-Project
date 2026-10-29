@@ -103,3 +103,13 @@ exports.readById = async function (tableId) {
   if (!table || !["waiting", "playing"].includes(table.status)) return null;
   return table;
 };
+
+exports.updateStatus = async function (tableId, status) {
+    const table = await Table.findByIdAndUpdate(
+        tableId,
+        { status: status },
+        { new: true, runValidators: true }
+    );
+
+    return table;
+};

@@ -18,6 +18,8 @@ const userSchema = mongoose.Schema({
     wins: { type: Number, default: 0, min: 0 },
     losses: { type: Number, default: 0, min: 0 },
 
+    chips: { type: Number, default: 1000, min: 0 }
+
 });
 
 const userModel = mongoose.model('user', userSchema);
@@ -172,6 +174,81 @@ exports.getLeaderboard = async function() {
             winPercentage: Number(winPercentage.toFixed(2))
         };
     });
+};
+
+//PG-02: Set the chips for a user.
+exports.setChips = async function(username, chips) {
+    if (chips < 0) {
+        throw new Error("Chips cannot be negative.");
+    }
+
+    const updated = await userModel.findOneAndUpdate(
+        { username: username },
+        { $set: { chips: chips } },
+        { new: true }
+    );
+    if (!updated) {
+        throw new Error("User not found");
+    }
+    return updated;
+};
+
+//PG-02: Get the chips for a user.
+exports.getChips = async function(username) {
+    const user = await userModel.findOne({ username: username });
+    if (!user) {
+        throw new Error("User not found.");
+    }
+    return user.chips;
+};
+
+//PG-02: Add chips to a user's account.
+exports.addChips = async function(username, amount) {
+    if (!Number.isSafeInteger(amount) || amount <= 0) {
+        throw new Error("Amount must be a positive integer");
+    }
+
+    const updated = await userModel.findOneAndUpdate(
+        { username: username },
+        { $inc: { chips: amount } },
+        { new: true }
+    );
+
+    if (!updated) {
+        throw new Error("User not found");
+    }
+
+    return updated.chips;
+};
+
+//PG-02: Remove chips from a user's account.
+exports.removeChips = async function(username, amount) {
+    if (!Number.isSafeInteger(amount) || amount <= 0) {
+        throw new Error("Amount must be a positive integer");
+    }
+
+    const updated = await userModel.findOneAndUpdate(
+        {
+            username: username,
+            chips: { $gte: amount }
+        },
+        {
+            $inc: { chips: -amount }
+        },
+        { new: true }
+    );
+
+    if (updated) {
+        return updated.chips;
+    }
+
+    const userExists = await userModel.exists({ username: username });
+
+    if (!userExists) {
+        throw new Error("User not found");
+    }
+
+    throw new Error("User not found or insufficient chips");
 };
 
 exports.deleteAll = async function(check) {
