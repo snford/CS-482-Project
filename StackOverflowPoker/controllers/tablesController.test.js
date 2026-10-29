@@ -12,7 +12,7 @@ jest.mock("../dao/TablesDaoMongoose", () => ({
     leaveTable: jest.fn()
 }));
 const dao = require("../dao/TablesDaoMongoose");
-const controller = require("../controllers/tablesController");
+const controller = require("./tablesController");
 
 const tableId = "507f1f77bcf86cd799439011";
 

@@ -1,7 +1,7 @@
 // ST-02: Leaderboard Controller Tests
 
 const dao = require("../dao/UsersDaoMongoose");
-const controller = require("../controllers/usersController");
+const controller = require("./usersController");
 
 // Mock database functions
 jest.mock("../dao/UsersDaoMongoose");

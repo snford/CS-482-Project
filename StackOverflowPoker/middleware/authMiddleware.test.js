@@ -3,7 +3,7 @@ jest.mock("../dao/UsersDaoMongoose", () => ({
     readById: jest.fn()
 }));
 const usersDao = require("../dao/UsersDaoMongoose");
-const auth = require("../middleware/auth");
+const auth = require("./auth");
 
 function makeResponse() {
     return {

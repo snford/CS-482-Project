@@ -1,4 +1,4 @@
-const controller = require('../controllers/usersController');
+const controller = require('./usersController');
 const dao = require('../dao/UsersDaoMongoose');
 const dbcon = require('../DbConnection');
 

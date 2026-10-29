@@ -1,6 +1,6 @@
 
 const dao = require("../dao/UsersDaoMongoose");
-const controller = require("../controllers/usersController");
+const controller = require("./usersController");
 
 // Mock the database so these tests do not
 // change any real player records

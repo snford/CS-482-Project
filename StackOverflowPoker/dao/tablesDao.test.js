@@ -1,6 +1,6 @@
 // Tests for LT-01, LT-02, and LT-03 database functions
 const mongoose = require("mongoose");
-const dao = require("../dao/TablesDaoMongoose");
+const dao = require("./TablesDaoMongoose");
 const Table = mongoose.model("table");
 
 const tableId = "507f1f77bcf86cd799439011";
