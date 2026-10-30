@@ -18,7 +18,14 @@ const userSchema = mongoose.Schema({
     wins: { type: Number, default: 0, min: 0 },
     losses: { type: Number, default: 0, min: 0 },
 
-    chips: { type: Number, default: 1000, min: 0 }
+    chips: { type: Number, default: 1000, min: 0 },
+
+    // UP-01: Player's selected premade avatar
+    avatar: {
+        type: String,
+        enum: ["spade", "diamond", "club", "heart", "star"],
+        default: "spade"
+}
 
 });
 
