@@ -599,3 +599,145 @@ exports.awardWinnings = async function(req, res) {
         });
     }
 };
+
+// UP-01: Get the logged-in player's profile
+exports.getMyProfile = async function(req, res) {
+
+    try {
+        // The authentication middleware identifies the player
+        const user = req.user;
+
+        // Only registered users can view a saved profile
+        if (!user || !user.googleId) {
+            return res.status(401).json({
+                msg: "Please sign in with Google."
+            });
+        }
+
+        // Calculate statistics
+        const wins = user.wins ?? 0;
+        const losses = user.losses ?? 0;
+        const totalGames = wins + losses;
+
+        let winPercentage = 0;
+
+        if (totalGames > 0) {
+            winPercentage = (wins / totalGames) * 100;
+        }
+
+        // Return only information needed by the profile page
+        return res.status(200).json({
+            username: user.username,
+            avatar: user.avatar || "spade",
+            chips: user.chips ?? 1000,
+            wins: wins,
+            losses: losses,
+            totalGames: totalGames,
+            winPercentage: Number(winPercentage.toFixed(2))
+        });
+
+    } catch (error) {
+
+        console.error("Error loading profile:", error);
+
+        return res.status(500).json({
+            msg: "Unable to load profile."
+        });
+    }
+};
+
+
+// UP-01: Update the logged-in player's profile
+exports.updateMyProfile = async function(req, res) {
+
+    try {
+        // Identify the player using the login session
+        const user = req.user;
+
+        if (!user || !user.googleId) {
+            return res.status(401).json({
+                msg: "Please sign in with Google."
+            });
+        }
+
+        // Get submitted information
+        const username = String(
+            req.body.username || ""
+        ).trim();
+
+        const avatar = req.body.avatar;
+
+        // Reuse the project's existing username rules
+        const nameError = checkPokerName(username);
+
+        if (nameError) {
+            return res.status(400).json({
+                msg: nameError
+            });
+        }
+
+        // Only allow the five approved avatars
+        const allowedAvatars = [
+            "spade",
+            "diamond",
+            "club",
+            "heart",
+            "star"
+        ];
+
+        if (!allowedAvatars.includes(avatar)) {
+            return res.status(400).json({
+                msg: "Please select a valid avatar."
+            });
+        }
+
+        // Check whether another account uses this username
+        const existingUser =
+            await dao.readByUsernameIgnoreCase(username);
+
+        // Allow the current player to keep their own username
+        if (
+            existingUser &&
+            String(existingUser._id) !== String(user._id)
+        ) {
+            return res.status(409).json({
+                msg: "That username is already taken."
+            });
+        }
+
+        // Save the updated profile
+        const updatedUser = await dao.updateProfile(
+            user._id,
+            username,
+            avatar
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({
+                msg: "User not found."
+            });
+        }
+
+        // Send confirmation to the website
+        return res.status(200).json({
+            msg: "Profile updated successfully!",
+            username: updatedUser.username,
+            avatar: updatedUser.avatar
+        });
+
+    } catch (error) {
+
+        // MongoDB duplicate username error
+        if (error.code === 11000) {
+            return res.status(409).json({
+                msg: "That username is already taken."
+            });
+        }
+
+        console.error("Error updating profile:", error);
+
+        return res.status(500).json({
+            msg: "Unable to update profile."
+        });
+    }
+};

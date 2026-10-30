@@ -18,7 +18,14 @@ const userSchema = mongoose.Schema({
     wins: { type: Number, default: 0, min: 0 },
     losses: { type: Number, default: 0, min: 0 },
 
-    chips: { type: Number, default: 1000, min: 0 }
+    chips: { type: Number, default: 1000, min: 0 },
+
+    // UP-01: Player's selected premade avatar
+    avatar: {
+        type: String,
+        enum: ["spade", "diamond", "club", "heart", "star"],
+        default: "spade"
+}
 
 });
 
@@ -262,6 +269,27 @@ exports.removeChips = async function(username, amount) {
     }
 
     throw new Error("User not found or insufficient chips");
+};
+
+// UP-01: Update a registered player's profile
+exports.updateProfile = async function(userId, username, avatar) {
+
+    // Update only the fields that belong to the profile
+    const updatedUser = await userModel.findByIdAndUpdate(
+        userId,
+        {
+            $set: {
+                username: username,
+                avatar: avatar
+            }
+        },
+        {
+            new: true,
+            runValidators: true
+        }
+    );
+
+    return updatedUser;
 };
 
 exports.deleteAll = async function(check) {
