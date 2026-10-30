@@ -14,7 +14,11 @@ exports.startRound = function (tableId, players) {
     const hands = players.map(function (player) {
         return {
             username: player.username,
-            hand: new Hand(player.username)
+            hand: new Hand(player.username),
+            folded: false,
+            streetBet: 0,
+            totalBet: 0,
+            acted: false
         };
     });
 
@@ -28,7 +32,12 @@ exports.startRound = function (tableId, players) {
         tableId,
         deck,
         players: hands,
-        street: 3
+        street: 3,
+        status: "betting",
+        pot: 0,
+        currentBet: 0,
+        currentPlayer: 0,
+        bettingComplete: false
     };
 
     activeRounds.set(String(tableId), round);
@@ -48,10 +57,21 @@ exports.dealNextStreet = function (tableId) {
     }
 
     for (const player of round.players) {
-        gameDeal.dealOneCard(round.deck, player.hand);
+        if (!player.folded) {
+            gameDeal.dealOneCard(round.deck, player.hand);
+        }
     }
 
     round.street++;
+    round.currentBet = 0;
+    round.currentPlayer = 0;
+
+    for (const player of round.players) {
+        player.streetBet = 0;
+        player.acted = false;
+    }
+
+    round.status = "betting";
 
     return round;
 };

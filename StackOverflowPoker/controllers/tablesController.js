@@ -149,6 +149,14 @@ exports.startRound = async function (req, res) {
         });
     }
 
+    const username = playerName(req);
+    if (!username || !players.includes(username)) {
+        return res.status(403).json({
+            msg: "You must be a player at this table to start the game."
+        });
+    }
+    const players = tableId.players || [];
+
     try {
         const table = await dao.readById(tableId);
 
@@ -243,7 +251,7 @@ exports.getRound = async function (req, res) {
             username: player.username,
             cards: player.hand.cards.map((card, index) => {
                 const isOwnCard = player.username === username;
-                const isFaceUp = index >= 2;
+                const isFaceUp = index >= 2 && index <= 5;
 
                 // Only reveal a card if it belongs to the
                 // requesting player or is face-up.
