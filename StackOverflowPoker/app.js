@@ -124,6 +124,19 @@ app.get('/stats/:username', controller.getPlayerStats);
 // ST-02: Leaderboard API
 app.get('/api/leaderboard', controller.getLeaderboard);
 
+// UP-01 T4: Registered player profile
+app.get(
+    '/api/profile/me',
+    requireLogin,
+    controller.getMyProfile
+);
+
+app.put(
+    '/api/profile/me',
+    requireLogin,
+    controller.updateMyProfile
+);
+
 // LT-01: View Lobby
 app.get("/api/tables", tablesController.getTables);
 
