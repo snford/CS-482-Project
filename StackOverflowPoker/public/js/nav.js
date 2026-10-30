@@ -183,6 +183,7 @@
                 '<a class="btn btn-sm btn-outline-light-glass" href="/index.html">' +
                 '<i class="bi bi-google"></i>Sign in</a>' +
                 logoutButtonHtml + "</div>";
+                loadChipBalance(); 
         } else {
             right.innerHTML =
                 '<a class="btn btn-sm btn-outline-light-glass mt-3 mt-lg-0" href="/index.html">' +
@@ -210,37 +211,51 @@
     const brandSub = variant === "admin" ? "Admin" : "Seven-Card Stud";
 
 async function loadChipBalance() {
-    const chipDisplay = document.getElementById("navChipBalance");
+const chipDisplay = document.getElementById("navChipBalance");
 
-    if (!chipDisplay || !SOP.user) {
-        return;
+if (!chipDisplay) {
+    return;
+}
+
+// Identify whether the current player is a registered user or guest.
+await SOP.ready;
+
+const username = SOP.user || SOP.guestName;
+
+if (!username) {
+    chipDisplay.textContent = "--";
+    return;
+}
+
+try {
+    const response = await fetch(
+        "/users/" + encodeURIComponent(username) + "/chips",
+        {
+            method: "GET",
+            credentials: "same-origin",
+            headers: { Accept: "application/json" },
+            cache: "no-store"
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error("Could not load chips");
     }
 
-    try {
-        const response = await fetch(
-            "/users/" + encodeURIComponent(SOP.user) + "/chips",
-            {
-                headers: { Accept: "application/json" },
-                cache: "no-store"
-            }
-        );
+    const data = await response.json();
+    const chips = Number(data.chips);
 
-        if (!response.ok) {
-            throw new Error("Could not load chips");
-        }
-
-        const data = await response.json();
-        const chips = Number(data.chips);
-
-        if (!Number.isFinite(chips) || chips < 0) {
-            throw new Error("Invalid chip balance");
-        }
-
-        chipDisplay.textContent = chips.toLocaleString();
-    } catch (error) {
-        console.error("Error loading chip balance:", error);
-        chipDisplay.textContent = "--";
+    if (!Number.isSafeInteger(chips) || chips < 0) {
+        throw new Error("Invalid chip balance");
     }
+
+    chipDisplay.textContent = chips.toLocaleString();
+
+} catch (error) {
+    console.error("Error loading chip balance:", error);
+    chipDisplay.textContent = "--";
+}
+
 }
 
     mount.outerHTML =

@@ -100,6 +100,35 @@
         <button class="game-button" type="button" disabled>Call</button>
         <button class="game-button raise" type="button" disabled><i class="bi bi-arrow-up me-1"></i>Raise / Complete</button>
       </div>
+        <div class="betting-controls">
+      <h3>Place Your Bet</h3>
+
+      <p>
+          Your Chips:
+          <span id="playerChips">Loading...</span>
+      </p>
+
+      <label for="betAmount">Bet Amount:</label>
+
+      <input
+          type="number"
+          id="betAmount"
+          min="1"
+          step="1"
+          placeholder="Enter bet"
+      >
+
+      <button id="placeBetButton" type="button">
+          Place Bet
+      </button>
+
+      <p id="betMessage"></p>
+
+      <p>
+          Your Current Bet:
+          <span id="currentBet">0</span>
+      </p>
+  </div>
     </section>
   </main>
 
@@ -425,10 +454,34 @@ if (table.status === "playing") {
     });
 
     // Wait for nav.js to know who we are, so our own seat is shown at the bottom
-    SOP.ready.then(function () {
+    SOP.ready.then(async function () {
       username = SOP.user || SOP.guestName || "";
       lastSeatKey = "";
-      if (currentTable) showTable(currentTable);
+      console.log("Player identified:", username);
+
+      if (!username) {
+          chipsDisplay.textContent = "--";
+          betMessage.textContent =
+              "Unable to identify player. Please sign in or start a guest session.";
+          betButton.disabled = true;
+          return;
+      }
+
+      // Prevent betting until the balance has loaded.
+      betButton.disabled = true;
+      chipsDisplay.textContent = "Loading...";
+
+      const loaded = await loadChips();
+
+    if (!loaded) {
+        console.error("Betting disabled because chips failed to load.");
+        console.error("Username:", username);
+
+        betButton.disabled = true;
+        return;
+    }
+
+      if (currentTable) {showTable(currentTable)};
     });
 
     loadTable();
@@ -512,6 +565,148 @@ async function loadRound() {
         console.error("Could not load cards:", error);
     }
 }
+    const chipsDisplay = document.getElementById("playerChips");
+    const betInput = document.getElementById("betAmount");
+    const betButton = document.getElementById("placeBetButton");
+    const betMessage = document.getElementById("betMessage");
+    const currentBetDisplay = document.getElementById("currentBet");
+
+    let currentBet = 0;
+
+    // Get the player's chip balance from the server.
+async function loadChips() {
+    if (!username) {
+        chipsDisplay.textContent = "--";
+        betMessage.textContent = "Unable to identify player.";
+        return false;
+    }
+
+    try {
+        const response = await fetch(
+            `/users/${encodeURIComponent(username)}/chips`,
+            {
+                method: "GET",
+                credentials: "same-origin",
+                headers: {
+                    "Accept": "application/json"
+                },
+                cache: "no-store"
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.msg || "Unable to load chips.");
+        }
+
+        if (!Number.isSafeInteger(data.chips) || data.chips < 0) {
+            throw new Error("The server returned an invalid chip balance.");
+        }
+
+        chipsDisplay.textContent = data.chips;
+        betMessage.textContent = "";
+
+        // Enable betting only after a valid balance is loaded.
+        betButton.disabled = false;
+
+        console.log("Chip balance loaded:", data.chips);
+
+        return true;
+
+    } catch (error) {
+        console.error("Error loading chips:", error);
+
+        chipsDisplay.textContent = "--";
+        betMessage.textContent = error.message;
+
+        return false;
+    }
+}
+
+    // Place a bet.
+async function placeBet() {
+    const amount = Number(betInput.value);
+
+    betMessage.textContent = "";
+
+    if (!username) {
+        betMessage.textContent = "Unable to identify player.";
+        return;
+    }
+
+    if (!Number.isSafeInteger(amount) || amount <= 0) {
+        betMessage.textContent =
+            "Enter a valid positive whole-number bet.";
+        return;
+    }
+
+    const availableChips = Number(chipsDisplay.textContent);
+
+    if (!Number.isSafeInteger(availableChips)) {
+        betMessage.textContent =
+            "Your chip balance has not loaded yet.";
+        return;
+    }
+
+    if (amount > availableChips) {
+        betMessage.textContent =
+            "You do not have enough chips for this bet.";
+        return;
+    }
+
+    betButton.disabled = true;
+
+    try {
+        const response = await fetch(
+            `/users/${encodeURIComponent(username)}/bet`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify({
+                    amount: amount
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.msg || "Unable to place bet."
+            );
+        }
+
+        // Display the balance returned by the server.
+        chipsDisplay.textContent = data.remainingChips;
+
+        // Update the amount wagered during this hand.
+        currentBet += data.bet;
+        currentBetDisplay.textContent = currentBet;
+
+        // Clear the input after a successful bet.
+        betInput.value = "";
+
+        betMessage.textContent =
+            `Bet of ${data.bet} chips placed successfully!`;
+
+    } catch (error) {
+        console.error("Error placing bet:", error);
+        betMessage.textContent = error.message;
+
+        // Refresh the balance after a failed request.
+        await loadChips();
+
+    } finally {
+        betButton.disabled = false;
+    }
+}
+
+    // Connect the button to the betting function.
+    betButton.addEventListener("click", placeBet);
   </script>
 </body>
 </html>

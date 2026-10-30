@@ -74,6 +74,7 @@ exports.startGuest = function(req, res) {
 
         req.session.guestName = "Guest-" + Math.floor(1000 + Math.random() * 9000);
 
+        req.session.guestChips = 1000;
         req.session.save(function() {
             res.redirect('/lobby.html');
         });

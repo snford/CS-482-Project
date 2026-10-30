@@ -192,13 +192,26 @@ exports.setChips = async function(username, chips) {
     }
     return updated;
 };
-
+/*
 //PG-02: Get the chips for a user.
 exports.getChips = async function(username) {
     const user = await userModel.findOne({ username: username });
     if (!user) {
         throw new Error("User not found.");
     }
+    return user.chips;
+};
+*/
+exports.getChips = async function(username) {
+    const user = await userModel.findOne({ username: username });
+
+    console.log("Looking for username:", username);
+    console.log("User found:", user);
+
+    if (!user) {
+        throw new Error("User not found.");
+    }
+
     return user.chips;
 };
 

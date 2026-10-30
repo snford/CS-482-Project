@@ -391,20 +391,28 @@ exports.setChips = async function(req, res) {
 
 //PG-02: Gets chips from a user's account.
 exports.getChips = async function(req, res) {
-        try {
-        const username = req.params.username;
+try {
+const username = req.params.username;
 
-        const chips = await dao.getChips(username);
-
+    // Guests store their chips in the session, not MongoDB.
+    if (req.session && req.session.guestName === username) {
         return res.status(200).json({
-            chips: chips
-        });
-
-    } catch (error) {
-        return res.status(500).json({
-            msg: "Failed to retrieve chips"
+            chips: req.session.guestChips
         });
     }
+
+    // Registered users retrieve their chips from MongoDB.
+    const chips = await dao.getChips(username);
+
+    return res.status(200).json({ chips: chips });
+
+} catch (error) {
+    console.error("getChips controller error:", error);
+
+    return res.status(500).json({
+        msg: "Failed to retrieve chips."
+    });
+}
 };
 
 //PG-02: Adds chips to a user's account.
@@ -471,6 +479,123 @@ exports.removeChips = async function(req, res) {
 
         return res.status(500).json({
             msg: "Failed to remove chips"
+        });
+    }
+};
+
+exports.placeBet = async function(req, res) {
+    try {
+        const username = req.params.username;
+        const { amount } = req.body;
+
+        // Validate the bet amount.
+        if (!Number.isSafeInteger(amount) || amount <= 0) {
+            return res.status(400).json({
+                msg: "Bet must be a positive integer."
+            });
+        }
+
+        // Handle guests using their session balance.
+        if (
+            req.session &&
+            req.session.guestName === username
+        ) {
+            // Make sure the guest has a valid balance.
+            if (!Number.isSafeInteger(req.session.guestChips)) {
+                return res.status(500).json({
+                    msg: "Guest chip balance is unavailable."
+                });
+            }
+
+            // Check whether the guest can afford the bet.
+            if (req.session.guestChips < amount) {
+                return res.status(400).json({
+                    msg: "Not enough chips to place this bet."
+                });
+            }
+
+            // Subtract the bet exactly once.
+            req.session.guestChips -= amount;
+
+            return res.status(200).json({
+                msg: "Bet placed successfully.",
+                bet: amount,
+                remainingChips: req.session.guestChips
+            });
+        }
+
+        // Handle registered users using MongoDB.
+        const remainingChips = await dao.removeChips(username, amount);
+
+        return res.status(200).json({
+            msg: "Bet placed successfully.",
+            bet: amount,
+            remainingChips: remainingChips
+        });
+
+    } catch (error) {
+        console.error("Error placing bet:", error);
+
+        if (error.message === "User not found") {
+            return res.status(404).json({
+                msg: "User not found."
+            });
+        }
+
+        if (error.message === "User not found or insufficient chips") {
+            return res.status(400).json({
+                msg: "Not enough chips to place this bet."
+            });
+        }
+
+        return res.status(500).json({
+            msg: "An error occurred while placing the bet."
+        });
+    }
+};
+
+
+exports.awardWinnings = async function(req, res) {
+    try {
+        const username = req.params.username;
+        const { amount } = req.body;
+
+        if (!Number.isSafeInteger(amount) || amount <= 0) {
+            return res.status(400).json({
+                msg: "Winnings must be a positive integer."
+            });
+        }
+
+        const currentChips = await dao.getChips(username);
+
+        if (currentChips == null) {
+            return res.status(404).json({
+                msg: "User not found."
+            });
+        }
+
+        const updatedChips = await dao.addChips(
+            username,
+            amount
+        );
+
+        if (updatedChips == null) {
+            return res.status(400).json({
+                msg: "Unable to award winnings."
+            });
+        }
+
+        return res.status(200).json({
+            msg: "Winnings awarded successfully.",
+            winnings: amount,
+            totalChips: updatedChips
+        });
+
+    } catch (error) {
+        console.error("Error awarding winnings:", error);
+
+        return res.status(500).json({
+            msg: "An error occurred while awarding winnings."
         });
     }
 };
