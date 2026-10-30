@@ -271,7 +271,7 @@ exports.removeChips = async function(username, amount) {
     throw new Error("User not found or insufficient chips");
 };
 
-// UP-01 T2: Update a registered player's profile
+// UP-01: Update a registered player's profile
 exports.updateProfile = async function(userId, username, avatar) {
 
     // Update only the fields that belong to the profile
