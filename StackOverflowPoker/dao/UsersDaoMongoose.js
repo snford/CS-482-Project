@@ -271,6 +271,27 @@ exports.removeChips = async function(username, amount) {
     throw new Error("User not found or insufficient chips");
 };
 
+// UP-01 T2: Update a registered player's profile
+exports.updateProfile = async function(userId, username, avatar) {
+
+    // Update only the fields that belong to the profile
+    const updatedUser = await userModel.findByIdAndUpdate(
+        userId,
+        {
+            $set: {
+                username: username,
+                avatar: avatar
+            }
+        },
+        {
+            new: true,
+            runValidators: true
+        }
+    );
+
+    return updatedUser;
+};
+
 exports.deleteAll = async function(check) {
     if (check === "test") {
         await userModel.deleteMany();
