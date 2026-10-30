@@ -19,6 +19,28 @@
  *   });
  */
 (function () {
+    // ---- Light / dark mode (picked on the Profile page, saved on this device) ----
+    const THEME_KEY = "sop-theme";
+
+    function getTheme() {
+        try {
+            return localStorage.getItem(THEME_KEY) === "dark" ? "dark" : "light";
+        } catch (error) {
+            return "light"; // storage blocked
+        }
+    }
+
+    function setTheme(theme) {
+        const value = theme === "dark" ? "dark" : "light";
+        // data-theme is for our CSS, data-bs-theme makes Bootstrap's parts match
+        document.documentElement.setAttribute("data-theme", value);
+        document.documentElement.setAttribute("data-bs-theme", value);
+        try { localStorage.setItem(THEME_KEY, value); } catch (error) { /* ignore */ }
+    }
+
+    // Runs right away (nav.js is near the top of <body>) so the page doesn't flash white
+    setTheme(getTheme());
+
     // Links used to carry ?username=. The login cookie does that job now,
     // so this just returns the link unchanged (kept so old calls still work).
     function withUser(href) {
@@ -116,6 +138,8 @@
         user: null,
         guestName: null,
         requireUser: requireUser,
+        getTheme: getTheme,
+        setTheme: setTheme,
         withUser: withUser,
         escapeHtml: escapeHtml,
         avatarHtml: avatarHtml,

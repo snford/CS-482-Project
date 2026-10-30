@@ -1,6 +1,6 @@
-const gameDeck = require('../game/gameDeck');
-const gameDeal = require('../game/gameDeal');
-const Hand = require('../game/gameHand');
+const gameDeck = require('./gameDeck');
+const gameDeal = require('./gameDeal');
+const Hand = require('./gameHand');
 
 test("Game rounds are executed correctly", () => {
     const deck = gameDeck.createDeck();

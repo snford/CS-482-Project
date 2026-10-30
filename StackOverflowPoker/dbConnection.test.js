@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const dbcon = require('../DbConnection');
+const dbcon = require('./DbConnection');
 
 beforeAll(async function() {
     await dbcon.connect("test");

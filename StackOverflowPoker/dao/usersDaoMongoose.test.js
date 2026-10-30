@@ -1,4 +1,4 @@
-const dao = require('../dao/UsersDaoMongoose');
+const dao = require('./UsersDaoMongoose');
 const dbcon = require('../DbConnection');
 
 beforeAll(async function() {

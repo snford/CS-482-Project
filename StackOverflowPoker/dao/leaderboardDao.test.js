@@ -10,7 +10,7 @@ jest.mock("mongoose", () => ({
     }))
 }));
 
-const dao = require("../dao/UsersDaoMongoose");
+const dao = require("./UsersDaoMongoose");
 
 beforeEach(function() {
     jest.clearAllMocks();

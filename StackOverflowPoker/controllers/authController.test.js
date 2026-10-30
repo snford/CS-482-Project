@@ -1,4 +1,4 @@
-const auth = require('../controllers/authController');
+const auth = require('./authController');
 const dao = require('../dao/UsersDaoMongoose');
 const dbcon = require('../DbConnection');
 

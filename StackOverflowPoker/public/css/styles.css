@@ -746,3 +746,116 @@ fieldset:disabled .btn {
     .page-header { padding: 1.6rem 0 1.1rem; }
     .stat-tile .value { font-size: 1.9rem; }
 }
+
+/* ==========================================================================
+   Dark mode (turned on from the Profile page; nav.js sets data-theme="dark")
+   Same purple brand, just on a dark plum background.
+   ========================================================================== */
+[data-theme="dark"] {
+    color-scheme: dark;
+    --ink: #f3eaf6;
+    --ink-soft: #cdbfd6;
+    --ink-muted: #9d8fa9;
+    --line: #3a2a46;
+    --surface: #1f1529;
+    --page: #130c19;
+    --brand-50: #2b1934;
+    --brand-100: #47264f;
+    --brand-text: #e796e7;
+    --soft-fill: #2a1e34;
+    --shadow-sm: 0 2px 6px rgba(0, 0, 0, .3);
+    --shadow: 0 10px 30px rgba(0, 0, 0, .35), 0 2px 8px rgba(0, 0, 0, .25);
+    --shadow-lg: 0 24px 60px rgba(0, 0, 0, .5);
+    --bs-link-color: var(--brand-text);
+    --bs-secondary-color: var(--ink-muted);
+}
+
+[data-theme="dark"] body {
+    background:
+        radial-gradient(900px 500px at 100% -10%, rgba(191, 64, 191, .18), transparent 60%),
+        radial-gradient(700px 420px at -10% 10%, rgba(245, 197, 66, .05), transparent 60%),
+        var(--page);
+}
+
+[data-theme="dark"] ::selection { background: var(--brand-100); }
+
+/* Purple text that was dark-on-light now needs to be light-on-dark */
+[data-theme="dark"] a:not(.btn):not(.nav-link):not(.brand-link):not(.user-chip),
+[data-theme="dark"] .eyebrow,
+[data-theme="dark"] .so-card-title .bi,
+[data-theme="dark"] .btn-light-soft,
+[data-theme="dark"] .btn-secondary,
+[data-theme="dark"] .btn-light-soft:hover,
+[data-theme="dark"] .btn-secondary:hover,
+[data-theme="dark"] .text-primary { color: var(--brand-text) !important; }
+
+[data-theme="dark"] .friend-link,
+[data-theme="dark"] .quick-link { color: var(--ink) !important; }
+
+[data-theme="dark"] .btn-light-soft:hover,
+[data-theme="dark"] .btn-secondary:hover { background: var(--brand-100); border-color: #5c3166; }
+
+[data-theme="dark"] .btn-light-soft,
+[data-theme="dark"] .btn-secondary { --bs-btn-disabled-color: var(--brand-text); }
+
+[data-theme="dark"] .btn-danger-soft { background: #3a1820; border-color: #5a2430; color: #ff8a96; }
+[data-theme="dark"] .btn-danger-soft:hover { background: var(--danger); border-color: var(--danger); color: #fff; }
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select { background-color: #1a1122; color: var(--ink); border-color: var(--line); }
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus { background-color: #22172c; color: var(--ink); border-color: var(--brand); }
+[data-theme="dark"] .form-control::placeholder { color: #7d6f89; }
+[data-theme="dark"] .form-control:disabled { background-color: #1d1425; }
+
+[data-theme="dark"] .pill { color: var(--brand-text); }
+[data-theme="dark"] .pill-success { background: #12301f; color: #6ee0a6; border-color: #1d4a31; }
+[data-theme="dark"] .pill-warning { background: #33260c; color: #f5c46a; border-color: #4d3a12; }
+[data-theme="dark"] .pill-muted { background: var(--soft-fill); color: var(--ink-soft); border-color: var(--line); }
+[data-theme="dark"] .pill-dark { color: #fff; }
+
+[data-theme="dark"] .tile-success .tile-icon { background: #12301f; }
+[data-theme="dark"] .tile-danger .tile-icon { background: #3a1820; }
+[data-theme="dark"] .tile-gold .tile-icon { background: #33280c; }
+
+/* Home page card icons */
+[data-theme="dark"] .icon-brand { background: var(--brand-50); color: var(--brand-text); }
+[data-theme="dark"] .icon-success { background: #12301f; color: #4fd18f; }
+[data-theme="dark"] .icon-gold { background: #33280c; color: #f5c542; }
+[data-theme="dark"] .icon-blue { background: #1c2347; color: #8c9bff; }
+
+[data-theme="dark"] .placeholder-box,
+[data-theme="dark"] .ad-slot { border-color: #4a3756; }
+[data-theme="dark"] .ad-slot { background: linear-gradient(135deg, #21162b, #1a1122); }
+[data-theme="dark"] .ad-slot .bi,
+[data-theme="dark"] .empty-state .bi { color: #5e4a6b; }
+
+[data-theme="dark"] .so-table tbody tr:hover { background: #26192f; }
+[data-theme="dark"] .site-footer { background: rgba(0, 0, 0, .2); }
+[data-theme="dark"] .site-nav { background: linear-gradient(100deg, #5a1a5c 0%, #8e2a8e 55%, #a83ea8 100%); }
+
+/* Page-specific pieces (their light colors live in each page's <style>) */
+[data-theme="dark"] .feature-list .bi { background: var(--surface); }
+[data-theme="dark"] .signin-card,
+[data-theme="dark"] .choose-card { background: rgba(31, 21, 41, .94); border-color: var(--line); }
+[data-theme="dark"] .seat-dots span:not(.taken) { background: var(--soft-fill); border-color: var(--line); }
+[data-theme="dark"] .skeleton { background: linear-gradient(90deg, #22172b 25%, #2d2037 37%, #22172b 63%); background-size: 400% 100%; }
+[data-theme="dark"] .rank-badge { background: var(--soft-fill); }
+[data-theme="dark"] .rank-1 { background: #3d300c; color: #f5c542; }
+[data-theme="dark"] .rank-2 { background: #2f2c35; color: #d4cfdb; }
+[data-theme="dark"] .rank-3 { background: #3d2516; color: #f2a873; }
+[data-theme="dark"] .mini-bar,
+[data-theme="dark"] .progress { background: var(--soft-fill); }
+[data-theme="dark"] .win-ring {
+    background:
+        radial-gradient(circle, var(--surface) 0 61%, transparent 62%),
+        conic-gradient(var(--success) calc(var(--pct) * 1%), var(--soft-fill) 0);
+}
+[data-theme="dark"] .bubble.them { background: var(--soft-fill); }
+[data-theme="dark"] .button-group { background: var(--soft-fill); }
+[data-theme="dark"] .option-button:hover { background: rgba(255, 255, 255, .06); color: var(--brand-text); }
+
+/* Table screen */
+[data-theme="dark"] .seat { background: var(--surface); }
+[data-theme="dark"] .seat.empty { background: rgba(31, 21, 41, .55); border-color: #4a3756; }
+[data-theme="dark"] .seat.empty .avatar { background: var(--soft-fill); color: #7d6f89; }
