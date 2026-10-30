@@ -40,8 +40,28 @@
 
         .mini-stat span { font-size: .78rem; color: var(--ink-muted); font-weight: 600; }
 
-        .premade-avatars { display: flex; gap: .6rem; flex-wrap: wrap; }
-        .premade-avatars .avatar { cursor: not-allowed; opacity: .75; }
+        .premade-avatars {
+            display: flex;
+            gap: .6rem;
+            flex-wrap: wrap;
+}
+
+        .premade-avatars .avatar {
+            cursor: pointer;
+            opacity: .8;
+            border: 3px solid transparent;
+            transition: .2s;
+}
+
+        .premade-avatars .avatar:hover {
+            opacity: 1;
+            transform: scale(1.1);
+}
+
+        .premade-avatars .avatar.selected {
+            opacity: 1;
+            border-color: #bf40bf;
+}
 
         .setting-row {
             display: flex;
@@ -128,29 +148,147 @@
                     <p class="form-hint mb-0"><i class="bi bi-info-circle me-1"></i>Settings are saved on this device.</p>
                 </div>
 
-                <!-- Edit profile (not connected yet) -->
-                <div class="so-card placeholder-box fade-up delay-2">
-                    <div class="d-flex align-items-center justify-content-between mb-3">
-                        <h2 class="so-card-title mb-0"><i class="bi bi-pencil-square"></i>Edit profile</h2>
-                        <span class="pill pill-muted"><i class="bi bi-hourglass-split"></i>Coming soon</span>
-                    </div>
-                    <fieldset disabled>
-                        <label class="form-label" for="editUsername">Username</label>
-                        <input class="form-control mb-3" id="editUsername" type="text">
+                <!-- UP-01: Edit Profile -->
+                <div class="so-card fade-up delay-2">
 
-                        <label class="form-label">Avatar</label>
-                        <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
-                            <button type="button" class="btn btn-light-soft"><i class="bi bi-upload"></i>Upload picture</button>
-                            <div class="premade-avatars" aria-label="Premade avatars">
-                                <span class="avatar tone-1">♠</span>
-                                <span class="avatar tone-2">♦</span>
-                                <span class="avatar tone-3">♣</span>
-                                <span class="avatar tone-4">♥</span>
-                                <span class="avatar tone-5">★</span>
-                            </div>
+                    <h2 class="so-card-title">
+                        <i class="bi bi-pencil-square"></i>
+                        Edit Profile
+                    </h2>
+
+                    <form id="editProfileForm">
+
+                        <!-- Username -->
+                        <div class="mb-3">
+
+                            <label for="editUsername" class="form-label">
+                                Username
+                            </label>
+
+                            <input
+                                class="form-control"
+                                id="editUsername"
+                                type="text"
+                                minlength="3"
+                                maxlength="20"
+                                required
+                            >
+
+                            <small class="text-secondary">
+                                Choose a unique username between 3 and 20 characters.
+                            </small>
+
                         </div>
-                        <button type="button" class="btn btn-primary">Save changes</button>
-                    </fieldset>
+
+                        <!-- Avatar Selection -->
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Choose Your Avatar
+                            </label>
+
+                            <div class="premade-avatars" id="avatarChoices">
+
+                                <button type="button"
+                                        class="avatar tone-1"
+                                        data-avatar="spade"
+                                        aria-label="Spade avatar"
+                                        aria-pressed="true">
+                                    ♠
+                                </button>
+
+                                <button type="button"
+                                        class="avatar tone-2"
+                                        data-avatar="diamond"
+                                        aria-label="Diamond avatar"
+                                        aria-pressed="false">
+                                    ♦
+                                </button>
+
+                                <button type="button"
+                                        class="avatar tone-3"
+                                        data-avatar="club"
+                                        aria-label="Club avatar"
+                                        aria-pressed="false">
+                                    ♣
+                                </button>
+
+                                <button type="button"
+                                        class="avatar tone-4"
+                                        data-avatar="heart"
+                                        aria-label="Heart avatar"
+                                        aria-pressed="false">
+                                    ♥
+                                </button>
+
+                                <button type="button"
+                                        class="avatar tone-5"
+                                        data-avatar="star"
+                                        aria-label="Star avatar"
+                                        aria-pressed="false">
+                                    ★
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                        <!-- Chip Balance -->
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Virtual Chips
+                            </label>
+
+                            <input
+                                class="form-control"
+                                id="profileChips"
+                                type="text"
+                                readonly
+                            >
+
+                            <small class="text-secondary">
+                                Your chip balance is updated through gameplay.
+                            </small>
+
+                        </div>
+
+                        <!-- Losses -->
+                        <div class="mb-3">
+
+                            <label class="form-label">
+                                Total Losses
+                            </label>
+
+                            <input
+                                class="form-control"
+                                id="profileLosses"
+                                type="text"
+                                readonly
+                            >
+
+                        </div>
+
+                        <!-- Message -->
+                        <div
+                            id="profileMessage"
+                            class="alert d-none"
+                            role="status">
+                        </div>
+
+                        <!-- Save Button -->
+                        <button
+                            type="submit"
+                            id="saveProfileButton"
+                            class="btn btn-primary">
+
+                            <i class="bi bi-check-circle"></i>
+                            Save Changes
+
+                        </button>
+
+                    </form>
+
                 </div>
             </div>
         </div>
@@ -165,33 +303,269 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        let username = null;
+// UP-01: Profile Creation and Management
 
-        SOP.ready.then(function () {
-            username = SOP.user;
+let username = null;
 
-            if (!username) {
-                document.getElementById("signedOut").hidden = false;
-                document.getElementById("profilePage").hidden = true;
-                return;
+// Currently selected avatar
+let selectedAvatar = "spade";
+
+// Symbols used for the premade avatars
+const avatarSymbols = {
+    spade: "♠",
+    diamond: "♦",
+    club: "♣",
+    heart: "♥",
+    star: "★"
+};
+
+// Wait for the existing login system
+SOP.ready.then(async function() {
+
+    username = SOP.user;
+
+    // Guests and signed-out visitors cannot edit profiles
+    if (!username) {
+
+        document.getElementById("signedOut").hidden = false;
+
+        document.getElementById("profilePage").hidden = true;
+
+        return;
+    }
+
+    // Load the saved profile
+    await loadProfile();
+
+});
+
+
+// UP-01: Retrieve the player's profile from MongoDB
+async function loadProfile() {
+
+    try {
+
+        const response = await fetch("/api/profile/me", {
+            method: "GET",
+            credentials: "same-origin",
+            headers: {
+                Accept: "application/json"
             }
-
-            document.getElementById("profileName").textContent = username;
-            document.getElementById("editUsername").value = username;
-            document.getElementById("profileAvatar").innerHTML = SOP.avatarHtml(username, "avatar-xl");
-            loadStats();
         });
 
-        async function loadStats() {
-            try {
-                const response = await fetch("/stats/" + encodeURIComponent(username));
-                if (!response.ok) return;
-                const stats = await response.json();
-                document.getElementById("statWins").textContent = stats.wins;
-                document.getElementById("statGames").textContent = stats.totalGames;
-                document.getElementById("statRate").textContent = Math.round(stats.winPercentage) + "%";
-            } catch (error) { /* keep the dashes */ }
+        if (!response.ok) {
+            throw new Error("Unable to load your profile.");
         }
+
+        const profile = await response.json();
+
+        // Save username
+        username = profile.username;
+
+        // Display username
+        document.getElementById("profileName").textContent =
+            profile.username;
+
+        // Fill in editing form
+        document.getElementById("editUsername").value =
+            profile.username;
+
+        // Display statistics
+        document.getElementById("statWins").textContent =
+            profile.wins;
+
+        document.getElementById("statGames").textContent =
+            profile.totalGames;
+
+        document.getElementById("statRate").textContent =
+            profile.winPercentage + "%";
+
+        document.getElementById("profileLosses").value =
+            profile.losses;
+
+        // Display virtual chips
+        document.getElementById("profileChips").value =
+            profile.chips.toLocaleString();
+
+        // Display avatar
+        selectedAvatar = profile.avatar || "spade";
+
+        updateAvatar();
+
+        // Update statistics button
+        document.getElementById("statsLinkBtn").href =
+            "/stats.html?username=" +
+            encodeURIComponent(profile.username);
+
+    } catch (error) {
+
+        showProfileMessage(error.message, "danger");
+
+    }
+
+}
+
+
+// UP-01: Update the displayed avatar
+function updateAvatar() {
+
+    // Display the selected symbol
+    const symbol = avatarSymbols[selectedAvatar] || "♠";
+
+    const avatarDisplay =
+        document.getElementById("profileAvatar");
+
+    // Clear the old avatar
+    avatarDisplay.replaceChildren();
+
+    // Create the new avatar
+    const avatarElement = document.createElement("span");
+
+    avatarElement.className = "avatar avatar-xl tone-1";
+
+    avatarElement.textContent = symbol;
+
+    avatarDisplay.appendChild(avatarElement);
+
+    // Update selected button styling
+    document.querySelectorAll("[data-avatar]")
+        .forEach(function(button) {
+
+            const isSelected =
+                button.dataset.avatar === selectedAvatar;
+
+            button.classList.toggle("selected", isSelected);
+
+            button.setAttribute(
+                "aria-pressed",
+                String(isSelected)
+            );
+
+        });
+
+}
+
+
+// UP-01: Allow players to select an avatar
+document.querySelectorAll("[data-avatar]")
+    .forEach(function(button) {
+
+        button.addEventListener("click", function() {
+
+            selectedAvatar = button.dataset.avatar;
+
+            updateAvatar();
+
+        });
+
+    });
+
+
+// UP-01: Display success or error messages
+function showProfileMessage(message, type) {
+
+    const messageBox =
+        document.getElementById("profileMessage");
+
+    messageBox.textContent = message;
+
+    messageBox.className =
+        "alert alert-" + type;
+
+}
+
+
+// UP-01: Save profile changes
+document.getElementById("editProfileForm")
+    .addEventListener("submit", async function(event) {
+
+        // Prevent the browser from refreshing automatically
+        event.preventDefault();
+
+        const saveButton =
+            document.getElementById("saveProfileButton");
+
+        // Get the new username
+        const newUsername =
+            document.getElementById("editUsername")
+                .value.trim();
+
+        // Disable the button while saving
+        saveButton.disabled = true;
+
+        saveButton.textContent = "Saving...";
+
+        try {
+
+            // Send profile changes to Express
+            const response = await fetch("/api/profile/me", {
+
+                method: "PUT",
+
+                credentials: "same-origin",
+
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+
+                body: JSON.stringify({
+                    username: newUsername,
+                    avatar: selectedAvatar
+                })
+
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+
+                throw new Error(
+                    result.msg || "Unable to save profile."
+                );
+
+            }
+
+            // Update displayed username
+            username = result.username;
+
+            document.getElementById("profileName").textContent =
+                result.username;
+
+            document.getElementById("editUsername").value =
+                result.username;
+
+            // Update selected avatar
+            selectedAvatar = result.avatar;
+
+            updateAvatar();
+
+            // Show success message
+            showProfileMessage(
+                "Profile updated successfully!",
+                "success"
+            );
+
+            // Update navigation to use the new username
+            // The existing navigation script reads the session
+            // again when the page reloads.
+            setTimeout(function() {
+                window.location.reload();
+            }, 1200);
+
+        } catch (error) {
+
+            showProfileMessage(error.message, "danger");
+
+        } finally {
+
+            saveButton.disabled = false;
+
+            saveButton.textContent = "Save Changes";
+
+        }
+
+    });
 
         // Dark mode switches the whole site right away (nav.js remembers it)
         const darkMode = document.getElementById("darkMode");
