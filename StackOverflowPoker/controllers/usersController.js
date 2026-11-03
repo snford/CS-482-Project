@@ -741,3 +741,67 @@ exports.updateMyProfile = async function(req, res) {
         });
     }
 };
+
+// UP-02: Get another player's public profile
+exports.getPublicProfile = async function(req, res) {
+
+    try {
+
+        // Get the username from the URL
+        const username = req.params.username;
+
+        // Find the player in MongoDB
+        const user = await dao.readByUsernameIgnoreCase(username);
+
+        // Check if the player exists
+        if (!user || user.needsUsername) {
+
+            return res.status(404).json({
+                msg: "Player not found."
+            });
+
+        }
+
+        // Get the player's statistics
+        const wins = user.wins ?? 0;
+        const losses = user.losses ?? 0;
+
+        const totalGames = wins + losses;
+
+        // Calculate win percentage
+        let winPercentage = 0;
+
+        if (totalGames > 0) {
+            winPercentage = (wins / totalGames) * 100;
+        }
+
+        // Return only public profile information
+        return res.status(200).json({
+
+            username: user.username,
+
+            avatar: user.avatar || "spade",
+
+            chips: user.chips ?? 1000,
+
+            wins: wins,
+
+            losses: losses,
+
+            totalGames: totalGames,
+
+            winPercentage: Number(winPercentage.toFixed(2))
+
+        });
+
+    } catch (error) {
+
+        console.error("Error loading public profile:", error);
+
+        return res.status(500).json({
+            msg: "Unable to load player profile."
+        });
+
+    }
+
+};
