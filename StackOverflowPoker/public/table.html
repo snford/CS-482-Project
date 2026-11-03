@@ -227,12 +227,38 @@
           title.textContent = "Empty";
           note.textContent = "Open seat";
         } else {
-          avatar.className = "avatar " + SOP.avatarTone(name);
+
+          avatar.className =
+              "avatar " + SOP.avatarTone(name);
+
           avatar.textContent = name.charAt(0);
-          title.textContent = name;
+
+          // UP-02: Make player usernames clickable
+          const playerLink = document.createElement("a");
+
+          playerLink.href =
+              "/player.html?name=" +
+              encodeURIComponent(name);
+
+          playerLink.textContent = name;
+
+          playerLink.className =
+              "text-decoration-none fw-bold";
+
+          // Clear the existing title
+          title.textContent = "";
+
+          // Put the clickable username inside the title
+          title.appendChild(playerLink);
+
           note.textContent = "Waiting";
-          if (name === username) seat.classList.add("yours");
-        }
+
+          // Highlight the current player's seat
+          if (name === username) {
+              seat.classList.add("yours");
+          }
+
+      }
 
         text.append(title, note);
         seat.append(avatar, text);

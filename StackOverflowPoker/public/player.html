@@ -48,6 +48,16 @@
                             <div class="stat-tile"><div class="label">Win %</div><div class="value" id="pRate">–</div></div>
                         </div>
                     </div>
+                    <!-- UP-02: Player's virtual chips -->
+                    <div class="text-center mb-4">
+
+                        <span class="pill">
+                            <i class="bi bi-coin"></i>
+                            Chips:
+                            <strong id="pChips">–</strong>
+                        </span>
+
+                    </div>
 
                     <div class="d-flex flex-wrap gap-2 justify-content-center" id="playerActions">
                         <!-- SF-01: Add friend uses the same form as the Friends page -->
@@ -113,20 +123,86 @@
                 document.getElementById("txt_to").value = playerName;
             }
 
+            // UP-02: Load the selected player's public profile
             try {
-                const response = await fetch("/stats/" + encodeURIComponent(playerName));
+
+                const response = await fetch(
+                    "/api/players/" +
+                    encodeURIComponent(playerName) +
+                    "/profile"
+                );
+
+                // Player does not exist
                 if (response.status === 404) {
-                    document.getElementById("playerTagline").textContent = "This player doesn't exist.";
+
+                    document.getElementById("playerTagline").textContent =
+                        "This player doesn't exist.";
+
                     document.getElementById("playerActions").hidden = true;
+
                     return;
                 }
-                if (response.ok) {
-                    const stats = await response.json();
-                    document.getElementById("pWins").textContent = stats.wins;
-                    document.getElementById("pLosses").textContent = stats.losses;
-                    document.getElementById("pRate").textContent = Math.round(stats.winPercentage) + "%";
+
+                if (!response.ok) {
+                    throw new Error("Unable to load player profile.");
                 }
-            } catch (error) { /* keep the dashes */ }
+
+                // Convert the server response to JavaScript data
+                const profile = await response.json();
+
+                // Display the player's actual saved username
+                document.getElementById("playerName").textContent =
+                    profile.username;
+
+                // Display statistics
+                document.getElementById("pWins").textContent =
+                    profile.wins;
+
+                document.getElementById("pLosses").textContent =
+                    profile.losses;
+
+                document.getElementById("pRate").textContent =
+                    profile.winPercentage + "%";
+
+                // Display chips
+                document.getElementById("pChips").textContent =
+                    profile.chips.toLocaleString();
+
+                // Display saved avatar
+                const avatarSymbols = {
+                    spade: "♠",
+                    diamond: "♦",
+                    club: "♣",
+                    heart: "♥",
+                    star: "★"
+                };
+
+                const avatarSymbol =
+                    avatarSymbols[profile.avatar] || "♠";
+
+                const avatarDisplay =
+                    document.getElementById("playerAvatar");
+
+                avatarDisplay.replaceChildren();
+
+                const avatarElement =
+                    document.createElement("span");
+
+                avatarElement.className =
+                    "avatar avatar-xl tone-1";
+
+                avatarElement.textContent = avatarSymbol;
+
+                avatarDisplay.appendChild(avatarElement);
+
+            } catch (error) {
+
+                document.getElementById("playerTagline").textContent =
+                    error.message;
+
+                document.getElementById("playerActions").hidden = true;
+
+            }
 
             // Show a badge instead of the button if you're already friends
             if (me && me !== playerName) {
