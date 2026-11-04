@@ -8,13 +8,16 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const authController = require('./controllers/authController');
-const { loadUser, requireLogin } = require('./middleware/auth');
-
+const {
+    loadUser,
+    requireLogin,
+    requireAdmin
+} = require('./middleware/auth');
+// AM-05: Administrator dashboard controller
+const adminController = require('./controllers/adminController');
 const app = express();
 
 app.use(morgan('dev'));
-
-app.use(express.static('public'));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
@@ -77,6 +80,19 @@ app.use(passport.initialize());
 // TT-03: figure out who is signed in for every request (req.user)
 app.use(loadUser);
 
+// AM-05: Protect administrator webpages
+const adminPages = [
+    "/admin-dashboard.html",
+    "/admin.html",
+    "/adminads.html"
+];
+
+// Only administrators can access these pages
+app.use(adminPages, requireAdmin);
+
+// Serve regular website files after checking admin access
+app.use(express.static('public'));
+
 function requireGoogleSetup(req, res, next) {
     if (!googleReady) {
         res.status(503).send("Google sign-in is not set up on this server yet.");
@@ -123,6 +139,12 @@ app.post('/removefriend', requireLogin, controller.postRemoveFriend);
 app.get('/stats/:username', controller.getPlayerStats);
 // ST-02: Leaderboard API
 app.get('/api/leaderboard', controller.getLeaderboard);
+// AM-05: Protected administrator dashboard API
+app.get(
+    "/api/admin/dashboard",
+    requireAdmin,
+    adminController.getDashboard
+);
 
 // UP-02: Public player profile
 app.get(
