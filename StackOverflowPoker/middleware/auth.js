@@ -38,3 +38,29 @@ exports.requireLogin = function(req, res, next) {
 
     res.redirect('/index.html');
 };
+
+// AM-05: Allow only registered administrators
+exports.requireAdmin = function(req, res, next) {
+
+    // Check whether the player is signed in
+    if (!req.user) {
+
+        return res.status(401).json({
+            msg: "Please sign in first."
+        });
+
+    }
+
+    // Check administrator permission
+    if (req.user.role !== "admin") {
+
+        return res.status(403).json({
+            msg: "Access denied. Administrators only."
+        });
+
+    }
+
+    // Administrator is allowed to continue
+    next();
+
+};

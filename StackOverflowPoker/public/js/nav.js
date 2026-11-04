@@ -161,10 +161,33 @@
     ];
 
     const adminLinks = [
-        { id: "adminReportsLink", href: "/admin.html", label: "Reports", icon: "bi-flag-fill", pages: ["admin.html"] },
-        { id: "adminAdsLink", href: "/adminads.html", label: "Ads", icon: "bi-megaphone-fill", pages: ["adminads.html"] },
-        { id: "backToSiteLink", href: "/home.html", label: "Back to site", icon: "bi-box-arrow-left", pages: [] }
-    ];
+    {
+        id: "adminDashboardLink",
+        href: "/admin-dashboard.html",
+        label: "Admin Dashboard",
+        icon: "bi-speedometer2",
+        pages: ["admin-dashboard.html"]
+
+    },
+    {
+        id: "adminReportsLink",
+        href: "/admin.html",
+        label: "Reports",
+        icon: "bi-flag-fill"
+    },
+    {
+        id: "adminAdsLink",
+        href: "/adminads.html",
+        label: "Ads",
+        icon: "bi-megaphone-fill"
+    },
+    {
+        id: "backToSiteLink",
+        href: "/home.html",
+        label: "Back to site",
+        icon: "bi-box-arrow-left"
+    }
+];
 
     const links = variant === "admin" ? adminLinks : variant === "minimal" ? [] : mainLinks;
 
@@ -222,7 +245,7 @@
 
     let linksHtml = "";
     for (const link of links) {
-        const active = link.pages.includes(page);
+        const active = (link.pages || []).includes(page);
         linksHtml +=
             '<li class="nav-item">' +
             '<a class="nav-link' + (active ? " active" : "") + '" id="' + link.id + '" href="' + link.href + '"' +
@@ -280,6 +303,75 @@ try {
     chipDisplay.textContent = "--";
 }
 
+// AM-05: Add Admin Dashboard link for administrators
+async function addAdminNavigationLink() {
+
+    // Do not add an extra link to admin pages
+    if (variant !== "main") {
+        return;
+    }
+
+    try {
+
+        // Check whether the current user is an administrator
+        const response = await fetch("/api/admin/dashboard", {
+            credentials: "same-origin"
+        });
+
+        // Only administrators receive a successful response
+        if (!response.ok) {
+            return;
+        }
+
+        // Find the existing navigation list
+        const navList = document.querySelector(
+            "#siteNavLinks ul.navbar-nav"
+        );
+
+        if (!navList) {
+            return;
+        }
+
+        // Prevent duplicate links
+        if (document.getElementById("adminDashboardMainLink")) {
+            return;
+        }
+
+        // Create the list item
+        const listItem = document.createElement("li");
+        listItem.className = "nav-item";
+
+        // Create the dashboard link
+        const adminLink = document.createElement("a");
+
+        adminLink.id = "adminDashboardMainLink";
+        adminLink.href = "/admin-dashboard.html";
+        adminLink.className = "nav-link";
+
+        // Add the icon
+        const icon = document.createElement("i");
+        icon.className = "bi bi-shield-lock-fill";
+        icon.setAttribute("aria-hidden", "true");
+
+        adminLink.appendChild(icon);
+
+        // Add the text
+        adminLink.appendChild(
+            document.createTextNode(" Admin Dashboard")
+        );
+
+        // Insert the link into the navigation
+        listItem.appendChild(adminLink);
+        navList.appendChild(listItem);
+
+    } catch (error) {
+
+        console.error("Unable to check admin access:", error);
+
+    }
+
+}
+
 }
 
     mount.outerHTML =
@@ -298,6 +390,9 @@ try {
               rightHtml +
               "</div>"
             : "") +
-        "</div></nav></header>";
+        "</div></nav></header>";  
+        // AM-05: Check administrator access after rendering navigation
+        addAdminNavigationLink();
+      
 })();
 
