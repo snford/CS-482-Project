@@ -163,9 +163,9 @@
                         Search accounts and manage users.
                     </p>
 
-                    <span class="coming-soon">
-                        Coming in a future admin story
-                    </span>
+                    <a href="#userManagement" class="admin-button">
+                        View All Users
+                    </a>
 
                 </div>
 
@@ -280,6 +280,74 @@
 
         </div>
 
+<!-- AM-05: Registered User Management -->
+<section id="userManagement" class="mt-5">
+
+    <h2 class="section-title">
+        Registered Users
+    </h2>
+
+    <p class="text-secondary">
+        View and search registered player accounts.
+    </p>
+
+    <div class="card p-4 shadow-sm">
+
+        <div class="mb-3">
+
+            <label for="userSearch" class="form-label">
+                Search Players
+            </label>
+
+            <input
+                type="text"
+                id="userSearch"
+                class="form-control"
+                placeholder="Search by username..."
+            >
+
+        </div>
+
+        <div id="usersError"
+             class="alert alert-danger d-none"
+             role="alert">
+        </div>
+
+        <div class="table-responsive">
+
+            <table class="table table-striped table-hover">
+
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Role</th>
+                        <th>Chips</th>
+                        <th>Wins</th>
+                        <th>Losses</th>
+                        <th>Profile</th>
+                    </tr>
+                </thead>
+
+                <tbody id="usersTableBody">
+
+                    <tr>
+                        <td colspan="6">
+                            Loading users...
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <p id="usersCount" class="text-secondary small"></p>
+
+    </div>
+
+</section> 
+
         <!-- Return to website -->
         <div class="mt-5">
 
@@ -351,6 +419,136 @@
             }
 
         }
+        // AM-05: Store registered users for searching
+        let registeredUsers = [];
+
+
+        // Display users in the table
+        function displayUsers(users) {
+
+            const tableBody =
+                document.getElementById("usersTableBody");
+
+            tableBody.replaceChildren();
+
+            document.getElementById("usersCount").textContent =
+                "Showing " + users.length + " registered users";
+
+            if (users.length === 0) {
+
+                const row = document.createElement("tr");
+                const cell = document.createElement("td");
+
+                cell.colSpan = 6;
+                cell.textContent = "No users found.";
+
+                row.appendChild(cell);
+                tableBody.appendChild(row);
+
+                return;
+            }
+
+            users.forEach(function(user) {
+
+                const row = document.createElement("tr");
+
+                const values = [
+                    user.username,
+                    user.role,
+                    user.chips,
+                    user.wins,
+                    user.losses
+                ];
+
+                values.forEach(function(value) {
+
+                    const cell = document.createElement("td");
+
+                    cell.textContent = value;
+
+                    row.appendChild(cell);
+
+                });
+
+                // Link to the player's public profile
+                const profileCell = document.createElement("td");
+
+                const profileLink = document.createElement("a");
+
+                profileLink.href =
+                    "/player.html?name=" +
+                    encodeURIComponent(user.username);
+
+                profileLink.textContent = "View Profile";
+
+                profileLink.className = "btn btn-sm btn-outline-primary";
+
+                profileCell.appendChild(profileLink);
+
+                row.appendChild(profileCell);
+
+                tableBody.appendChild(row);
+
+            });
+
+        }
+
+
+        // Retrieve registered users from the server
+        async function loadRegisteredUsers() {
+
+            try {
+
+                const response = await fetch("/api/admin/users", {
+                    credentials: "same-origin"
+                });
+
+                if (!response.ok) {
+                    throw new Error("Unable to load registered users.");
+                }
+
+                const data = await response.json();
+
+                registeredUsers = data.users;
+
+                displayUsers(registeredUsers);
+
+            } catch (error) {
+
+                const errorBox =
+                    document.getElementById("usersError");
+
+                errorBox.textContent = error.message;
+                errorBox.classList.remove("d-none");
+
+                document.getElementById("usersTableBody")
+                    .replaceChildren();
+
+            }
+
+        }
+
+
+        // Search users as the administrator types
+        document.getElementById("userSearch")
+            .addEventListener("input", function() {
+
+                const searchText = this.value.toLowerCase();
+
+                const filteredUsers = registeredUsers.filter(function(user) {
+
+                    return user.username.toLowerCase()
+                        .includes(searchText);
+
+                });
+
+                displayUsers(filteredUsers);
+
+            });
+
+
+        // Load users when the dashboard opens
+        loadRegisteredUsers();
 
         loadAdminDashboard();
 

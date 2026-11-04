@@ -146,6 +146,13 @@ app.get(
     adminController.getDashboard
 );
 
+// AM-05: Protected registered-user list
+app.get(
+    "/api/admin/users",
+    requireAdmin,
+    adminController.getAllUsers
+);
+
 // UP-02: Public player profile
 app.get(
     '/api/players/:username/profile',

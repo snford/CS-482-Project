@@ -340,6 +340,19 @@ exports.promoteAdminByGoogleId = async function(googleId) {
 
 };
 
+// AM-05: Retrieve registered users for the admin dashboard
+exports.getAllRegisteredUsers = async function() {
+
+    return await userModel.find({
+        googleId: { $exists: true, $nin: [null, ""] },
+        needsUsername: { $ne: true }
+    })
+    .select("username role chips wins losses avatar")
+    .sort({ username: 1 })
+    .lean();
+
+};
+
 exports.deleteAll = async function(check) {
     if (check === "test") {
         await userModel.deleteMany();
