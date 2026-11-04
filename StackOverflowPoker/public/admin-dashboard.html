@@ -22,54 +22,173 @@
     <link rel="stylesheet" href="/css/styles.css">
 
     <style>
-        body {
-            background: #f7f4fa;
-        }
+        
+/* AM-05: Dark Purple Admin Dashboard Theme */
 
-        .dashboard-heading {
-            color: #702080;
-            font-weight: 700;
-        }
+body {
+    background-color: #160e1d;
+    color: #f5edf8;
+    font-family: Arial, sans-serif;
+}
 
-        .admin-card {
-            background: white;
-            border: 1px solid #e6ddeb;
-            border-radius: 16px;
-            padding: 24px;
-            height: 100%;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
+/* Dashboard Header */
+.dashboard-header {
+    background: linear-gradient(135deg, #32163e, #632273);
+    color: #ffffff;
+    padding: 35px;
+    border-radius: 15px;
+    margin-bottom: 30px;
+    border: 1px solid #704080;
+}
 
-        .admin-icon {
-            font-size: 32px;
-            color: #bf40bf;
-            margin-bottom: 12px;
-        }
+.dashboard-header h1 {
+    color: #ffffff;
+    font-weight: bold;
+}
 
-        .stat-number {
-            font-size: 32px;
-            font-weight: 700;
-            color: #702080;
-        }
+.dashboard-header p {
+    color: #e0cce8;
+}
 
-        .admin-button {
-            display: inline-block;
-            background: #bf40bf;
-            color: white;
-            text-decoration: none;
-            padding: 10px 18px;
-            border-radius: 8px;
-        }
+/* Statistics Cards */
+.stat-card {
+    background-color: #26182f;
+    color: #ffffff;
+    border: 1px solid #483052;
+    border-radius: 15px;
+    padding: 25px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    height: 100%;
+}
 
-        .admin-button:hover {
-            background: #922d92;
-            color: white;
-        }
+.stat-card h4 {
+    color: #f5edf8;
+}
 
-        .coming-soon {
-            color: #777;
-            font-size: 14px;
-        }
+.stat-card i {
+    font-size: 35px;
+    color: #e34de3;
+}
+
+.stat-number {
+    font-size: 35px;
+    font-weight: bold;
+    color: #f5edf8;
+    margin-top: 10px;
+}
+
+/* Administration Tool Cards */
+.admin-card {
+    background-color: #26182f;
+    color: #ffffff;
+    border: 1px solid #483052;
+    border-radius: 15px;
+    padding: 25px;
+    height: 100%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transition: transform 0.2s, border-color 0.2s;
+}
+
+.admin-card:hover {
+    transform: translateY(-5px);
+    border-color: #c94ac9;
+}
+
+.admin-card i {
+    font-size: 35px;
+    color: #e34de3;
+}
+
+.admin-card h4 {
+    margin-top: 15px;
+    font-weight: bold;
+    color: #ffffff;
+}
+
+.admin-card p {
+    color: #d0bed8;
+}
+
+/* Purple Buttons */
+.admin-button {
+    display: inline-block;
+    background-color: #a52ba5;
+    color: #ffffff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    text-decoration: none;
+    margin-top: 10px;
+    font-weight: 600;
+}
+
+.admin-button:hover {
+    background-color: #c94ac9;
+    color: #ffffff;
+}
+
+/* Coming Soon Labels */
+.coming-soon {
+    display: inline-block;
+    color: #e0cce8;
+    background-color: #392342;
+    border: 1px solid #593565;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+/* Section Titles */
+.section-title {
+    color: #ffffff;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+/* User Management Table */
+#userManagement .card {
+    background-color: #26182f;
+    color: #ffffff;
+    border: 1px solid #483052;
+    border-radius: 15px;
+}
+
+#userManagement .table {
+    --bs-table-bg: #26182f;
+    --bs-table-color: #f5edf8;
+    --bs-table-striped-bg: #302039;
+    --bs-table-striped-color: #ffffff;
+    --bs-table-hover-bg: #3d2948;
+    --bs-table-hover-color: #ffffff;
+    --bs-table-border-color: #483052;
+}
+
+#userManagement .form-control {
+    background-color: #1b1123;
+    color: #ffffff;
+    border: 1px solid #704080;
+}
+
+#userManagement .form-control::placeholder {
+    color: #b7a4c1;
+}
+
+#userManagement .form-control:focus {
+    background-color: #1b1123;
+    color: #ffffff;
+    border-color: #e34de3;
+    box-shadow: 0 0 0 0.2rem rgba(227,77,227,0.15);
+}
+
+#userManagement .form-label {
+    color: #f5edf8;
+}
+
+#userManagement .text-secondary,
+#usersCount {
+    color: #cdbbd6 !important;
+}
+
     </style>
 
 </head>
