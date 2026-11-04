@@ -25,6 +25,13 @@ const userSchema = mongoose.Schema({
         type: String,
         enum: ["spade", "diamond", "club", "heart", "star"],
         default: "spade"
+},
+
+    // AM-05: User permission level
+    role: {
+        type: String,
+        enum: ["player", "admin"],
+        default: "player"
 }
 
 });
@@ -290,6 +297,47 @@ exports.updateProfile = async function(userId, username, avatar) {
     );
 
     return updatedUser;
+};
+
+// AM-05: Count registered player accounts
+exports.countRegisteredUsers = async function() {
+
+    return await userModel.countDocuments({
+        googleId: { $exists: true, $nin: [null, ""] },
+        needsUsername: { $ne: true }
+    });
+
+};
+
+
+// AM-05: Count administrator accounts
+exports.countAdmins = async function() {
+
+    return await userModel.countDocuments({
+        role: "admin"
+    });
+
+};
+
+
+// AM-05: Promote an existing Google account
+// Used only by the one-time administrator setup script
+exports.promoteAdminByGoogleId = async function(googleId) {
+
+    return await userModel.findOneAndUpdate(
+        {
+            googleId: googleId,
+            needsUsername: { $ne: true }
+        },
+        {
+            $set: { role: "admin" }
+        },
+        {
+            new: true,
+            runValidators: true
+        }
+    );
+
 };
 
 exports.deleteAll = async function(check) {
