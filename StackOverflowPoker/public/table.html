@@ -118,10 +118,6 @@
           placeholder="Enter bet"
       >
 
-      <button id="placeBetButton" type="button">
-          Place Bet
-      </button>
-
       <p id="betMessage"></p>
 
       <p>
@@ -463,12 +459,10 @@ if (table.status === "playing") {
           chipsDisplay.textContent = "--";
           betMessage.textContent =
               "Unable to identify player. Please sign in or start a guest session.";
-          betButton.disabled = true;
           return;
       }
 
       // Prevent betting until the balance has loaded.
-      betButton.disabled = true;
       chipsDisplay.textContent = "Loading...";
 
       const loaded = await loadChips();
@@ -477,7 +471,6 @@ if (table.status === "playing") {
         console.error("Betting disabled because chips failed to load.");
         console.error("Username:", username);
 
-        betButton.disabled = true;
         return;
     }
 
@@ -536,15 +529,27 @@ startRoundButton.addEventListener("click", async function () {
 });
 
 async function loadRound() {
-    if (!tableId || !currentTable || currentTable.status !== "playing") {
-        currentRound = null;
+  if (!tableId || !currentTable || currentTable.status !== "playing") {
+      currentRound = null;
 
-        if (currentTable) {
-            showSeats(currentTable);
-        }
+      document.querySelector(".pot").innerHTML =
+          `<span class="chip-stack">
+              <i></i><i></i><i></i>
+          </span>
+          Pot: 0`;
 
-        return;
-    }
+      document.querySelector(".street")
+          .textContent = "Waiting";
+
+      document.querySelector(".turn-message")
+          .textContent = "No hand in progress";
+
+      if (currentTable) {
+          showSeats(currentTable);
+      }
+
+      return;
+  }
 
     try {
         const response = await fetch(
@@ -560,14 +565,57 @@ async function loadRound() {
 
         currentRound = result;
 
+        if (result.status === "complete") {
+        document.querySelector(".turn-message").textContent =
+            "Game Over";
+
+        document.querySelector(".game-note").textContent =
+            "Showdown Results";
+
+        foldButton.disabled = true;
+        checkButton.disabled = true;
+        callButton.disabled = true;
+        raiseButton.disabled = true;
+
+        const winnersText = result.winners.map(winner =>
+            `${winner.username} won ${winner.winnings} chips with ${winner.hand}`
+        ).join(" | ");
+
+        document.getElementById("tableStatus").textContent =
+            winnersText;
+          await loadChips();
+        return;
+    }
+
+        document.querySelector(".pot").innerHTML =
+            `<span class="chip-stack">
+                <i></i><i></i><i></i>
+            </span>
+            Pot: ${result.pot}`;
+
+        document.querySelector(".street")
+            .textContent = `Street ${result.street}`;
+
+        document.querySelector(".turn-message")
+            .textContent =
+                result.currentPlayer === username
+                    ? "Your Turn"
+                    : `${result.currentPlayer}'s Turn`;
+
         showSeats(currentTable);
+        const isMyTurn =
+        result.currentPlayer === username;
+
+        foldButton.disabled = !isMyTurn;
+        checkButton.disabled = !isMyTurn;
+        callButton.disabled = !isMyTurn;
+        raiseButton.disabled = !isMyTurn;
     } catch (error) {
         console.error("Could not load cards:", error);
     }
 }
     const chipsDisplay = document.getElementById("playerChips");
     const betInput = document.getElementById("betAmount");
-    const betButton = document.getElementById("placeBetButton");
     const betMessage = document.getElementById("betMessage");
     const currentBetDisplay = document.getElementById("currentBet");
 
@@ -607,8 +655,7 @@ async function loadChips() {
         chipsDisplay.textContent = data.chips;
         betMessage.textContent = "";
 
-        // Enable betting only after a valid balance is loaded.
-        betButton.disabled = false;
+
 
         console.log("Chip balance loaded:", data.chips);
 
@@ -624,89 +671,89 @@ async function loadChips() {
     }
 }
 
-    // Place a bet.
-async function placeBet() {
-    const amount = Number(betInput.value);
+    const foldButton =
+    document.getElementById("foldButton");
 
-    betMessage.textContent = "";
+    const checkButton =
+        document.getElementById("checkButton");
 
-    if (!username) {
-        betMessage.textContent = "Unable to identify player.";
-        return;
-    }
+    const callButton =
+        document.getElementById("callButton");
 
-    if (!Number.isSafeInteger(amount) || amount <= 0) {
-        betMessage.textContent =
-            "Enter a valid positive whole-number bet.";
-        return;
-    }
+    const raiseButton =
+        document.getElementById("raiseButton");
 
-    const availableChips = Number(chipsDisplay.textContent);
-
-    if (!Number.isSafeInteger(availableChips)) {
-        betMessage.textContent =
-            "Your chip balance has not loaded yet.";
-        return;
-    }
-
-    if (amount > availableChips) {
-        betMessage.textContent =
-            "You do not have enough chips for this bet.";
-        return;
-    }
-
-    betButton.disabled = true;
-
-    try {
-        const response = await fetch(
-            `/users/${encodeURIComponent(username)}/bet`,
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Accept": "application/json"
-                },
-                body: JSON.stringify({
-                    amount: amount
-                })
-            }
-        );
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(
-                data.msg || "Unable to place bet."
+    async function playerAction(
+        action,
+        data = {}
+    ) {
+        try {
+            const response = await fetch(
+                `/tables/${tableId}/${action}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body: JSON.stringify(data)
+                }
             );
+
+            const result =
+                await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.msg);
+            }
+
+            await loadRound();
+            await loadTable(true);
+            await loadChips();
+
+        } catch (error) {
+            showNotice(error.message);
         }
-
-        // Display the balance returned by the server.
-        chipsDisplay.textContent = data.remainingChips;
-
-        // Update the amount wagered during this hand.
-        currentBet += data.bet;
-        currentBetDisplay.textContent = currentBet;
-
-        // Clear the input after a successful bet.
-        betInput.value = "";
-
-        betMessage.textContent =
-            `Bet of ${data.bet} chips placed successfully!`;
-
-    } catch (error) {
-        console.error("Error placing bet:", error);
-        betMessage.textContent = error.message;
-
-        // Refresh the balance after a failed request.
-        await loadChips();
-
-    } finally {
-        betButton.disabled = false;
     }
-}
 
-    // Connect the button to the betting function.
-    betButton.addEventListener("click", placeBet);
+    foldButton.addEventListener(
+    "click",
+    () => playerAction("fold")
+    );
+    checkButton.addEventListener(
+    "click",
+    () => playerAction("check")
+    );
+    callButton.addEventListener(
+    "click",
+    () => playerAction("call")
+    );
+    raiseButton.addEventListener(
+        "click",
+        async () => {
+
+            const raiseAmount =
+                Number(betInput.value);
+
+            if (!Number.isSafeInteger(raiseAmount)
+                || raiseAmount <= 0) {
+
+                betMessage.textContent =
+                    "Enter a valid raise amount.";
+
+                return;
+            }
+
+            await playerAction(
+                "raise",
+                {
+                    amount: raiseAmount
+                }
+            );
+
+            betInput.value = "";
+        }
+    );
   </script>
 </body>
 </html>

@@ -19,7 +19,8 @@
     "mongoose": "9.8.0",
     "morgan": "^1.10.1",
     "passport": "^0.7.0",
-    "passport-google-oauth20": "^2.0.0"
+    "passport-google-oauth20": "^2.0.0",
+    "pokersolver": "^2.1.4"
   },
   "devDependencies": {
     "jest": "^30.3.0"

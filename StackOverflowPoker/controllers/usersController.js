@@ -1,4 +1,5 @@
 const dao = require('../dao/UsersDaoMongoose');
+const chipHelper = require('../game/chipHelper');
 
 // TT-03: rules for a poker name. Returns an error message, or null if it's fine.
 const RESERVED_NAMES = ["guest", "admin", "bot", "dealer", "system"];
@@ -479,77 +480,6 @@ exports.removeChips = async function(req, res) {
 
         return res.status(500).json({
             msg: "Failed to remove chips"
-        });
-    }
-};
-
-exports.placeBet = async function(req, res) {
-    try {
-        const username = req.params.username;
-        const { amount } = req.body;
-
-        // Validate the bet amount.
-        if (!Number.isSafeInteger(amount) || amount <= 0) {
-            return res.status(400).json({
-                msg: "Bet must be a positive integer."
-            });
-        }
-
-        // Handle guests using their session balance.
-        if (
-            req.session &&
-            req.session.guestName === username
-        ) {
-            // Make sure the guest has a valid balance.
-            if (!Number.isSafeInteger(req.session.guestChips)) {
-                return res.status(500).json({
-                    msg: "Guest chip balance is unavailable."
-                });
-            }
-
-            // Check whether the guest can afford the bet.
-            if (req.session.guestChips < amount) {
-                return res.status(400).json({
-                    msg: "Not enough chips to place this bet."
-                });
-            }
-
-            // Subtract the bet exactly once.
-            req.session.guestChips -= amount;
-
-            return res.status(200).json({
-                msg: "Bet placed successfully.",
-                bet: amount,
-                remainingChips: req.session.guestChips
-            });
-        }
-
-        // Handle registered users using MongoDB.
-        const remainingChips = await dao.removeChips(username, amount);
-
-        return res.status(200).json({
-            msg: "Bet placed successfully.",
-            bet: amount,
-            remainingChips: remainingChips
-        });
-
-    } catch (error) {
-        console.error("Error placing bet:", error);
-
-        if (error.message === "User not found") {
-            return res.status(404).json({
-                msg: "User not found."
-            });
-        }
-
-        if (error.message === "User not found or insufficient chips") {
-            return res.status(400).json({
-                msg: "Not enough chips to place this bet."
-            });
-        }
-
-        return res.status(500).json({
-            msg: "An error occurred while placing the bet."
         });
     }
 };

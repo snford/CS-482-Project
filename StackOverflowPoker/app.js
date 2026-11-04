@@ -168,10 +168,16 @@ app.put('/users/:username/chips', controller.setChips);
 app.post("/api/tables/:tableId/start-round",tablesController.startRound);   
 //PG-01: Start the game
 app.get("/api/tables/:tableId/game", tablesController.getRound);
-//PG-02: placing bets
-app.post("/users/:username/bet", controller.placeBet);
 //PG-02: Award winnings
 app.post("/users/:username/winnings", controller.awardWinnings);
+//PG-02: Fold
+app.post("/tables/:tableId/fold",tablesController.fold);
+//PG-02: Check
+app.post("/tables/:tableId/check",tablesController.check);
+//PG-02: Call
+app.post("/tables/:tableId/call",tablesController.call);
+
+app.post("/tables/:tableId/raise",tablesController.raise);
 
 exports.app = app;
 

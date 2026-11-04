@@ -1,6 +1,7 @@
 const dao = require("../dao/TablesDaoMongoose");
 const mongoose = require("mongoose");
 const gameRounds = require("../game/sevenStud");
+const chipHelper = require("../game/chipHelper");
 
 //Lt-01: View Lobbys
 exports.getTables = async function(req, res) {
@@ -149,20 +150,20 @@ exports.startRound = async function (req, res) {
         });
     }
 
-    const username = playerName(req);
-    if (!username || !players.includes(username)) {
-        return res.status(403).json({
-            msg: "You must be a player at this table to start the game."
-        });
-    }
-    const players = tableId.players || [];
-
     try {
         const table = await dao.readById(tableId);
 
         if (!table) {
             return res.status(404).json({
                 msg: "Table not found."
+            });
+        }
+
+        const username = playerName(req);
+
+        if (!username || !table.players.includes(username)) {
+            return res.status(403).json({
+                msg: "You must be seated at this table to start the game."
             });
         }
 
@@ -185,7 +186,8 @@ exports.startRound = async function (req, res) {
             players.map(username => ({ username }))
         );
 
-        const updatedTable = await dao.updateStatus(tableId, "playing");
+        const updatedTable =
+            await dao.updateStatus(tableId, "playing");
 
         if (!updatedTable) {
             return res.status(404).json({
@@ -222,6 +224,22 @@ exports.getRound = async function (req, res) {
 
     try {
         const round = gameRounds.getRound(String(tableId));
+
+        if (
+            round &&
+            round.status === "complete" &&
+            !round.winningsAwarded
+        ) {
+            for (const winner of round.winners) {
+                await chipHelper.addChips(
+                    req,
+                    winner.username,
+                    winner.winnings
+                );
+            }
+
+            round.winningsAwarded = true;
+        }
 
         if (!round) {
             return res.status(404).json({
@@ -270,12 +288,138 @@ exports.getRound = async function (req, res) {
         return res.json({
             tableId: String(tableId),
             street: round.street,
+            status: round.status,
+            pot: round.pot,
+            currentBet: round.currentBet,
+            currentPlayer:
+                round.players[
+                    round.currentPlayer
+                ]?.username,
+            winners: round.winners || [],
             players
         });
     } catch (error) {
         console.error("Error retrieving round:", error);
         return res.status(500).json({
             msg: "Unable to retrieve the round."
+        });
+    }
+};
+
+exports.fold = async function(req, res) {
+    try {
+        const username = playerName(req);
+
+        const round =
+            gameRounds.fold(
+                req.params.tableId,
+                username
+            );
+
+        res.json(round);
+    } catch (error) {
+        res.status(400).json({
+            msg: error.message
+        });
+    }
+};
+
+exports.check = async function(req, res) {
+    try {
+        const username = playerName(req);
+
+        const round =
+            gameRounds.check(
+                req.params.tableId,
+                username
+            );
+
+        res.json(round);
+    } catch (error) {
+        res.status(400).json({
+            msg: error.message
+        });
+    }
+};
+
+exports.call = async function(req, res) {
+    try {
+        const username = playerName(req);
+
+        const round =
+            gameRounds.getRound(
+                req.params.tableId
+            );
+
+        const player =
+            round.players.find(
+                p => p.username === username
+            );
+
+        const amountToCall =
+            round.currentBet -
+            player.streetBet;
+
+            await chipHelper.deductChips(
+            req,
+            username,
+            amountToCall
+        );
+
+        const updatedRound =
+            gameRounds.call(
+                req.params.tableId,
+                username
+            );
+
+        res.json(updatedRound);
+    } catch (error) {
+        res.status(400).json({
+            msg: error.message
+        });
+    }
+};
+
+exports.raise = async function(req, res) {
+    try {
+        const username = playerName(req);
+
+        const amount =
+            Number(req.body.amount);
+
+        const currentRound =
+            gameRounds.getRound(
+                req.params.tableId
+            );
+
+        const player =
+            currentRound.players.find(
+                p => p.username === username
+            );
+
+        const amountToCall =
+            currentRound.currentBet -
+            player.streetBet;
+
+        const totalCost =
+            amountToCall + amount;
+
+        await chipHelper.deductChips(
+            req,
+            username,
+            totalCost
+        );
+        const round =
+            gameRounds.raise(
+                req.params.tableId,
+                username,
+                amount
+            );
+
+        res.json(round);
+    } catch (error) {
+        res.status(400).json({
+            msg: error.message
         });
     }
 };
