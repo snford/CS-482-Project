@@ -124,6 +124,12 @@ app.get('/stats/:username', controller.getPlayerStats);
 // ST-02: Leaderboard API
 app.get('/api/leaderboard', controller.getLeaderboard);
 
+// UP-02: Public player profile
+app.get(
+    '/api/players/:username/profile',
+    controller.getPublicProfile
+);
+
 // UP-01 T4: Registered player profile
 app.get(
     '/api/profile/me',
