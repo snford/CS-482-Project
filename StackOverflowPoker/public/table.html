@@ -120,10 +120,6 @@
 
       <p id="betMessage"></p>
 
-      <p>
-          Your Current Bet:
-          <span id="currentBet">0</span>
-      </p>
   </div>
     </section>
   </main>
@@ -279,13 +275,6 @@
                   } else {
                       // A visible card.
                       cardElement.className = "playing-card face-up";
-
-                      const rankMap = {
-                          "1": "A",
-                          "11": "J",
-                          "12": "Q",
-                          "13": "K"
-                      };
 
                     const rank = card.rank;
 
@@ -585,10 +574,33 @@ async function loadRound() {
 
         const result = await response.json();
 
+        if (response.status === 404) {
+            currentRound = null;
+
+            document.querySelector(".pot").innerHTML =
+                `<span class="chip-stack">
+                    <i></i><i></i><i></i>
+                </span>
+                Pot: 0`;
+
+            document.querySelector(".street").textContent =
+                "Waiting";
+
+            document.querySelector(".turn-message").textContent =
+                "No hand in progress";
+
+            foldButton.disabled = true;
+            checkButton.disabled = true;
+            callButton.disabled = true;
+            raiseButton.disabled = true;
+
+            await loadTable(true);
+            return;
+        }
+
         if (!response.ok) {
             throw new Error(result.msg || "Could not load cards.");
         }
-
         currentRound = result;
 
         if (result.status === "complete") {
@@ -596,7 +608,7 @@ async function loadRound() {
             "Game Over";
 
         document.querySelector(".game-note").textContent =
-            "Showdown Results";
+            "Showdown Results -- Please wait 10 seconds before starting a new game.";
 
         foldButton.disabled = true;
         checkButton.disabled = true;
@@ -610,6 +622,9 @@ async function loadRound() {
         document.getElementById("tableStatus").textContent =
             winnersText;
           await loadChips();
+          setTimeout(async () => {
+              await loadTable(true);
+          }, 10000);
         return;
     }
 
@@ -643,9 +658,7 @@ async function loadRound() {
     const chipsDisplay = document.getElementById("playerChips");
     const betInput = document.getElementById("betAmount");
     const betMessage = document.getElementById("betMessage");
-    const currentBetDisplay = document.getElementById("currentBet");
 
-    let currentBet = 0;
 
     // Get the player's chip balance from the server.
 async function loadChips() {
@@ -715,7 +728,7 @@ async function loadChips() {
     ) {
         try {
             const response = await fetch(
-                `/tables/${tableId}/${action}`,
+                `/api/tables/${tableId}/${action}`,
                 {
                     method: "POST",
                     headers: {

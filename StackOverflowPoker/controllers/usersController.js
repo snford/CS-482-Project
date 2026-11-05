@@ -485,51 +485,6 @@ exports.removeChips = async function(req, res) {
 };
 
 
-exports.awardWinnings = async function(req, res) {
-    try {
-        const username = req.params.username;
-        const { amount } = req.body;
-
-        if (!Number.isSafeInteger(amount) || amount <= 0) {
-            return res.status(400).json({
-                msg: "Winnings must be a positive integer."
-            });
-        }
-
-        const currentChips = await dao.getChips(username);
-
-        if (currentChips == null) {
-            return res.status(404).json({
-                msg: "User not found."
-            });
-        }
-
-        const updatedChips = await dao.addChips(
-            username,
-            amount
-        );
-
-        if (updatedChips == null) {
-            return res.status(400).json({
-                msg: "Unable to award winnings."
-            });
-        }
-
-        return res.status(200).json({
-            msg: "Winnings awarded successfully.",
-            winnings: amount,
-            totalChips: updatedChips
-        });
-
-    } catch (error) {
-        console.error("Error awarding winnings:", error);
-
-        return res.status(500).json({
-            msg: "An error occurred while awarding winnings."
-        });
-    }
-};
-
 // UP-01: Get the logged-in player's profile
 exports.getMyProfile = async function(req, res) {
 

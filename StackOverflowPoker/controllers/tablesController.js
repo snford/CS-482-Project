@@ -239,6 +239,15 @@ exports.getRound = async function (req, res) {
             }
 
             round.winningsAwarded = true;
+
+            setTimeout(async () => {
+                await dao.updateStatus(
+                    tableId,
+                    "waiting"
+                );
+
+                gameRounds.endRound(tableId);
+            }, 10000);
         }
 
         if (!round) {

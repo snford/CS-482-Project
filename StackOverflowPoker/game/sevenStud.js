@@ -73,36 +73,7 @@ exports.startRound = function (tableId, players) {
     return round;
 };
 
-exports.dealNextStreet = function (tableId) {
-    const round = activeRounds.get(String(tableId));
 
-    if (!round) {
-        throw new Error("No active round for this table.");
-    }
-
-    if (round.street >= 7) {
-        throw new Error("All seven cards have already been dealt.");
-    }
-
-    for (const player of round.players) {
-        if (!player.folded) {
-            gameDeal.dealOneCard(round.deck, player.hand);
-        }
-    }
-
-    round.street++;
-    round.currentBet = 0;
-    round.currentPlayer = 0;
-
-    for (const player of round.players) {
-        player.streetBet = 0;
-        player.acted = false;
-    }
-
-    round.status = "betting";
-
-    return round;
-};
 
 exports.getRound = function (tableId) {
     return activeRounds.get(String(tableId)) || null;
@@ -273,7 +244,11 @@ function toPokerSolverCard(card) {
     };
 
     const rankMap = {
-        "10": "T"
+        "1": "A",
+        "10": "T",
+        "11": "J",
+        "12": "Q",
+        "13": "K"
     };
 
     return (
@@ -330,4 +305,7 @@ function showdown(round) {
 
     return round;
 }
-exports.showdown = showdown;
+
+exports.endRound = function(tableId) {
+    activeRounds.delete(String(tableId));
+};
