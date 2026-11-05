@@ -92,6 +92,25 @@ exports.fold = function(tableId, username) {
 
     player.folded = true;
 
+    const activePlayers = round.players.filter(
+        p => !p.folded
+    );
+
+    if (activePlayers.length === 1) {
+
+        const winner = activePlayers[0];
+
+        round.status = "complete";
+
+        round.winners = [{
+            username: winner.username,
+            hand: "Last Player Remaining",
+            winnings: round.pot
+        }];
+
+        return round;
+    }
+
     nextPlayer(round);
 
     return round;
