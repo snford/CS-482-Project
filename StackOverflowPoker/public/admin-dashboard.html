@@ -383,15 +383,15 @@ body {
 
                     <i class="bi bi-person-x-fill admin-icon"></i>
 
-                    <h4>Username Moderation</h4>
+                    <h4>Remove User</h4>
 
                     <p>
-                        Review and remove inappropriate usernames.
+                        Permanently remove registered player accounts.
                     </p>
 
-                    <span class="coming-soon">
-                        Coming in AM-04
-                    </span>
+                    <a href="#userManagement" class="admin-button">
+                        Manage Users
+                    </a>
 
                 </div>
 
@@ -444,13 +444,14 @@ body {
                         <th>Wins</th>
                         <th>Losses</th>
                         <th>Profile</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
 
                 <tbody id="usersTableBody">
 
                     <tr>
-                        <td colspan="6">
+                        <td colspan="7">
                             Loading users...
                         </td>
                     </tr>
@@ -558,7 +559,7 @@ body {
                 const row = document.createElement("tr");
                 const cell = document.createElement("td");
 
-                cell.colSpan = 6;
+                cell.colSpan = 7;
                 cell.textContent = "No users found.";
 
                 row.appendChild(cell);
@@ -606,6 +607,31 @@ body {
 
                 row.appendChild(profileCell);
 
+                // AM-04: Remove User button
+                const actionCell = document.createElement("td");
+
+                if (user.role !== "admin") {
+
+                    const removeButton = document.createElement("button");
+
+                    removeButton.type = "button";
+                    removeButton.className = "btn btn-sm btn-danger";
+                    removeButton.textContent = "Remove User";
+
+                    removeButton.addEventListener("click", function() {
+                        removeUser(user.username);
+                    });
+
+                    actionCell.appendChild(removeButton);
+
+                } else {
+
+                    actionCell.textContent = "Protected";
+
+                }
+
+                row.appendChild(actionCell);
+
                 tableBody.appendChild(row);
 
             });
@@ -647,6 +673,52 @@ body {
 
         }
 
+        // AM-04: Remove a registered player
+        async function removeUser(username) {
+
+            const confirmed = confirm(
+                "Are you sure you want to permanently remove " +
+                username +
+                "?\n\nThis action cannot be undone."
+            );
+
+            if (!confirmed) {
+                return;
+            }
+
+            try {
+
+                const response = await fetch(
+                    "/api/admin/users/" + encodeURIComponent(username),
+                    {
+                        method: "DELETE",
+                        credentials: "same-origin"
+                    }
+                );
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.msg || "Unable to remove user.");
+                }
+
+                alert(username + " was removed successfully.");
+
+                // Refresh the table and dashboard statistics
+                await loadRegisteredUsers();
+                await loadAdminDashboard();
+
+                // Preserve the current search filter
+                document.getElementById("userSearch")
+                    .dispatchEvent(new Event("input"));
+
+            } catch (error) {
+
+                alert("Error: " + error.message);
+
+            }
+
+        }
 
         // Search users as the administrator types
         document.getElementById("userSearch")
