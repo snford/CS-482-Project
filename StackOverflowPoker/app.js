@@ -153,6 +153,13 @@ app.get(
     adminController.getAllUsers
 );
 
+// AM-04: Administrator removes a registered user
+app.delete(
+    "/api/admin/users/:username",
+    requireAdmin,
+    adminController.removeUser
+);
+
 // UP-02: Public player profile
 app.get(
     '/api/players/:username/profile',

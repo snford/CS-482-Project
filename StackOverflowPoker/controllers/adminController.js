@@ -79,3 +79,47 @@ exports.getAllUsers = async function(req, res) {
     }
 
 };
+
+// AM-04: Remove a registered user
+exports.removeUser = async function(req, res) {
+
+    try {
+
+        const username = req.params.username;
+
+        // Prevent an administrator from deleting themselves
+        if (username === req.user.username) {
+            return res.status(403).json({
+                msg: "You cannot remove your own account."
+            });
+        }
+
+        const result = await usersDao.deleteRegisteredUser(username);
+
+        if (result.status === "not_found") {
+            return res.status(404).json({
+                msg: "User not found."
+            });
+        }
+
+        if (result.status === "admin_protected") {
+            return res.status(403).json({
+                msg: "Administrator accounts cannot be removed."
+            });
+        }
+
+        return res.status(200).json({
+            msg: "User removed successfully."
+        });
+
+    } catch (error) {
+
+        console.error("AM-04 remove user error:", error);
+
+        return res.status(500).json({
+            msg: "Unable to remove user."
+        });
+
+    }
+
+};

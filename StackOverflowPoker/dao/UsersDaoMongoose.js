@@ -353,6 +353,47 @@ exports.getAllRegisteredUsers = async function() {
 
 };
 
+// AM-04: Permanently remove a registered player
+exports.deleteRegisteredUser = async function(username) {
+
+    const user = await userModel.findOne({
+        username: username,
+        googleId: { $exists: true, $nin: [null, ""] },
+        needsUsername: { $ne: true }
+    });
+
+    if (!user) {
+        return { status: "not_found" };
+    }
+
+    // Do not delete administrator accounts
+    if (user.role === "admin") {
+        return { status: "admin_protected" };
+    }
+
+    const result = await userModel.deleteOne({
+        _id: user._id,
+        role: { $ne: "admin" }
+    });
+
+    if (result.deletedCount !== 1) {
+        return { status: "not_found" };
+    }
+
+    // Remove deleted username from other players' friend data
+    await userModel.updateMany(
+        {},
+        {
+            $pull: {
+                friends: user.username,
+                friendRequests: user.username
+            }
+        }
+    );
+
+    return { status: "deleted" };
+};
+
 exports.deleteAll = async function(check) {
     if (check === "test") {
         await userModel.deleteMany();
