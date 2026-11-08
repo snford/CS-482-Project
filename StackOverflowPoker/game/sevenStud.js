@@ -1,6 +1,7 @@
 const gameDeck = require("./gameDeck");
 const gameDeal = require("./gameDeal");
 const Hand = require("./gameHand");
+const pokerBot = require("./pokerBot");
 const { Hand: PokerHand } = require("pokersolver");
 
 const activeRounds = new Map();
@@ -41,6 +42,8 @@ exports.startRound = function (tableId, players) {
     const hands = players.map(function (player) {
         return {
             username: player.username,
+            isBot: player.isBot === true,
+            difficulty: player.difficulty || "easy",
             hand: new Hand(player.username),
             folded: false,
             streetBet: 0,
@@ -78,6 +81,47 @@ exports.startRound = function (tableId, players) {
 exports.getRound = function (tableId) {
     return activeRounds.get(String(tableId)) || null;
 };
+    
+// BT-01: Let bots play when it is their turn
+exports.playBotTurns = function(tableId) {
+    const round = activeRounds.get(String(tableId));
+
+    if (!round) {
+        return null;
+    }
+
+    let turns = 0;
+
+    while (round.status === "betting" && turns < 100) {
+        const bot = round.players[round.currentPlayer];
+
+        // Stop when it is a human player's turn
+        if (!bot || !bot.isBot) {
+            break;
+        }
+
+        const action = pokerBot.chooseAction(
+            bot,
+            round,
+            bot.difficulty
+        );
+
+        if (action === "fold") {
+            exports.fold(tableId, bot.username);
+        } else if (action === "raise") {
+            exports.raise(tableId, bot.username, 1);
+        } else if (action === "call") {
+            exports.call(tableId, bot.username);
+        } else {
+            exports.check(tableId, bot.username);
+        }
+
+        turns++;
+    }
+
+    return round;
+};
+
 
 exports.fold = function(tableId, username) {
     const round = activeRounds.get(String(tableId));
