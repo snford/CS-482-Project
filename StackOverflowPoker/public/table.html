@@ -803,6 +803,7 @@ async function loadChips() {
 
 
     // AV-01: Load an active advertisement for the Table
+    // AV-02: Rotate active Table advertisements
     async function loadTableAd() {
         const adLink = document.getElementById("tableAdLink");
         const adImage = document.getElementById("tableAdImage");
@@ -823,28 +824,40 @@ async function loadChips() {
                 return;
             }
 
-            // For now, display the first active advertisement
-            const ad = ads[0];
+            let adIndex = 0;
 
-            adImage.src = ad.imageUrl;
-            adImage.alt = ad.name;
+            function showAd() {
+                const ad = ads[adIndex];
 
-            if (ad.linkUrl.startsWith("https://") ||
-                ad.linkUrl.startsWith("http://")) {
-                adLink.href = ad.linkUrl;
-            } else {
-                adLink.removeAttribute("href");
+                adImage.src = ad.imageUrl;
+                adImage.alt = ad.name;
+                adMessage.textContent = ad.name;
+
+                if (ad.linkUrl.startsWith("https://") ||
+                    ad.linkUrl.startsWith("http://")) {
+                    adLink.href = ad.linkUrl;
+                } else {
+                    adLink.removeAttribute("href");
+                }
+
+                adLink.hidden = false;
+                adIndex = (adIndex + 1) % ads.length;
+
+                // Wait before displaying the next ad
+                if (ads.length > 1) {
+                    const minutes = Number(ad.intervalMinutes) || 5;
+
+                    setTimeout(showAd, minutes * 60 * 1000);
+                }
             }
 
-            adLink.hidden = false;
-            adMessage.textContent = ad.name;
+            showAd();
 
         } catch (error) {
             adMessage.textContent = "Advertisement unavailable";
             adLink.hidden = true;
         }
     }
-
     loadTableAd();
 
   </script>
