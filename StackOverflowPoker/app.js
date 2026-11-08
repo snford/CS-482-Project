@@ -1,5 +1,6 @@
 const controller = require("./controllers/usersController");
 const tablesController = require("./controllers/tablesController");
+const messageController = require("./controllers/messageController");
 const express = require('express');
 const morgan = require('morgan');
 const session = require('express-session');
@@ -216,8 +217,11 @@ app.post("/api/tables/:tableId/fold",tablesController.fold);
 app.post("/api/tables/:tableId/check",tablesController.check);
 //PG-02: Call
 app.post("/api/tables/:tableId/call",tablesController.call);
-
+//PG-02: Raise
 app.post("/api/tables/:tableId/raise",tablesController.raise);
-
+//SF-05: Send a message to a friend
+app.post("/messages/send",requireLogin,messageController.sendMessage);
+//SF-05: Get the conversation with a friend
+app.get("/messages/:friend",requireLogin,messageController.getConversation);
 exports.app = app;
 

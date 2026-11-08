@@ -36,12 +36,17 @@
         }
 
         .chat-preview {
-            flex: 1;
+            height: 400px;
+            overflow-y: auto;
+
             display: flex;
             flex-direction: column;
-            justify-content: flex-end;
+
             gap: .6rem;
-            padding: 1rem 0;
+            padding: 1rem;
+
+            background: #fafafa;
+            border-radius: 12px;
         }
 
         .bubble {
@@ -49,8 +54,7 @@
             padding: .6rem .9rem;
             border-radius: 16px;
             font-size: .92rem;
-            filter: blur(.6px);
-            opacity: .55;
+            opacity: 1;
         }
 
         .bubble.them { background: #f2eef5; border-bottom-left-radius: 4px; }
@@ -118,22 +122,24 @@
                 </div>
             </div>
 
-            <!-- Chat (not made yet) -->
+            <!-- Chat  -->
             <div class="col-lg-7 fade-up delay-2">
-                <div class="so-card placeholder-box chat-box">
+                <div class="so-card chat-box">
                     <div class="d-flex align-items-center justify-content-between">
-                        <h2 class="so-card-title mb-0"><i class="bi bi-chat-dots-fill"></i>Messages</h2>
-                        <span class="pill pill-muted"><i class="bi bi-hourglass-split"></i>Coming soon</span>
+                        <h2 class="so-card-title mb-0">
+                        <i class="bi bi-chat-dots-fill"></i>
+                        <span id="chatFriend">
+                            Select a friend
+                        </span></h2>
+                        <span id="chatStatus" class="pill pill-muted">Select a friend</span>
                     </div>
-                    <div class="chat-preview" aria-hidden="true">
-                        <div class="bubble them">Want to join my table tonight?</div>
-                        <div class="bubble me">I'm in. Save me a seat!</div>
-                        <div class="bubble them">Bring your best hand 😎</div>
+                    <div
+                        id="chatMessages"
+                        class="chat-preview">
                     </div>
-                    <p class="text-secondary small text-center">Messaging with friends is coming soon.</p>
                     <div class="input-group">
-                        <input type="text" class="form-control" placeholder="Type message" disabled>
-                        <button class="btn btn-primary" type="button" disabled><i class="bi bi-send-fill"></i></button>
+                        <input id="messageInput" type="text" class="form-control" placeholder="Type a message">
+                        <button id="sendBtn" class="btn btn-primary" type="button"><i class="bi bi-send-fill"></i></button>
                     </div>
                 </div>
             </div>
@@ -149,6 +155,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script>
+    let activeFriend = null;
   // Loads the friend requests and the friends list of the player who is logged in
   let lstRequests = [];
   let lstFriends = [];
@@ -227,8 +234,23 @@
         row.innerHTML =
           SOP.avatarHtml(name) +
           '<div class="grow"><div class="title"></div><div class="sub">View profile</div></div>' +
-          '<i class="bi bi-chevron-right text-secondary"></i>';
+            '<button class="btn btn-primary btn-sm chat-btn" ' +
+            'title="Message ' + SOP.escapeHtml(name) + '">' +
+            '<i class="bi bi-chat-dots-fill"></i>' +
+        '</button>' +
+          '<i class="bi bi-chevron-right text-secondary "></i>';
         row.querySelector(".title").textContent = name;
+        row.querySelector(".chat-btn").addEventListener(
+            "click",
+            function(e) {
+
+                // Stop navigation to player.html
+                e.preventDefault();
+                e.stopPropagation();
+
+                openChat(name);
+            }
+        );
         container.appendChild(row);
       }
   }
@@ -240,6 +262,133 @@
   }
 
   SOP.ready.then(readUserData);
+
+  async function openChat(friendName) {
+
+    activeFriend = friendName;
+
+    document.getElementById("chatStatus")
+    .textContent = "Chatting with " + friendName;
+
+    document.getElementById(
+        "chatFriend"
+    ).textContent = friendName;
+
+    const response = await fetch(
+        "/messages/" +
+        encodeURIComponent(friendName)
+    );
+
+    const messages =
+        await response.json();
+
+    const container =
+        document.getElementById(
+            "chatMessages"
+        );
+
+    container.innerHTML = "";
+
+    for (const msg of messages) {
+
+        const bubble =
+            document.createElement("div");
+
+        bubble.className =
+            msg.from === SOP.me.username
+                ? "bubble me"
+                : "bubble them";
+
+        const time =
+            new Date(msg.sentAt)
+            .toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+
+        if (msg.from === SOP.me.username) {
+
+            bubble.textContent =
+                msg.text + " : " + time;
+
+        } else {
+
+            bubble.textContent =
+                time + " : " + msg.text;
+
+        }
+        container.appendChild(
+            bubble
+        );
+    }
+
+    container.scrollTop =
+        container.scrollHeight;
+}
+
+document
+.getElementById("sendBtn")
+.addEventListener(
+    "click",
+    sendMessage
+);
+
+document.getElementById("messageInput")
+.addEventListener("keydown", function(e) {
+
+    if (e.key === "Enter") {
+        sendMessage();
+    }
+
+});
+
+setInterval(async function() {
+
+    if (activeFriend) {
+        await openChat(activeFriend);
+    }
+
+}, 3000);
+
+async function sendMessage() {
+
+    if (!activeFriend) {
+        return;
+    }
+
+    const input =
+        document.getElementById(
+            "messageInput"
+        );
+
+    const text =
+        input.value.trim();
+
+    if (!text) {
+        return;
+    }
+
+    await fetch(
+        "/messages/send",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type":
+                    "application/json"
+            },
+            body: JSON.stringify({
+                to: activeFriend,
+                text: text
+            })
+        }
+    );
+
+    input.value = "";
+
+    await openChat(
+        activeFriend
+    );
+}
 </script>
 </body>
 </html>
