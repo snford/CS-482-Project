@@ -45,3 +45,11 @@ exports.createAd = async function(data) {
 exports.readAll = async function() {
     return await Ad.find();
 };
+
+// AV-01: Get active ads for a specific page
+exports.readActive = async function(placement) {
+    return await Ad.find({
+        placement: placement,
+        active: true
+    });
+};
