@@ -1,5 +1,5 @@
 const usersDao = require("../dao/UsersDaoMongoose");
-const adsDaoo = require("../dao/AdsDaoMongoose");
+const adsDao = require("../dao/AdsDaoMongoose");
 
 // AM-05: Return dashboard information
 exports.getDashboard = async function(req, res) {
