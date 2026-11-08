@@ -1,5 +1,5 @@
-
 const usersDao = require("../dao/UsersDaoMongoose");
+const adsDaoo = require("../dao/AdsDaoMongoose");
 
 // AM-05: Return dashboard information
 exports.getDashboard = async function(req, res) {
@@ -122,4 +122,64 @@ exports.removeUser = async function(req, res) {
 
     }
 
+};
+
+// AV-01: Get advertisements created by administrators
+exports.getAds = async function(req, res) {
+
+    try {
+        const ads = await adsDao.readAll();
+        return res.status(200).json(ads);
+    } catch (error) {
+        console.error("Error loading ads:", error);
+        return res.status(500).json({
+            msg: "Could not load advertisements."
+        });
+    }
+};
+
+// AV-01: Create a new advertisement
+exports.createAd = async function(req, res) {
+
+    const name = req.body.name;
+    const imageUrl = req.body.imageUrl;
+    const linkUrl = req.body.linkUrl;
+    const placement = req.body.placement;
+    const intervalMinutes = Number(req.body.intervalMinutes);
+    const active = req.body.active;
+
+    // Check that the administrator entered valid information
+    if (
+        typeof name !== "string" || !name.trim() ||
+        typeof imageUrl !== "string" || !imageUrl.trim() ||
+        typeof linkUrl !== "string" || !linkUrl.trim() ||
+        !["lobby", "table"].includes(placement) ||
+        !Number.isInteger(intervalMinutes) ||
+        intervalMinutes < 1 ||
+        typeof active !== "boolean"
+    ) {
+        return res.status(400).json({
+            msg: "Invalid advertisement information."
+        });
+    }
+
+    try {
+        const ad = await adsDao.createAd({
+            name: name.trim(),
+            imageUrl: imageUrl.trim(),
+            linkUrl: linkUrl.trim(),
+            placement: placement,
+            intervalMinutes: intervalMinutes,
+            active: active
+        });
+        return res.status(201).json({
+            msg: "Advertisement created successfully.",
+            ad: ad
+        });
+    } catch (error) {
+        console.error("Error creating ad:", error);
+        return res.status(500).json({
+            msg: "Could not create advertisement."
+        });
+    }
 };
