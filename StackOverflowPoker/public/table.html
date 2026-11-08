@@ -173,7 +173,10 @@
 
       const maxPlayers = Math.min(7, Math.max(2, Number(table.maxPlayers) || 7));
       const positions = seatPositions[maxPlayers];
-      const players = Array.isArray(table.players) ? table.players.slice(0, maxPlayers) : [];
+      // BT-01: Show human players and bots during a round
+      const players = currentRound && Array.isArray(currentRound.players)
+          ? currentRound.players.map(player => player.username).slice(0, maxPlayers)
+          : (Array.isArray(table.players) ? table.players.slice(0, maxPlayers) : []);
       const seatNames = Array(maxPlayers).fill(null);
 
       // Display the current user's seat near the bottom whenever they have joined.
@@ -233,24 +236,30 @@
           avatar.textContent = name.charAt(0);
 
           // UP-02: Make player usernames clickable
-          const playerLink = document.createElement("a");
-
-          playerLink.href =
-              "/player.html?name=" +
-              encodeURIComponent(name);
-
-          playerLink.textContent = name;
-
-          playerLink.className =
-              "text-decoration-none fw-bold";
-
-          // Clear the existing title
-          title.textContent = "";
-
-          // Put the clickable username inside the title
-          title.appendChild(playerLink);
-
-          note.textContent = "Waiting";
+          // BT-01: Identify bot players
+          const isBot = currentRound?.players?.some(
+              player => player.username === name && player.isBot
+          );
+          
+          if (isBot) {
+              title.textContent = name;
+              note.textContent = "Bot";
+          } else {
+              // UP-02: Keep human player profiles clickable
+              const playerLink = document.createElement("a");
+          
+              playerLink.href =
+                  "/player.html?name=" +
+                  encodeURIComponent(name);
+          
+              playerLink.textContent = name;
+              playerLink.className = "text-decoration-none fw-bold";
+          
+              title.textContent = "";
+              title.appendChild(playerLink);
+          
+              note.textContent = "Waiting";
+          }
 
           // Highlight the current player's seat
           if (name === username) {
@@ -337,7 +346,9 @@
       document.getElementById("limitsText").textContent = "Limits " + limits;
 
       const players = Array.isArray(table.players) ? table.players : [];
-      const count = players.length;
+      const count = currentRound && Array.isArray(currentRound.players)
+          ? currentRound.players.length
+          : players.length;
       const maxPlayers = Number(table.maxPlayers) || 7;
       const privacy = table.privacy === "private" ? "Private" : "Public";
       document.getElementById("playerCount").innerHTML =
@@ -609,6 +620,7 @@ async function loadRound() {
             throw new Error(result.msg || "Could not load cards.");
         }
         currentRound = result;
+        showTable(currentTable);
 
         if (result.status === "complete") {
         document.querySelector(".turn-message").textContent =
@@ -650,7 +662,6 @@ async function loadRound() {
                     ? "Your Turn"
                     : `${result.currentPlayer}'s Turn`;
 
-        showSeats(currentTable);
         const isMyTurn =
         result.currentPlayer === username;
 
