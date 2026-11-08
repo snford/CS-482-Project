@@ -173,9 +173,39 @@ exports.startRound = async function (req, res) {
             });
         }
 
+        
         const players = table.players || [];
 
-        if (players.length < 2 || players.length > 7) {
+        // Add the human players first
+        const participants = players.map(function(username) {
+            return {
+                username: username,
+                isBot: false
+            };
+        });
+
+        // BT-01: Fill empty seats with bots
+        if (["easy", "medium", "hard"].includes(table.bots)) {
+            let botNumber = 1;
+
+            while (participants.length < table.maxPlayers) {
+                const botName = "Bot " + botNumber;
+                botNumber++;
+
+                // Avoid using an existing player's name
+                if (players.includes(botName)) {
+                    continue;
+                }
+
+                participants.push({
+                    username: botName,
+                    isBot: true,
+                    difficulty: table.bots
+                });
+            }
+        }
+
+        if (participants.length < 2 || participants.length > 7) {
             return res.status(400).json({
                 msg: "Seven-Card Stud requires 2 to 7 players."
             });
@@ -183,8 +213,9 @@ exports.startRound = async function (req, res) {
 
         const round = gameRounds.startRound(
             String(table._id),
-            players.map(username => ({ username }))
+            participants
         );
+
 
         const updatedTable =
             await dao.updateStatus(tableId, "playing");
