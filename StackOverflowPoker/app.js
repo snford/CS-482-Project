@@ -176,6 +176,12 @@ app.post(
     adminController.createAd
 );
 
+// AV-01: Get active ads for the Lobby or Table
+app.get(
+    "/api/ads/:placement",
+    adminController.getActiveAds
+);
+
 // UP-02: Public player profile
 app.get(
     '/api/players/:username/profile',
