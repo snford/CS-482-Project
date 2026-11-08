@@ -225,6 +225,8 @@ exports.startRound = async function (req, res) {
                 msg: "Table not found when updating status."
             });
         }
+        // BT-01: Play any starting bot turns
+        gameRounds.playBotTurns(tableId);
 
         return res.status(201).json({
             msg: "Round started successfully.",
@@ -355,6 +357,7 @@ exports.fold = async function(req, res) {
                 req.params.tableId,
                 username
             );
+        gameRounds.playBotTurns(req.params.tableId);
 
         res.json(round);
     } catch (error) {
@@ -373,7 +376,7 @@ exports.check = async function(req, res) {
                 req.params.tableId,
                 username
             );
-
+        gameRounds.playBotTurns(req.params.tableId);
         res.json(round);
     } catch (error) {
         res.status(400).json({
@@ -411,7 +414,7 @@ exports.call = async function(req, res) {
                 req.params.tableId,
                 username
             );
-
+        gameRounds.playBotTurns(req.params.tableId);
         res.json(updatedRound);
     } catch (error) {
         res.status(400).json({
@@ -455,7 +458,7 @@ exports.raise = async function(req, res) {
                 username,
                 amount
             );
-
+        gameRounds.playBotTurns(req.params.tableId);
         res.json(round);
     } catch (error) {
         res.status(400).json({
