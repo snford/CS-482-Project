@@ -183,3 +183,30 @@ exports.createAd = async function(req, res) {
         });
     }
 };
+
+
+    
+// AV-01: Get active ads for the Lobby or Table
+exports.getActiveAds = async function(req, res) {
+
+    const placement = req.params.placement;
+
+    if (!["lobby", "table"].includes(placement)) {
+        return res.status(400).json({
+            msg: "Invalid advertisement placement."
+        });
+    }
+
+    try {
+        const ads = await adsDao.readActive(placement);
+
+        return res.status(200).json(ads);
+
+    } catch (error) {
+        console.error("Error loading active ads:", error);
+
+        return res.status(500).json({
+            msg: "Could not load active advertisements."
+        });
+    }
+};
