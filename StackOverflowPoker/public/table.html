@@ -80,10 +80,17 @@
           </div>
           <input class="form-control" type="text" placeholder="Type message" disabled aria-label="Table chat unavailable">
         </section>
-        <section class="ad-slot fade-up delay-3" aria-label="Advertisement placeholder">
+        <!-- AV-01: Table advertisement -->
+        <section class="ad-slot fade-up delay-3" id="tableAd" aria-label="Advertisement">
           <i class="bi bi-badge-ad"></i>
           <strong>ADVERTISEMENT</strong>
-          <span class="small">Shown every 5 minutes</span>
+          <span class="small" id="tableAdMessage">No advertisement available</span>
+        
+          <a id="tableAdLink" href="#" target="_blank" rel="noopener noreferrer" hidden>
+            <img id="tableAdImage"
+                 alt="Advertisement"
+                 style="max-width: 100%; max-height: 180px; object-fit: contain;">
+          </a>
         </section>
       </aside>
     </div>
@@ -793,6 +800,53 @@ async function loadChips() {
             betInput.value = "";
         }
     );
+
+
+    // AV-01: Load an active advertisement for the Table
+    async function loadTableAd() {
+        const adLink = document.getElementById("tableAdLink");
+        const adImage = document.getElementById("tableAdImage");
+        const adMessage = document.getElementById("tableAdMessage");
+
+        try {
+            const response = await fetch("/api/ads/table");
+
+            if (!response.ok) {
+                throw new Error("Could not load ads");
+            }
+
+            const ads = await response.json();
+
+            if (ads.length === 0) {
+                adMessage.textContent = "No advertisement available";
+                adLink.hidden = true;
+                return;
+            }
+
+            // For now, display the first active advertisement
+            const ad = ads[0];
+
+            adImage.src = ad.imageUrl;
+            adImage.alt = ad.name;
+
+            if (ad.linkUrl.startsWith("https://") ||
+                ad.linkUrl.startsWith("http://")) {
+                adLink.href = ad.linkUrl;
+            } else {
+                adLink.removeAttribute("href");
+            }
+
+            adLink.hidden = false;
+            adMessage.textContent = ad.name;
+
+        } catch (error) {
+            adMessage.textContent = "Advertisement unavailable";
+            adLink.hidden = true;
+        }
+    }
+
+    loadTableAd();
+
   </script>
 </body>
 </html>
