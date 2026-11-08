@@ -14,6 +14,7 @@ const {
     requireLogin,
     requireAdmin
 } = require('./middleware/auth');
+
 // AM-05: Administrator dashboard controller
 const adminController = require('./controllers/adminController');
 const app = express();
@@ -159,6 +160,20 @@ app.delete(
     "/api/admin/users/:username",
     requireAdmin,
     adminController.removeUser
+);
+
+// AV-01: Administrator views saved advertisements
+app.get(
+    "/api/admin/ads",
+    requireAdmin,
+    adminController.getAds
+);
+
+// AV-01: Administrator creates an advertisement
+app.post(
+    "/api/admin/ads",
+    requireAdmin,
+    adminController.createAd
 );
 
 // UP-02: Public player profile
