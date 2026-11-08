@@ -263,12 +263,19 @@ exports.getRound = async function (req, res) {
             round.status === "complete" &&
             !round.winningsAwarded
         ) {
+            // BT-01: Only real players receive chip payouts
             for (const winner of round.winners) {
-                await chipHelper.addChips(
-                    req,
-                    winner.username,
-                    winner.winnings
+                const player = round.players.find(
+                    p => p.username === winner.username
                 );
+
+                if (player && !player.isBot && winner.winnings > 0) {
+                    await chipHelper.addChips(
+                        req,
+                        winner.username,
+                        winner.winnings
+                    );
+                }
             }
 
             round.winningsAwarded = true;
@@ -309,6 +316,7 @@ exports.getRound = async function (req, res) {
 
         const players = round.players.map(player => ({
             username: player.username,
+            isBot: player.isBot,
             cards: player.hand.cards.map((card, index) => {
                 const isOwnCard = player.username === username;
                 const isFaceUp = index >= 2 && index <= 5;
