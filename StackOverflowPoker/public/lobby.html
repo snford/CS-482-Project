@@ -165,10 +165,17 @@
             <div class="col-sm-6 col-lg-4 d-none d-lg-block"><div class="skeleton"></div></div>
         </div>
 
-        <div class="ad-slot mt-5">
+        <!-- AV-01: Lobby advertisement -->
+        <div class="ad-slot mt-5" id="lobbyAd">
             <i class="bi bi-badge-ad"></i>
             <strong>ADVERTISEMENT</strong>
-            <span class="small">Ad space</span>
+            <span id="adMessage" class="small">No advertisement available</span>
+        
+            <a id="adLink" href="#" target="_blank" rel="noopener noreferrer" hidden>
+                <img id="adImage"
+                     alt="Advertisement"
+                     style="max-width: 100%; max-height: 180px; object-fit: contain;">
+            </a>
         </div>
     </main>
 
@@ -336,6 +343,53 @@
         });
     });
 
+
+    // AV-01: Load an active advertisement for the Lobby
+    async function loadLobbyAd() {
+        const adLink = document.getElementById("adLink");
+        const adImage = document.getElementById("adImage");
+        const adMessage = document.getElementById("adMessage");
+
+        try {
+            const response = await fetch("/api/ads/lobby");
+
+            if (!response.ok) {
+                throw new Error("Could not load ads");
+            }
+
+            const ads = await response.json();
+
+            if (ads.length === 0) {
+                adMessage.textContent = "No advertisement available";
+                adLink.hidden = true;
+                return;
+            }
+
+            // For now, show the first active ad
+            const ad = ads[0];
+
+            adImage.src = ad.imageUrl;
+            adImage.alt = ad.name;
+
+            if (ad.linkUrl.startsWith("https://") ||
+                ad.linkUrl.startsWith("http://")) {
+                adLink.href = ad.linkUrl;
+            } else {
+                adLink.removeAttribute("href");
+            }
+
+            adLink.hidden = false;
+            adMessage.textContent = ad.name;
+
+        } catch (error) {
+            adMessage.textContent = "Advertisement unavailable";
+            adLink.hidden = true;
+        }
+    }
+
+    loadLobbyAd();
+
+    
     showTables();
 </script>
 </body>
