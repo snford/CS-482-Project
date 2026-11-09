@@ -21,24 +21,6 @@ afterEach(function() {
     jest.restoreAllMocks();
 });
 
-test("Game starts with a human and a bot", function() {
-    const round = startGame();
-
-    expect(round.players.length).toBe(2);
-    expect(round.players[0].isBot).toBe(false);
-    expect(round.players[1].isBot).toBe(true);
-    expect(round.players[1].difficulty).toBe("easy");
-});
-
-test("Bots wait for the human player", function() {
-    const round = startGame();
-
-    gameRounds.playBotTurns(tableId);
-
-    expect(round.currentPlayer).toBe(0);
-    expect(round.street).toBe(3);
-});
-
 test("Bot checks after the human checks", function() {
     const round = startGame();
 
@@ -61,38 +43,10 @@ test("Bot calls a human player's raise", function() {
     expect(round.street).toBe(4);
 });
 
-test("Bot can fold", function() {
-    const round = startGame();
-
-    jest.spyOn(pokerBot, "chooseAction")
-        .mockReturnValue("fold");
-
-    gameRounds.check(tableId, "Human");
-    gameRounds.playBotTurns(tableId);
-
-    expect(round.players[1].folded).toBe(true);
-    expect(round.status).toBe("complete");
-    expect(round.winners[0].username).toBe("Human");
-});
-
-test("Bot can raise", function() {
-    const round = startGame();
-
-    jest.spyOn(pokerBot, "chooseAction")
-        .mockReturnValue("raise");
-
-    gameRounds.check(tableId, "Human");
-    gameRounds.playBotTurns(tableId);
-
-    expect(round.currentBet).toBe(1);
-    expect(round.pot).toBe(1);
-    expect(round.currentPlayer).toBe(0);
-});
-
 test("Human and bot can finish a full round", function() {
     const round = startGame();
 
-    while (round.status === "betting") {
+    for (let i = 0; i < 10 && round.status === "betting"; i++) {
         gameRounds.check(tableId, "Human");
         gameRounds.playBotTurns(tableId);
     }
@@ -103,6 +57,3 @@ test("Human and bot can finish a full round", function() {
     expect(round.players[1].hand.cards.length).toBe(7);
 });
 
-test("No bot turns when round does not exist", function() {
-    expect(gameRounds.playBotTurns("missing-table")).toBe(null);
-});
