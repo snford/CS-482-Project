@@ -24,5 +24,16 @@
   },
   "devDependencies": {
     "jest": "^30.3.0"
+  },
+  "jest": {
+    "collectCoverageFrom": [
+      "app.js",
+      "DbConnection.js",
+      "controllers/**/*.js",
+      "dao/**/*.js",
+      "game/**/*.js",
+      "middleware/**/*.js",
+      "!**/*.test.js"
+    ]
   }
 }
