@@ -2,7 +2,12 @@ const messageDao = require("../dao/messageDaoMongoose");
 const userDao = require("../dao/UsersDaoMongoose");
 
 function myName(req) {
-    return req.user ? req.user.username : null;
+    return (
+        req.user?.username ||
+        req.session?.user?.username ||
+        req.session?.guestName ||
+        null
+    );
 }
 
 exports.sendMessage = async function(req, res) {
@@ -73,3 +78,34 @@ exports.getConversation = async function(req, res) {
     }
 };
 
+exports.sendTableChat = async function(req, res) {
+    try {
+        const me = myName(req);
+
+        const { tableId, text } = req.body;
+
+        const message =
+            await messageDao.sendTableMessage(
+                me,
+                tableId,
+                text
+            );
+
+        res.json(message);
+
+    } catch (err) {
+        res.status(500).json({
+            msg: err.message
+        });
+    }
+};
+
+exports.getTableChat = async function(req, res) {
+
+    const messages =
+        await messageDao.getTableMessages(
+            req.params.tableId
+        );
+
+    res.json(messages);
+};

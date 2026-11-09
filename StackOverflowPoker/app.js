@@ -244,5 +244,9 @@ app.post("/api/tables/:tableId/raise",tablesController.raise);
 app.post("/messages/send",requireLogin,messageController.sendMessage);
 //SF-05: Get the conversation with a friend
 app.get("/messages/:friend",requireLogin,messageController.getConversation);
+//SF-06: Send a message to a table
+app.post("/messages/table/send",messageController.sendTableChat);
+//SF-06: Get the messages for a table
+app.get("/messages/table/:tableId",messageController.getTableChat);
 exports.app = app;
 

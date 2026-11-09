@@ -8,7 +8,12 @@ const messageSchema = new mongoose.Schema({
 
     to: {
         type: String,
-        required: true
+        default: null
+    },
+
+    tableId: {
+        type: mongoose.Schema.Types.ObjectId,
+        default: null
     },
 
     text: {
@@ -45,6 +50,26 @@ exports.getConversation = async function(userA, userB) {
             { from: userB, to: userA }
         ]
     }).sort({ sentAt: 1 })
+    .limit(100);
+};
+
+exports.sendTableMessage = async function(from, tableId, text) {
+    const message = new Message({
+        from,
+        tableId,
+        text
+    });
+
+    await message.save();
+
+    return message;
+};
+
+exports.getTableMessages = async function(tableId) {
+    return await Message.find({
+        tableId
+    })
+    .sort({ sentAt: 1 })
     .limit(100);
 };
 
