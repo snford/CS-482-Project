@@ -9,10 +9,22 @@ jest.mock("../dao/TablesDaoMongoose", () => ({
     joinTable: jest.fn(),
     createTable: jest.fn(),
     readById: jest.fn(),
-    leaveTable: jest.fn()
+    leaveTable: jest.fn(),
+    updateStatus: jest.fn()
+}));
+jest.mock("../game/sevenStud", () => ({
+    startRound: jest.fn(),
+    playBotTurns: jest.fn(),
+    getRound: jest.fn(),
+    endRound: jest.fn()
+}));
+jest.mock("../game/chipHelper", () => ({
+    addChips: jest.fn()
 }));
 const dao = require("../dao/TablesDaoMongoose");
 const controller = require("./tablesController");
+const gameRounds = require("../game/sevenStud");
+const chipHelper = require("../game/chipHelper");
 
 const tableId = "507f1f77bcf86cd799439011";
 
@@ -319,4 +331,80 @@ test("TT-03: Database error while leaving", async function() {
     await controller.leaveTable(asGuest("Guest-1234", { tableId }), res);
 
     expect(res.status).toHaveBeenCalledWith(500);
+});
+
+test("Seven Stud: Start round successfully", async function() {
+    const round = {
+        street: 3,
+        players: [
+            {
+                username: "Tom",
+                hand: { cards: [1, 2, 3] }
+            },
+            {
+                username: "Bob",
+                hand: { cards: [1, 2, 3] }
+            }
+        ]
+    };
+
+    dao.readById.mockResolvedValue({
+        _id: tableId,
+        players: ["Tom", "Bob"],
+        status: "waiting",
+        maxPlayers: 7,
+        bots: "off"
+    });
+
+    dao.updateStatus.mockResolvedValue({
+        status: "playing"
+    });
+
+    gameRounds.startRound.mockReturnValue(round);
+
+    const res = makeResponse();
+
+    await controller.startRound(
+        {
+            params: { tableId },
+            user: { username: "Tom" },
+            session: {}
+        },
+        res
+    );
+
+    expect(gameRounds.startRound)
+        .toHaveBeenCalled();
+
+    expect(dao.updateStatus)
+        .toHaveBeenCalledWith(
+            tableId,
+            "playing"
+        );
+
+    expect(res.status)
+        .toHaveBeenCalledWith(201);
+});
+
+test("Seven Stud: Player must be seated", async function() {
+    dao.readById.mockResolvedValue({
+        _id: tableId,
+        players: ["Tom"],
+        status: "waiting",
+        maxPlayers: 7,
+        bots: "off"
+    });
+
+    const res = makeResponse();
+
+    await controller.startRound(
+        {
+            params: { tableId },
+            user: { username: "Bob" }
+        },
+        res
+    );
+
+    expect(res.status)
+        .toHaveBeenCalledWith(403);
 });

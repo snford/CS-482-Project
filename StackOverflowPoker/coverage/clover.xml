@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1794196073863" clover="3.2.0">
-  <project timestamp="1794196073863" name="All files">
-    <metrics statements="1087" coveredstatements="1079" conditionals="538" coveredconditionals="518" methods="155" coveredmethods="155" elements="1780" coveredelements="1752" complexity="0" loc="1087" ncloc="1087" packages="5" files="18" classes="18"/>
+<coverage generated="1794205091119" clover="3.2.0">
+  <project timestamp="1794205091119" name="All files">
+    <metrics statements="1105" coveredstatements="1085" conditionals="540" coveredconditionals="520" methods="159" coveredmethods="155" elements="1804" coveredelements="1760" complexity="0" loc="1105" ncloc="1105" packages="5" files="18" classes="18"/>
     <package name="StackOverflowPoker">
-      <metrics statements="100" coveredstatements="93" conditionals="20" coveredconditionals="12" methods="8" coveredmethods="8"/>
-      <file name="DbConnection.js" path="C:\Users\Butte\OneDrive\Desktop\Loyola\Loyola Projects\CS482\CS-482-Project\StackOverflowPoker\DbConnection.js">
+      <metrics statements="102" coveredstatements="95" conditionals="20" coveredconditionals="12" methods="8" coveredmethods="8"/>
+      <file name="DbConnection.js" path="C:\Users\parmv\VS_code\CS-482-Project\StackOverflowPoker\DbConnection.js">
         <metrics statements="12" coveredstatements="12" conditionals="4" coveredconditionals="2" methods="2" coveredmethods="2"/>
         <line num="1" count="9" type="stmt"/>
         <line num="2" count="9" type="stmt"/>
@@ -19,8 +19,8 @@
         <line num="17" count="9" type="stmt"/>
         <line num="18" count="8" type="stmt"/>
       </file>
-      <file name="app.js" path="C:\Users\Butte\OneDrive\Desktop\Loyola\Loyola Projects\CS482\CS-482-Project\StackOverflowPoker\app.js">
-        <metrics statements="88" coveredstatements="81" conditionals="16" coveredconditionals="10" methods="6" coveredmethods="6"/>
+      <file name="app.js" path="C:\Users\parmv\VS_code\CS-482-Project\StackOverflowPoker\app.js">
+        <metrics statements="90" coveredstatements="83" conditionals="16" coveredconditionals="10" methods="6" coveredmethods="6"/>
         <line num="1" count="1" type="stmt"/>
         <line num="2" count="1" type="stmt"/>
         <line num="3" count="1" type="stmt"/>
@@ -108,12 +108,14 @@
         <line num="242" count="1" type="stmt"/>
         <line num="244" count="1" type="stmt"/>
         <line num="246" count="1" type="stmt"/>
-        <line num="247" count="1" type="stmt"/>
+        <line num="248" count="1" type="stmt"/>
+        <line num="250" count="1" type="stmt"/>
+        <line num="251" count="1" type="stmt"/>
       </file>
     </package>
     <package name="StackOverflowPoker.controllers">
-      <metrics statements="571" coveredstatements="570" conditionals="320" coveredconditionals="309" methods="66" coveredmethods="66"/>
-      <file name="adminController.js" path="C:\Users\Butte\OneDrive\Desktop\Loyola\Loyola Projects\CS482\CS-482-Project\StackOverflowPoker\controllers\adminController.js">
+      <metrics statements="581" coveredstatements="572" conditionals="322" coveredconditionals="311" methods="68" coveredmethods="66"/>
+      <file name="adminController.js" path="C:\Users\parmv\VS_code\CS-482-Project\StackOverflowPoker\controllers\adminController.js">
         <metrics statements="59" coveredstatements="59" conditionals="30" coveredconditionals="30" methods="7" coveredmethods="7"/>
         <line num="1" count="4" type="stmt"/>
         <line num="2" count="4" type="stmt"/>
@@ -175,7 +177,7 @@
         <line num="206" count="1" type="stmt"/>
         <line num="208" count="1" type="stmt"/>
       </file>
-      <file name="authController.js" path="C:\Users\Butte\OneDrive\Desktop\Loyola\Loyola Projects\CS482\CS-482-Project\StackOverflowPoker\controllers\authController.js">
+      <file name="authController.js" path="C:\Users\parmv\VS_code\CS-482-Project\StackOverflowPoker\controllers\authController.js">
         <metrics statements="46" coveredstatements="46" conditionals="20" coveredconditionals="20" methods="10" coveredmethods="10"/>
         <line num="1" count="2" type="stmt"/>
         <line num="7" count="2" type="stmt"/>
@@ -224,36 +226,46 @@
         <line num="92" count="2" type="stmt"/>
         <line num="93" count="2" type="stmt"/>
       </file>
-      <file name="messageController.js" path="C:\Users\Butte\OneDrive\Desktop\Loyola\Loyola Projects\CS482\CS-482-Project\StackOverflowPoker\controllers\messageController.js">
-        <metrics statements="26" coveredstatements="26" conditionals="6" coveredconditionals="6" methods="3" coveredmethods="3"/>
+      <file name="messageController.js" path="C:\Users\parmv\VS_code\CS-482-Project\StackOverflowPoker\controllers\messageController.js">
+        <metrics statements="36" coveredstatements="28" conditionals="8" coveredconditionals="8" methods="5" coveredmethods="3"/>
         <line num="1" count="2" type="stmt"/>
         <line num="2" count="2" type="stmt"/>
-        <line num="5" count="6" type="cond" truecount="2" falsecount="0"/>
-        <line num="8" count="2" type="stmt"/>
-        <line num="10" count="3" type="stmt"/>
-        <line num="12" count="3" type="stmt"/>
-        <line num="13" count="3" type="stmt"/>
-        <line num="14" count="3" type="stmt"/>
-        <line num="16" count="3" type="stmt"/>
-        <line num="18" count="3" type="cond" truecount="2" falsecount="0"/>
-        <line num="19" count="1" type="stmt"/>
-        <line num="25" count="1" type="stmt"/>
-        <line num="31" count="1" type="stmt"/>
-        <line num="35" count="1" type="stmt"/>
-        <line num="37" count="1" type="stmt"/>
-        <line num="43" count="2" type="stmt"/>
-        <line num="45" count="3" type="stmt"/>
-        <line num="47" count="3" type="stmt"/>
-        <line num="48" count="3" type="stmt"/>
+        <line num="5" count="6" type="stmt"/>
+        <line num="13" count="2" type="stmt"/>
+        <line num="15" count="3" type="stmt"/>
+        <line num="17" count="3" type="stmt"/>
+        <line num="18" count="3" type="stmt"/>
+        <line num="19" count="3" type="stmt"/>
+        <line num="21" count="3" type="stmt"/>
+        <line num="23" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="24" count="1" type="stmt"/>
+        <line num="30" count="1" type="stmt"/>
+        <line num="36" count="1" type="stmt"/>
+        <line num="40" count="1" type="stmt"/>
+        <line num="42" count="1" type="stmt"/>
+        <line num="48" count="2" type="stmt"/>
         <line num="50" count="3" type="stmt"/>
-        <line num="52" count="2" type="cond" truecount="2" falsecount="0"/>
-        <line num="53" count="1" type="stmt"/>
-        <line num="59" count="1" type="stmt"/>
+        <line num="52" count="3" type="stmt"/>
+        <line num="53" count="3" type="stmt"/>
+        <line num="55" count="3" type="stmt"/>
+        <line num="57" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="58" count="1" type="stmt"/>
         <line num="64" count="1" type="stmt"/>
-        <line num="68" count="1" type="stmt"/>
-        <line num="70" count="1" type="stmt"/>
+        <line num="69" count="1" type="stmt"/>
+        <line num="73" count="1" type="stmt"/>
+        <line num="75" count="1" type="stmt"/>
+        <line num="81" count="2" type="stmt"/>
+        <line num="82" count="0" type="stmt"/>
+        <line num="83" count="0" type="stmt"/>
+        <line num="85" count="0" type="stmt"/>
+        <line num="88" count="0" type="stmt"/>
+        <line num="94" count="0" type="stmt"/>
+        <line num="97" count="0" type="stmt"/>
+        <line num="103" count="2" type="stmt"/>
+        <line num="106" count="0" type="stmt"/>
+        <line num="110" count="0" type="stmt"/>
       </file>
-      <file name="tablesController.js" path="C:\Users\Butte\OneDrive\Desktop\Loyola\Loyola Projects\CS482\CS-482-Project\StackOverflowPoker\controllers\tablesController.js">
+      <file name="tablesController.js" path="C:\Users\parmv\VS_code\CS-482-Project\StackOverflowPoker\controllers\tablesController.js">
         <metrics statements="169" coveredstatements="169" conditionals="88" coveredconditionals="87" methods="21" coveredmethods="21"/>
         <line num="1" count="3" type="stmt"/>
         <line num="2" count="3" type="stmt"/>
@@ -265,8 +277,8 @@
         <line num="10" count="2" type="stmt"/>
         <line num="12" count="1" type="stmt"/>
         <line num="13" count="1" type="stmt"/>
-        <line num="21" count="30" type="cond" truecount="4" falsecount="0"/>
-        <line num="22" count="24" type="stmt"/>
+        <line num="21" count="32" type="cond" truecount="4" falsecount="0"/>
+        <line num="22" count="26" type="stmt"/>
         <line num="24" count="6" type="cond" truecount="4" falsecount="0"/>
         <line num="25" count="2" type="stmt"/>
         <line num="27" count="4" type="stmt"/>
@@ -316,22 +328,22 @@
         <line num="138" count="1" type="stmt"/>
         <line num="139" count="1" type="stmt"/>
         <line num="144" count="3" type="stmt"/>
-        <line num="145" count="10" type="stmt"/>
-        <line num="147" count="10" type="cond" truecount="4" falsecount="0"/>
+        <line num="145" count="12" type="stmt"/>
+        <line num="147" count="12" type="cond" truecount="4" falsecount="0"/>
         <line num="148" count="1" type="stmt"/>
-        <line num="153" count="9" type="stmt"/>
-        <line num="154" count="9" type="stmt"/>
-        <line num="156" count="8" type="cond" truecount="2" falsecount="0"/>
+        <line num="153" count="11" type="stmt"/>
+        <line num="154" count="11" type="stmt"/>
+        <line num="156" count="10" type="cond" truecount="2" falsecount="0"/>
         <line num="157" count="1" type="stmt"/>
-        <line num="162" count="7" type="stmt"/>
-        <line num="164" count="7" type="cond" truecount="4" falsecount="0"/>
-        <line num="165" count="2" type="stmt"/>
-        <line num="170" count="5" type="cond" truecount="2" falsecount="0"/>
+        <line num="162" count="9" type="stmt"/>
+        <line num="164" count="9" type="cond" truecount="4" falsecount="0"/>
+        <line num="165" count="3" type="stmt"/>
+        <line num="170" count="6" type="cond" truecount="2" falsecount="0"/>
         <line num="171" count="1" type="stmt"/>
-        <line num="177" count="4" type="cond" truecount="1" falsecount="1"/>
-        <line num="180" count="4" type="stmt"/>
-        <line num="181" count="7" type="stmt"/>
-        <line num="188" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="177" count="5" type="cond" truecount="1" falsecount="1"/>
+        <line num="180" count="5" type="stmt"/>
+        <line num="181" count="9" type="stmt"/>
+        <line num="188" count="5" type="cond" truecount="2" falsecount="0"/>
         <line num="189" count="1" type="stmt"/>
         <line num="191" count="1" type="stmt"/>
         <line num="192" count="3" type="stmt"/>
@@ -339,15 +351,15 @@
         <line num="196" count="3" type="cond" truecount="2" falsecount="0"/>
         <line num="197" count="1" type="stmt"/>
         <line num="200" count="2" type="stmt"/>
-        <line num="208" count="4" type="cond" truecount="4" falsecount="0"/>
+        <line num="208" count="5" type="cond" truecount="4" falsecount="0"/>
         <line num="209" count="1" type="stmt"/>
-        <line num="214" count="3" type="stmt"/>
-        <line num="221" count="3" type="stmt"/>
-        <line num="223" count="3" type="cond" truecount="2" falsecount="0"/>
+        <line num="214" count="4" type="stmt"/>
+        <line num="221" count="4" type="stmt"/>
+        <line num="223" count="4" type="cond" truecount="2" falsecount="0"/>
         <line num="224" count="1" type="stmt"/>
-        <line num="229" count="2" type="stmt"/>
-        <line num="231" count="2" type="stmt"/>
-        <line num="236" count="2" type="stmt"/>
+        <line num="229" count="3" type="stmt"/>
+        <line num="231" count="3" type="stmt"/>
+        <line num="236" count="4" type="stmt"/>
         <line num="243" count="1" type="stmt"/>
         <line num="245" count="1" type="stmt"/>
         <line num="251" count="3" type="stmt"/>
@@ -425,7 +437,7 @@
         <line num="470" count="1" type="stmt"/>
         <line num="472" count="1" type="stmt"/>
       </file>
-      <file name="usersController.js" path="C:\Users\Butte\OneDrive\Desktop\Loyola\Loyola Projects\CS482\CS-482-Project\StackOverflowPoker\controllers\usersController.js">
+      <file name="usersController.js" path="C:\Users\parmv\VS_code\CS-482-Project\StackOverflowPoker\controllers\usersController.js">
         <metrics statements="271" coveredstatements="270" conditionals="176" coveredconditionals="166" methods="25" coveredmethods="25"/>
         <line num="1" count="7" type="stmt"/>
         <line num="2" count="7" type="stmt"/>
@@ -701,8 +713,8 @@
       </file>
     </package>
     <package name="StackOverflowPoker.dao">
-      <metrics statements="173" coveredstatements="173" conditionals="62" coveredconditionals="62" methods="35" coveredmethods="35"/>
-      <file name="AdsDaoMongoose.js" path="C:\Users\Butte\OneDrive\Desktop\Loyola\Loyola Projects\CS482\CS-482-Project\StackOverflowPoker\dao\AdsDaoMongoose.js">
+      <metrics statements="179" coveredstatements="175" conditionals="62" coveredconditionals="62" methods="37" coveredmethods="35"/>
+      <file name="AdsDaoMongoose.js" path="C:\Users\parmv\VS_code\CS-482-Project\StackOverflowPoker\dao\AdsDaoMongoose.js">
         <metrics statements="11" coveredstatements="11" conditionals="0" coveredconditionals="0" methods="3" coveredmethods="3"/>
         <line num="1" count="5" type="stmt"/>
         <line num="3" count="5" type="stmt"/>
@@ -716,7 +728,7 @@
         <line num="50" count="5" type="stmt"/>
         <line num="51" count="1" type="stmt"/>
       </file>
-      <file name="TablesDaoMongoose.js" path="C:\Users\Butte\OneDrive\Desktop\Loyola\Loyola Projects\CS482\CS-482-Project\StackOverflowPoker\dao\TablesDaoMongoose.js">
+      <file name="TablesDaoMongoose.js" path="C:\Users\parmv\VS_code\CS-482-Project\StackOverflowPoker\dao\TablesDaoMongoose.js">
         <metrics statements="40" coveredstatements="40" conditionals="16" coveredconditionals="16" methods="7" coveredmethods="7"/>
         <line num="1" count="3" type="stmt"/>
         <line num="3" count="3" type="stmt"/>
@@ -759,53 +771,53 @@
         <line num="108" count="1" type="stmt"/>
         <line num="114" count="1" type="stmt"/>
       </file>
-      <file name="UsersDaoMongoose.js" path="C:\Users\Butte\OneDrive\Desktop\Loyola\Loyola Projects\CS482\CS-482-Project\StackOverflowPoker\dao\UsersDaoMongoose.js">
+      <file name="UsersDaoMongoose.js" path="C:\Users\parmv\VS_code\CS-482-Project\StackOverflowPoker\dao\UsersDaoMongoose.js">
         <metrics statements="110" coveredstatements="110" conditionals="44" coveredconditionals="44" methods="22" coveredmethods="22"/>
-        <line num="1" count="17" type="stmt"/>
-        <line num="3" count="17" type="stmt"/>
-        <line num="39" count="17" type="stmt"/>
-        <line num="42" count="17" type="stmt"/>
+        <line num="1" count="16" type="stmt"/>
+        <line num="3" count="16" type="stmt"/>
+        <line num="39" count="16" type="stmt"/>
+        <line num="42" count="16" type="stmt"/>
         <line num="43" count="16" type="cond" truecount="2" falsecount="0"/>
         <line num="44" count="1" type="stmt"/>
         <line num="46" count="15" type="stmt"/>
         <line num="47" count="15" type="stmt"/>
-        <line num="51" count="17" type="stmt"/>
+        <line num="51" count="16" type="stmt"/>
         <line num="52" count="14" type="cond" truecount="2" falsecount="0"/>
         <line num="53" count="1" type="stmt"/>
         <line num="55" count="13" type="stmt"/>
         <line num="56" count="13" type="stmt"/>
-        <line num="61" count="17" type="stmt"/>
+        <line num="61" count="16" type="stmt"/>
         <line num="62" count="6" type="stmt"/>
         <line num="63" count="6" type="stmt"/>
         <line num="65" count="1" type="stmt"/>
-        <line num="71" count="17" type="stmt"/>
+        <line num="71" count="16" type="stmt"/>
         <line num="72" count="9" type="cond" truecount="2" falsecount="0"/>
         <line num="73" count="1" type="stmt"/>
         <line num="76" count="8" type="stmt"/>
         <line num="77" count="8" type="stmt"/>
         <line num="78" count="8" type="stmt"/>
-        <line num="83" count="17" type="stmt"/>
+        <line num="83" count="16" type="stmt"/>
         <line num="84" count="4" type="stmt"/>
         <line num="89" count="3" type="stmt"/>
-        <line num="92" count="17" type="stmt"/>
+        <line num="92" count="16" type="stmt"/>
         <line num="94" count="78" type="cond" truecount="2" falsecount="0"/>
         <line num="95" count="1" type="stmt"/>
         <line num="97" count="77" type="stmt"/>
         <line num="98" count="77" type="stmt"/>
-        <line num="101" count="17" type="stmt"/>
+        <line num="101" count="16" type="stmt"/>
         <line num="102" count="105" type="stmt"/>
         <line num="103" count="105" type="stmt"/>
         <line num="104" count="105" type="stmt"/>
-        <line num="107" count="17" type="stmt"/>
+        <line num="107" count="16" type="stmt"/>
         <line num="108" count="18" type="stmt"/>
         <line num="117" count="18" type="stmt"/>
-        <line num="121" count="17" type="stmt"/>
+        <line num="121" count="16" type="stmt"/>
         <line num="122" count="3" type="cond" truecount="4" falsecount="0"/>
         <line num="123" count="1" type="stmt"/>
         <line num="126" count="2" type="cond" truecount="2" falsecount="0"/>
         <line num="129" count="2" type="stmt"/>
         <line num="134" count="2" type="stmt"/>
-        <line num="138" count="17" type="stmt"/>
+        <line num="138" count="16" type="stmt"/>
         <line num="141" count="4" type="stmt"/>
         <line num="170" count="4" type="stmt"/>
         <line num="172" count="4" type="stmt"/>
@@ -815,28 +827,28 @@
         <line num="179" count="4" type="cond" truecount="2" falsecount="0"/>
         <line num="180" count="2" type="stmt"/>
         <line num="183" count="4" type="stmt"/>
-        <line num="194" count="17" type="stmt"/>
+        <line num="194" count="16" type="stmt"/>
         <line num="195" count="3" type="cond" truecount="2" falsecount="0"/>
         <line num="196" count="1" type="stmt"/>
         <line num="199" count="2" type="stmt"/>
         <line num="204" count="2" type="cond" truecount="2" falsecount="0"/>
         <line num="205" count="1" type="stmt"/>
         <line num="207" count="1" type="stmt"/>
-        <line num="219" count="17" type="stmt"/>
+        <line num="219" count="16" type="stmt"/>
         <line num="220" count="3" type="stmt"/>
         <line num="222" count="3" type="stmt"/>
         <line num="223" count="3" type="stmt"/>
         <line num="225" count="3" type="cond" truecount="2" falsecount="0"/>
         <line num="226" count="1" type="stmt"/>
         <line num="229" count="2" type="stmt"/>
-        <line num="233" count="17" type="stmt"/>
+        <line num="233" count="16" type="stmt"/>
         <line num="234" count="3" type="cond" truecount="4" falsecount="0"/>
         <line num="235" count="1" type="stmt"/>
         <line num="238" count="2" type="stmt"/>
         <line num="244" count="2" type="cond" truecount="2" falsecount="0"/>
         <line num="245" count="1" type="stmt"/>
         <line num="248" count="1" type="stmt"/>
-        <line num="252" count="17" type="stmt"/>
+        <line num="252" count="16" type="stmt"/>
         <line num="253" count="4" type="cond" truecount="4" falsecount="0"/>
         <line num="254" count="1" type="stmt"/>
         <line num="257" count="3" type="stmt"/>
@@ -846,18 +858,18 @@
         <line num="274" count="2" type="cond" truecount="2" falsecount="0"/>
         <line num="275" count="1" type="stmt"/>
         <line num="278" count="1" type="stmt"/>
-        <line num="282" count="17" type="stmt"/>
+        <line num="282" count="16" type="stmt"/>
         <line num="285" count="2" type="stmt"/>
         <line num="299" count="1" type="stmt"/>
-        <line num="303" count="17" type="stmt"/>
+        <line num="303" count="16" type="stmt"/>
         <line num="305" count="1" type="stmt"/>
-        <line num="314" count="17" type="stmt"/>
+        <line num="314" count="16" type="stmt"/>
         <line num="316" count="1" type="stmt"/>
-        <line num="325" count="17" type="stmt"/>
+        <line num="325" count="16" type="stmt"/>
         <line num="327" count="2" type="stmt"/>
-        <line num="344" count="17" type="stmt"/>
+        <line num="344" count="16" type="stmt"/>
         <line num="346" count="1" type="stmt"/>
-        <line num="357" count="17" type="stmt"/>
+        <line num="357" count="16" type="stmt"/>
         <line num="359" count="4" type="stmt"/>
         <line num="365" count="4" type="cond" truecount="2" falsecount="0"/>
         <line num="366" count="1" type="stmt"/>
@@ -868,32 +880,38 @@
         <line num="380" count="1" type="stmt"/>
         <line num="384" count="1" type="stmt"/>
         <line num="394" count="1" type="stmt"/>
-        <line num="397" count="17" type="stmt"/>
+        <line num="397" count="16" type="stmt"/>
         <line num="398" count="125" type="cond" truecount="2" falsecount="0"/>
         <line num="399" count="124" type="stmt"/>
       </file>
-      <file name="messageDaoMongoose.js" path="C:\Users\Butte\OneDrive\Desktop\Loyola\Loyola Projects\CS482\CS-482-Project\StackOverflowPoker\dao\messageDaoMongoose.js">
-        <metrics statements="12" coveredstatements="12" conditionals="2" coveredconditionals="2" methods="3" coveredmethods="3"/>
+      <file name="messageDaoMongoose.js" path="C:\Users\parmv\VS_code\CS-482-Project\StackOverflowPoker\dao\messageDaoMongoose.js">
+        <metrics statements="18" coveredstatements="14" conditionals="2" coveredconditionals="2" methods="5" coveredmethods="3"/>
         <line num="1" count="3" type="stmt"/>
         <line num="3" count="3" type="stmt"/>
-        <line num="26" count="3" type="stmt"/>
-        <line num="28" count="3" type="stmt"/>
-        <line num="29" count="6" type="stmt"/>
-        <line num="35" count="6" type="stmt"/>
-        <line num="37" count="5" type="stmt"/>
-        <line num="40" count="3" type="stmt"/>
-        <line num="42" count="2" type="stmt"/>
-        <line num="51" count="3" type="stmt"/>
-        <line num="52" count="6" type="cond" truecount="2" falsecount="0"/>
-        <line num="53" count="5" type="stmt"/>
+        <line num="31" count="3" type="stmt"/>
+        <line num="33" count="3" type="stmt"/>
+        <line num="34" count="6" type="stmt"/>
+        <line num="40" count="6" type="stmt"/>
+        <line num="42" count="5" type="stmt"/>
+        <line num="45" count="3" type="stmt"/>
+        <line num="47" count="2" type="stmt"/>
+        <line num="56" count="3" type="stmt"/>
+        <line num="57" count="0" type="stmt"/>
+        <line num="63" count="0" type="stmt"/>
+        <line num="65" count="0" type="stmt"/>
+        <line num="68" count="3" type="stmt"/>
+        <line num="69" count="0" type="stmt"/>
+        <line num="76" count="3" type="stmt"/>
+        <line num="77" count="6" type="cond" truecount="2" falsecount="0"/>
+        <line num="78" count="5" type="stmt"/>
       </file>
     </package>
     <package name="StackOverflowPoker.game">
       <metrics statements="216" coveredstatements="216" conditionals="112" coveredconditionals="111" methods="42" coveredmethods="42"/>
-      <file name="chipHelper.js" path="C:\Users\Butte\OneDrive\Desktop\Loyola\Loyola Projects\CS482\CS-482-Project\StackOverflowPoker\game\chipHelper.js">
+      <file name="chipHelper.js" path="C:\Users\parmv\VS_code\CS-482-Project\StackOverflowPoker\game\chipHelper.js">
         <metrics statements="21" coveredstatements="21" conditionals="22" coveredconditionals="22" methods="2" coveredmethods="2"/>
-        <line num="1" count="10" type="stmt"/>
-        <line num="3" count="10" type="stmt"/>
+        <line num="1" count="9" type="stmt"/>
+        <line num="3" count="9" type="stmt"/>
         <line num="9" count="7" type="cond" truecount="2" falsecount="0"/>
         <line num="13" count="2" type="stmt"/>
         <line num="18" count="5" type="cond" truecount="2" falsecount="0"/>
@@ -904,7 +922,7 @@
         <line num="41" count="1" type="stmt"/>
         <line num="43" count="1" type="stmt"/>
         <line num="46" count="2" type="stmt"/>
-        <line num="52" count="10" type="stmt"/>
+        <line num="52" count="9" type="stmt"/>
         <line num="57" count="5" type="cond" truecount="2" falsecount="0"/>
         <line num="61" count="1" type="stmt"/>
         <line num="66" count="4" type="cond" truecount="2" falsecount="0"/>
@@ -914,20 +932,20 @@
         <line num="80" count="2" type="stmt"/>
         <line num="83" count="2" type="stmt"/>
       </file>
-      <file name="gameDeal.js" path="C:\Users\Butte\OneDrive\Desktop\Loyola\Loyola Projects\CS482\CS-482-Project\StackOverflowPoker\game\gameDeal.js">
+      <file name="gameDeal.js" path="C:\Users\parmv\VS_code\CS-482-Project\StackOverflowPoker\game\gameDeal.js">
         <metrics statements="8" coveredstatements="8" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
-        <line num="1" count="6" type="stmt"/>
-        <line num="3" count="6" type="stmt"/>
+        <line num="1" count="5" type="stmt"/>
+        <line num="3" count="5" type="stmt"/>
         <line num="4" count="56" type="stmt"/>
         <line num="5" count="56" type="stmt"/>
         <line num="6" count="56" type="stmt"/>
-        <line num="9" count="6" type="stmt"/>
+        <line num="9" count="5" type="stmt"/>
         <line num="10" count="108" type="stmt"/>
         <line num="11" count="108" type="stmt"/>
       </file>
-      <file name="gameDeck.js" path="C:\Users\Butte\OneDrive\Desktop\Loyola\Loyola Projects\CS482\CS-482-Project\StackOverflowPoker\game\gameDeck.js">
+      <file name="gameDeck.js" path="C:\Users\parmv\VS_code\CS-482-Project\StackOverflowPoker\game\gameDeck.js">
         <metrics statements="17" coveredstatements="17" conditionals="2" coveredconditionals="2" methods="3" coveredmethods="3"/>
-        <line num="1" count="6" type="stmt"/>
+        <line num="1" count="5" type="stmt"/>
         <line num="2" count="30" type="stmt"/>
         <line num="3" count="30" type="stmt"/>
         <line num="4" count="30" type="stmt"/>
@@ -935,28 +953,28 @@
         <line num="7" count="120" type="stmt"/>
         <line num="8" count="1560" type="stmt"/>
         <line num="12" count="30" type="stmt"/>
-        <line num="15" count="6" type="stmt"/>
+        <line num="15" count="5" type="stmt"/>
         <line num="16" count="27" type="stmt"/>
         <line num="17" count="1377" type="stmt"/>
         <line num="18" count="1377" type="stmt"/>
         <line num="20" count="27" type="stmt"/>
-        <line num="23" count="6" type="stmt"/>
-        <line num="24" count="222" type="cond" truecount="2" falsecount="0"/>
-        <line num="25" count="1" type="stmt"/>
+        <line num="23" count="5" type="stmt"/>
+        <line num="24" count="223" type="cond" truecount="2" falsecount="0"/>
+        <line num="25" count="2" type="stmt"/>
         <line num="27" count="221" type="stmt"/>
       </file>
-      <file name="gameHand.js" path="C:\Users\Butte\OneDrive\Desktop\Loyola\Loyola Projects\CS482\CS-482-Project\StackOverflowPoker\game\gameHand.js">
+      <file name="gameHand.js" path="C:\Users\parmv\VS_code\CS-482-Project\StackOverflowPoker\game\gameHand.js">
         <metrics statements="6" coveredstatements="6" conditionals="0" coveredconditionals="0" methods="4" coveredmethods="4"/>
-        <line num="3" count="58" type="stmt"/>
-        <line num="4" count="58" type="stmt"/>
-        <line num="7" count="2" type="stmt"/>
+        <line num="3" count="59" type="stmt"/>
+        <line num="4" count="59" type="stmt"/>
+        <line num="7" count="4" type="stmt"/>
         <line num="10" count="1" type="stmt"/>
-        <line num="13" count="220" type="stmt"/>
-        <line num="17" count="6" type="stmt"/>
+        <line num="13" count="221" type="stmt"/>
+        <line num="17" count="5" type="stmt"/>
       </file>
-      <file name="pokerBot.js" path="C:\Users\Butte\OneDrive\Desktop\Loyola\Loyola Projects\CS482\CS-482-Project\StackOverflowPoker\game\pokerBot.js">
+      <file name="pokerBot.js" path="C:\Users\parmv\VS_code\CS-482-Project\StackOverflowPoker\game\pokerBot.js">
         <metrics statements="21" coveredstatements="21" conditionals="32" coveredconditionals="32" methods="2" coveredmethods="2"/>
-        <line num="2" count="5" type="stmt"/>
+        <line num="2" count="4" type="stmt"/>
         <line num="3" count="28" type="stmt"/>
         <line num="5" count="95" type="stmt"/>
         <line num="6" count="28" type="stmt"/>
@@ -978,21 +996,21 @@
         <line num="40" count="4" type="cond" truecount="2" falsecount="0"/>
         <line num="43" count="2" type="cond" truecount="2" falsecount="0"/>
       </file>
-      <file name="sevenStud.js" path="C:\Users\Butte\OneDrive\Desktop\Loyola\Loyola Projects\CS482\CS-482-Project\StackOverflowPoker\game\sevenStud.js">
+      <file name="sevenStud.js" path="C:\Users\parmv\VS_code\CS-482-Project\StackOverflowPoker\game\sevenStud.js">
         <metrics statements="143" coveredstatements="143" conditionals="56" coveredconditionals="55" methods="29" coveredmethods="29"/>
-        <line num="1" count="4" type="stmt"/>
-        <line num="2" count="4" type="stmt"/>
-        <line num="3" count="4" type="stmt"/>
-        <line num="4" count="4" type="stmt"/>
-        <line num="5" count="4" type="stmt"/>
-        <line num="7" count="4" type="stmt"/>
+        <line num="1" count="3" type="stmt"/>
+        <line num="2" count="3" type="stmt"/>
+        <line num="3" count="3" type="stmt"/>
+        <line num="4" count="3" type="stmt"/>
+        <line num="5" count="3" type="stmt"/>
+        <line num="7" count="3" type="stmt"/>
         <line num="10" count="46" type="stmt"/>
         <line num="12" count="46" type="stmt"/>
         <line num="13" count="47" type="stmt"/>
         <line num="17" count="47" type="stmt"/>
         <line num="26" count="65" type="stmt"/>
         <line num="27" count="142" type="cond" truecount="3" falsecount="0"/>
-        <line num="35" count="4" type="stmt"/>
+        <line num="35" count="3" type="stmt"/>
         <line num="36" count="28" type="cond" truecount="5" falsecount="0"/>
         <line num="37" count="3" type="stmt"/>
         <line num="40" count="25" type="stmt"/>
@@ -1004,9 +1022,9 @@
         <line num="61" count="25" type="stmt"/>
         <line num="74" count="25" type="stmt"/>
         <line num="76" count="25" type="stmt"/>
-        <line num="81" count="4" type="stmt"/>
+        <line num="81" count="3" type="stmt"/>
         <line num="82" count="8" type="cond" truecount="2" falsecount="0"/>
-        <line num="86" count="4" type="stmt"/>
+        <line num="86" count="3" type="stmt"/>
         <line num="87" count="5" type="stmt"/>
         <line num="89" count="5" type="cond" truecount="2" falsecount="0"/>
         <line num="90" count="1" type="stmt"/>
@@ -1025,7 +1043,7 @@
         <line num="116" count="11" type="stmt"/>
         <line num="119" count="14" type="stmt"/>
         <line num="122" count="4" type="stmt"/>
-        <line num="126" count="4" type="stmt"/>
+        <line num="126" count="3" type="stmt"/>
         <line num="127" count="5" type="stmt"/>
         <line num="129" count="5" type="stmt"/>
         <line num="130" count="9" type="stmt"/>
@@ -1041,7 +1059,7 @@
         <line num="155" count="1" type="stmt"/>
         <line num="158" count="3" type="stmt"/>
         <line num="160" count="3" type="stmt"/>
-        <line num="163" count="4" type="stmt"/>
+        <line num="163" count="3" type="stmt"/>
         <line num="164" count="61" type="stmt"/>
         <line num="166" count="61" type="stmt"/>
         <line num="167" count="100" type="stmt"/>
@@ -1052,7 +1070,7 @@
         <line num="177" count="30" type="stmt"/>
         <line num="179" count="30" type="stmt"/>
         <line num="182" count="59" type="stmt"/>
-        <line num="185" count="4" type="stmt"/>
+        <line num="185" count="3" type="stmt"/>
         <line num="186" count="5" type="stmt"/>
         <line num="188" count="5" type="stmt"/>
         <line num="189" count="10" type="stmt"/>
@@ -1065,7 +1083,7 @@
         <line num="204" count="3" type="stmt"/>
         <line num="206" count="2" type="stmt"/>
         <line num="209" count="5" type="stmt"/>
-        <line num="212" count="4" type="stmt"/>
+        <line num="212" count="3" type="stmt"/>
         <line num="218" count="13" type="stmt"/>
         <line num="220" count="13" type="cond" truecount="2" falsecount="0"/>
         <line num="221" count="1" type="stmt"/>
@@ -1121,13 +1139,13 @@
         <line num="362" count="5" type="stmt"/>
         <line num="363" count="6" type="stmt"/>
         <line num="369" count="5" type="stmt"/>
-        <line num="372" count="4" type="stmt"/>
+        <line num="372" count="3" type="stmt"/>
         <line num="373" count="32" type="stmt"/>
       </file>
     </package>
     <package name="StackOverflowPoker.middleware">
       <metrics statements="27" coveredstatements="27" conditionals="24" coveredconditionals="24" methods="4" coveredmethods="4"/>
-      <file name="auth.js" path="C:\Users\Butte\OneDrive\Desktop\Loyola\Loyola Projects\CS482\CS-482-Project\StackOverflowPoker\middleware\auth.js">
+      <file name="auth.js" path="C:\Users\parmv\VS_code\CS-482-Project\StackOverflowPoker\middleware\auth.js">
         <metrics statements="27" coveredstatements="27" conditionals="24" coveredconditionals="24" methods="4" coveredmethods="4"/>
         <line num="1" count="4" type="stmt"/>
         <line num="6" count="4" type="stmt"/>

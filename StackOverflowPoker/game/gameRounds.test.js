@@ -16,3 +16,26 @@ test("First deal gives two cards to the player", () => {
     expect(hand.cards.length).toBe(2); // Ensure the player receives two cards
 });
 
+test('Add One Card To Hand', function() {
+    let hand = new Hand("Tom");
+
+    let card = {
+        rank: "A",
+        suit: "Spades"
+    };
+
+    hand.addCard(card);
+
+    expect(hand.playerHand().length).toBe(1);
+    expect(hand.playerHand()[0]).toEqual(card);
+});
+
+test('Cannot Draw Card From Empty Deck', function() {
+    let deck = [];
+
+    expect(function() {
+        gameDeck.drawCard(deck);
+    }).toThrow(
+        "The deck is empty. Cannot draw a card."
+    );
+});
