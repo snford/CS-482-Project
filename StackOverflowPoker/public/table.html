@@ -161,26 +161,14 @@
         <button class="game-button raise" type="button" id="raiseButton" disabled><i class="bi bi-arrow-up me-1"></i>Raise / Complete</button>
       </div>
         <div class="betting-controls">
-      <h3>Place Your Bet</h3>
+            <h3>Your Chips</h3>
 
-      <p>
-          Your Chips:
-          <span id="playerChips">Loading...</span>
-      </p>
+            <p>
+                <span id="playerChips">Loading...</span>
+            </p>
 
-      <label for="betAmount">Bet Amount:</label>
-
-      <input
-          type="number"
-          id="betAmount"
-          min="1"
-          step="1"
-          placeholder="Enter bet"
-      >
-
-      <p id="betMessage"></p>
-
-  </div>
+            <p id="betMessage"></p>
+        </div>
     </section>
   </main>
 
@@ -728,7 +716,6 @@ async function loadRound() {
     }
 }
     const chipsDisplay = document.getElementById("playerChips");
-    const betInput = document.getElementById("betAmount");
     const betMessage = document.getElementById("betMessage");
 
 
@@ -841,31 +828,8 @@ async function loadChips() {
     );
     raiseButton.addEventListener(
         "click",
-        async () => {
-
-            const raiseAmount =
-                Number(betInput.value);
-
-            if (!Number.isSafeInteger(raiseAmount)
-                || raiseAmount <= 0) {
-
-                betMessage.textContent =
-                    "Enter a valid raise amount.";
-
-                return;
-            }
-
-            await playerAction(
-                "raise",
-                {
-                    amount: raiseAmount
-                }
-            );
-
-            betInput.value = "";
-        }
+        () => playerAction("raise")
     );
-
 
     // AV-01: Load an active advertisement for the Table
     // AV-02: Rotate active Table advertisements

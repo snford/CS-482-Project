@@ -211,9 +211,29 @@ exports.startRound = async function (req, res) {
             });
         }
 
-        const round = gameRounds.startRound(
+        const settings =
+            String(table.ante).split("/");
+
+        const ante =
+            Number(settings[0]) || 0;
+
+        const bringIn =
+            Number(settings[1]) || 0;
+
+        const smallBet =
+            Number(settings[2]) || 0;
+
+        const bigBet =
+            Number(settings[3]) || smallBet;
+
+        const round = await gameRounds.startRound(
             String(table._id),
-            participants
+            participants,
+            ante,
+            bringIn,
+            smallBet,
+            bigBet,    
+            req
         );
 
 
@@ -234,7 +254,7 @@ exports.startRound = async function (req, res) {
             status: updatedTable.status,
             street: round.street,
             players: round.players.map(player => ({
-                username: player.username,
+                username: player.username,  
                 cardCount: player.hand.cards.length
             }))
         });
@@ -435,13 +455,15 @@ exports.raise = async function(req, res) {
     try {
         const username = playerName(req);
 
-        const amount =
-            Number(req.body.amount);
-
         const currentRound =
             gameRounds.getRound(
                 req.params.tableId
             );
+
+        const raiseAmount =
+            currentRound.street >= 5
+                ? currentRound.bigBet
+                : currentRound.smallBet;
 
         const player =
             currentRound.players.find(
@@ -453,20 +475,25 @@ exports.raise = async function(req, res) {
             player.streetBet;
 
         const totalCost =
-            amountToCall + amount;
+            amountToCall + raiseAmount;
 
         await chipHelper.deductChips(
             req,
             username,
             totalCost
         );
+
         const round =
             gameRounds.raise(
                 req.params.tableId,
                 username,
-                amount
+                raiseAmount
             );
-        gameRounds.playBotTurns(req.params.tableId);
+
+        gameRounds.playBotTurns(
+            req.params.tableId
+        );
+
         res.json(round);
     } catch (error) {
         res.status(400).json({

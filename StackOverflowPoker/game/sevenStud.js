@@ -3,6 +3,7 @@ const gameDeal = require("./gameDeal");
 const Hand = require("./gameHand");
 const pokerBot = require("./pokerBot");
 const { Hand: PokerHand } = require("pokersolver");
+const chipHelper = require("./chipHelper");
 
 const activeRounds = new Map();
 
@@ -32,10 +33,54 @@ function bettingRoundComplete(round) {
     );
 }
 
-exports.startRound = function (tableId, players) {
+function getRankValue(rank) {
+
+    if (rank === "1") return 14; // Ace
+
+    return Number(rank);
+}
+
+function getLowestUpCardPlayer(players) {
+
+    let lowestIndex = 0;
+    let lowestValue = 99;
+
+    for (let i = 0; i < players.length; i++) {
+
+        const player = players[i];
+
+        if (player.folded) {
+            continue;
+        }
+
+        // Third card is the up card
+        const upCard = player.hand.cards[2];
+
+        const value = getRankValue(upCard.rank);
+
+        if (value < lowestValue) {
+            lowestValue = value;
+            lowestIndex = i;
+        }
+    }
+
+    return lowestIndex;
+}
+
+
+exports.startRound = async function (
+    tableId,
+    players,
+    ante = 0,
+    bringIn = 0,
+    smallBet = 0,
+    bigBet = 0, 
+    req
+) {
     if (!Array.isArray(players) || players.length < 2 || players.length > 7) {
         throw new Error("Seven-Card Stud requires 2 to 7 players.");
     }
+    ante = Number(ante) || 0;
 
     const deck = gameDeck.shuffleDeck(gameDeck.createDeck());
 
@@ -51,6 +96,28 @@ exports.startRound = function (tableId, players) {
             acted: false
         };
     });
+    let pot = 0;
+    for (const player of hands) {
+            console.log(
+        "Taking ante from:",
+        player.username,
+        ante
+        );
+
+        if (!player.isBot && ante > 0) {
+
+            await chipHelper.deductChips(
+                req,
+                player.username,
+                ante
+            );
+        }
+
+        player.streetBet = 0;
+        player.totalBet = ante;
+
+        pot += ante;
+    }
 
     // Deal the first three cards to each player.
     for (const player of hands) {
@@ -58,15 +125,42 @@ exports.startRound = function (tableId, players) {
         gameDeal.dealOneCard(deck, player.hand);
     }
 
+    const bringInPlayerIndex =
+    getLowestUpCardPlayer(hands);
+
+    const bringInPlayer =
+        hands[bringInPlayerIndex];
+
+    if (bringIn > 0) {
+
+    if (!bringInPlayer.isBot) {
+        await chipHelper.deductChips(
+            req,
+            bringInPlayer.username,
+            bringIn
+        );
+    }
+
+    bringInPlayer.streetBet =
+        bringIn;
+
+    bringInPlayer.totalBet +=
+        bringIn;
+
+    pot += bringIn;
+}
+
     const round = {
         tableId,
         deck,
         players: hands,
         street: 3,
         status: "betting",
-        pot: 0,
-        currentBet: 0,
-        currentPlayer: 0,
+        pot: pot,
+        currentBet: bringIn,
+        currentPlayer: bringInPlayerIndex,
+        smallBet,
+        bigBet,
         bettingComplete: false,
         winningsAwarded: false
     };
@@ -109,7 +203,16 @@ exports.playBotTurns = function(tableId) {
         if (action === "fold") {
             exports.fold(tableId, bot.username);
         } else if (action === "raise") {
-            exports.raise(tableId, bot.username, 1);
+            const raiseAmount =
+                round.street >= 5
+                    ? round.bigBet
+                    : round.smallBet;
+
+            exports.raise(
+                tableId,
+                bot.username,
+                raiseAmount
+            );
         } else if (action === "call") {
             exports.call(tableId, bot.username);
         } else {
