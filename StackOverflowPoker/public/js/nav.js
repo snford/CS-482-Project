@@ -302,7 +302,7 @@ try {
     console.error("Error loading chip balance:", error);
     chipDisplay.textContent = "--";
 }
-
+}
 // AM-05: Add Admin Dashboard link for administrators
 async function addAdminNavigationLink() {
 
@@ -370,7 +370,6 @@ async function addAdminNavigationLink() {
 
     }
 
-}
 
 }
 
