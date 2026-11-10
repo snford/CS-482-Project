@@ -3,6 +3,7 @@ jest.mock("../dao/UsersDaoMongoose");
 
 const dao = require("../dao/UsersDaoMongoose");
 const controller = require("./usersController");
+const chipHelper = require("../game/chipHelper");
 
 function makeResponse() {
     return {
@@ -62,11 +63,13 @@ describe("PG-02 Set Chips", function() {
 
 describe("PG-02 Get Chips", function() {
 
-    test("A guest's chips come from their session", async function() {
+    test("A guest's chips come from the server-side guest balance", async function() {
+        chipHelper.startGuest("Guest-1234");
+        await chipHelper.deductChips({}, "Guest-1234", 250);
         const res = makeResponse();
-        const req = { params: { username: "Guest-1234" }, session: { guestName: "Guest-1234", guestChips: 750 } };
 
-        await controller.getChips(req, res);
+        // Anyone at the table can see the guest's chips, not just the guest
+        await controller.getChips({ params: { username: "Guest-1234" }, session: {} }, res);
 
         expect(res.json).toHaveBeenCalledWith({ chips: 750 });
         expect(dao.getChips).not.toHaveBeenCalled();

@@ -1,5 +1,36 @@
 const dao = require("../dao/UsersDaoMongoose");
 
+// Guests have no account, so their chips are kept here on the server, by
+// guest name. (They used to live in each guest's own session, but then a
+// round started by one player couldn't charge another guest's ante.)
+const STARTING_GUEST_CHIPS = 1000;
+const guestChips = new Map();
+
+// Guests are named "Guest-1234". Registered players can't pick a name
+// starting with "guest", so the name alone tells us who is a guest.
+function isGuestName(username) {
+    return /^Guest-\d+$/.test(String(username));
+}
+
+// A new guest starts with a fresh stack of chips
+exports.startGuest = function(guestName) {
+    guestChips.set(guestName, STARTING_GUEST_CHIPS);
+};
+
+// A guest we haven't seen yet (for example after a server restart)
+// gets the starting amount
+exports.getGuestChips = function(guestName) {
+    if (!guestChips.has(guestName)) {
+        guestChips.set(guestName, STARTING_GUEST_CHIPS);
+    }
+    return guestChips.get(guestName);
+};
+
+exports.isGuestName = isGuestName;
+exports.STARTING_GUEST_CHIPS = STARTING_GUEST_CHIPS;
+
+// req is no longer needed (guest chips aren't in the session anymore) but is
+// kept so the game code that calls these functions didn't have to change.
 exports.deductChips = async function(
     req,
     username,
@@ -15,32 +46,19 @@ exports.deductChips = async function(
         );
     }
 
-    if (
-        req.session &&
-        req.session.guestName === username
-    ) {
+    if (isGuestName(username)) {
 
-        if (
-            !Number.isSafeInteger(
-                req.session.guestChips
-            )
-        ) {
-            throw new Error(
-                "Guest chip balance is unavailable."
-            );
-        }
+        const balance = exports.getGuestChips(username);
 
-        if (
-            req.session.guestChips < amount
-        ) {
+        if (balance < amount) {
             throw new Error(
                 "Not enough chips."
             );
         }
 
-        req.session.guestChips -= amount;
+        guestChips.set(username, balance - amount);
 
-        return req.session.guestChips;
+        return balance - amount;
     }
 
     return await dao.removeChips(
@@ -63,21 +81,13 @@ exports.addChips = async function(
         );
     }
 
-    if (
-        req.session &&
-        req.session.guestName === username
-    ) {
-        if (
-            !Number.isSafeInteger(
-                req.session.guestChips
-            )
-        ) {
-            req.session.guestChips = 0;
-        }
+    if (isGuestName(username)) {
 
-        req.session.guestChips += amount;
+        const balance = exports.getGuestChips(username) + amount;
 
-        return req.session.guestChips;
+        guestChips.set(username, balance);
+
+        return balance;
     }
 
     return await dao.addChips(

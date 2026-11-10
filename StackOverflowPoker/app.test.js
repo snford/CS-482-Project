@@ -1,6 +1,7 @@
 // TT-03: Tests that run the real app (routes, sessions, page protection) over HTTP
 const dbcon = require("./DbConnection");
 const usersDao = require("./dao/UsersDaoMongoose");
+const messageDao = require("./dao/messageDaoMongoose");
 const { app } = require("./app");
 
 let server;
@@ -112,4 +113,49 @@ test("A forged Google callback does not sign anyone in", async function() {
     } else {
         expect(response.status).toBe(503);
     }
+});
+
+describe("SF-06 Table Chat", function() {
+
+    const tableId = "507f1f77bcf86cd799439033";
+
+    async function sendChat(cookie, text) {
+        return await request("/messages/table/send", {
+            method: "POST",
+            headers: Object.assign({ "content-type": "application/json" }, cookie ? { cookie: cookie } : {}),
+            body: JSON.stringify({ tableId: tableId, text: text })
+        });
+    }
+
+    async function readChat() {
+        return await (await request("/messages/table/" + tableId)).json();
+    }
+
+    beforeEach(async function() {
+        await messageDao.deleteAll("test");
+    });
+
+    afterAll(async function() {
+        await messageDao.deleteAll("test");
+    });
+
+    test("A guest's message shows up in the table chat under their name", async function() {
+        const cookie = cookieFrom(await request("/guest", { method: "POST" }));
+        const guestName = (await (await request("/api/me", { headers: { cookie: cookie } })).json()).guestName;
+
+        const sent = await sendChat(cookie, "Nice hand!");
+        const chat = await readChat();
+
+        expect(sent.status).toBe(200);
+        expect(chat.length).toBe(1);
+        expect(chat[0].from).toBe(guestName);
+        expect(chat[0].text).toBe("Nice hand!");
+    });
+
+    test("Someone who isn't signed in or a guest can't post", async function() {
+        const sent = await sendChat(null, "spam");
+
+        expect(sent.status).not.toBe(200);
+        expect(await readChat()).toEqual([]);
+    });
 });

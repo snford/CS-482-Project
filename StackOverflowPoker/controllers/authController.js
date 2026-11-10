@@ -1,4 +1,5 @@
 const dao = require('../dao/UsersDaoMongoose');
+const chipHelper = require('../game/chipHelper');
 
 // TT-03: Google sign-in
 
@@ -74,7 +75,10 @@ exports.startGuest = function(req, res) {
 
         req.session.guestName = "Guest-" + Math.floor(1000 + Math.random() * 9000);
 
-        req.session.guestChips = 1000;
+        // Guest chips are kept on the server by name, so any player's
+        // request (like starting a round) can charge or pay this guest
+        chipHelper.startGuest(req.session.guestName);
+
         req.session.save(function() {
             res.redirect('/lobby.html');
         });

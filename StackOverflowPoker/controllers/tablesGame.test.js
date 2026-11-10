@@ -123,21 +123,25 @@ describe("PG-01 Start A Round", function() {
         expect(sevenStud.startRound).not.toHaveBeenCalled();
     });
 
-    test("Two players start a round", async function() {
-        dao.readById.mockResolvedValue(waitingTable(["Ben", "Amy"]));
+    test("Two players start a round with the table's ante and bet sizes", async function() {
+        const table = waitingTable(["Ben", "Amy"]);
+        table.ante = "5/10/20/40";
+        dao.readById.mockResolvedValue(table);
         dao.updateStatus.mockResolvedValue({ status: "playing" });
-        sevenStud.startRound.mockReturnValue(roundWith([
+        sevenStud.startRound.mockResolvedValue(roundWith([
             { username: "Ben", hand: { cards: cards(3) } },
             { username: "Amy", hand: { cards: cards(3) } }
         ]));
         const res = makeResponse();
+        const req = asPlayer("Ben");
 
-        await controller.startRound(asPlayer("Ben"), res);
+        await controller.startRound(req, res);
 
+        // ante 5, bring-in 10, small bet 20, big bet 40
         expect(sevenStud.startRound).toHaveBeenCalledWith(tableId, [
             { username: "Ben", isBot: false },
             { username: "Amy", isBot: false }
-        ]);
+        ], 5, 10, 20, 40, req);
         expect(dao.updateStatus).toHaveBeenCalledWith(tableId, "playing");
         expect(sevenStud.playBotTurns).toHaveBeenCalledWith(tableId);
         expect(res.status).toHaveBeenCalledWith(201);
@@ -350,17 +354,28 @@ describe("PG-02 Betting Actions", function() {
         expect(sevenStud.call).not.toHaveBeenCalled();
     });
 
-    test("Raise pays the call plus the raise", async function() {
-        sevenStud.getRound.mockReturnValue(roundWith([{ username: "Ben", streetBet: 1 }], { currentBet: 3 }));
-        sevenStud.raise.mockReturnValue({ currentBet: 8 });
+    test("Early streets raise by the small bet, plus what is owed", async function() {
+        sevenStud.getRound.mockReturnValue(roundWith([{ username: "Ben", streetBet: 1 }],
+            { currentBet: 3, street: 4, smallBet: 20, bigBet: 40 }));
+        sevenStud.raise.mockReturnValue({ currentBet: 23 });
         const res = makeResponse();
-        const req = asPlayer("Ben", { body: { amount: "5" } });
+        const req = asPlayer("Ben");
 
         await controller.raise(req, res);
 
-        expect(chipHelper.deductChips).toHaveBeenCalledWith(req, "Ben", 7);
-        expect(sevenStud.raise).toHaveBeenCalledWith(tableId, "Ben", 5);
-        expect(res.json).toHaveBeenCalledWith({ currentBet: 8 });
+        expect(chipHelper.deductChips).toHaveBeenCalledWith(req, "Ben", 22);
+        expect(sevenStud.raise).toHaveBeenCalledWith(tableId, "Ben", 20);
+        expect(res.json).toHaveBeenCalledWith({ currentBet: 23 });
+    });
+
+    test("From fifth street on, raises use the big bet", async function() {
+        sevenStud.getRound.mockReturnValue(roundWith([{ username: "Ben" }],
+            { currentBet: 0, street: 5, smallBet: 20, bigBet: 40 }));
+        const req = asPlayer("Ben");
+
+        await controller.raise(req, makeResponse());
+
+        expect(sevenStud.raise).toHaveBeenCalledWith(tableId, "Ben", 40);
     });
 
     test("Raise with no round", async function() {

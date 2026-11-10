@@ -1,6 +1,7 @@
 const auth = require('./authController');
 const dao = require('../dao/UsersDaoMongoose');
 const dbcon = require('../DbConnection');
+const chipHelper = require('../game/chipHelper');
 
 let res = null;
 
@@ -161,6 +162,7 @@ describe("TT-03 Play As Guest", function() {
 
         expect(req.session.regenerate).toHaveBeenCalled();
         expect(req.session.guestName).toMatch(/^Guest-\d{4}$/);
+        expect(chipHelper.getGuestChips(req.session.guestName)).toBe(1000);
         expect(res.redirect).toHaveBeenCalledWith('/lobby.html');
     });
 

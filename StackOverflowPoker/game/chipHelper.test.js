@@ -6,97 +6,95 @@ jest.mock("../dao/UsersDaoMongoose", () => ({
 const dao = require("../dao/UsersDaoMongoose");
 const chipHelper = require("./chipHelper");
 
-// A guest's chips live in their session
-function guestRequest(chips) {
-    return { session: { guestName: "Guest-1234", guestChips: chips } };
-}
+// Any request works: chips are found by the player's name
+const anyRequest = { session: {} };
 
 beforeEach(function() {
     jest.clearAllMocks();
+    chipHelper.startGuest("Guest-1234");
+});
+
+describe("Guest names", function() {
+
+    test("Guest-1234 is a guest", function() {
+        expect(chipHelper.isGuestName("Guest-1234")).toBe(true);
+    });
+
+    test("Registered names are not guests", function() {
+        expect(chipHelper.isGuestName("Ben")).toBe(false);
+        expect(chipHelper.isGuestName("Guest-")).toBe(false);
+        expect(chipHelper.isGuestName(undefined)).toBe(false);
+    });
+
+    test("A new guest starts with 1000 chips", function() {
+        expect(chipHelper.getGuestChips("Guest-1234")).toBe(1000);
+    });
+
+    test("A guest the server hasn't seen (after a restart) also gets 1000", function() {
+        expect(chipHelper.getGuestChips("Guest-9" + Date.now())).toBe(chipHelper.STARTING_GUEST_CHIPS);
+    });
 });
 
 describe("PG-02 Deduct Chips", function() {
 
     test("Amount must be a positive whole number", async function() {
-        await expect(chipHelper.deductChips({}, "Ben", 0)).rejects.toThrow("positive integer");
-        await expect(chipHelper.deductChips({}, "Ben", 2.5)).rejects.toThrow("positive integer");
+        await expect(chipHelper.deductChips(anyRequest, "Ben", 0)).rejects.toThrow("positive integer");
+        await expect(chipHelper.deductChips(anyRequest, "Ben", 2.5)).rejects.toThrow("positive integer");
     });
 
-    test("Guest pays from their session", async function() {
-        const req = guestRequest(100);
+    test("Guest pays from their server-side balance", async function() {
+        const left = await chipHelper.deductChips(anyRequest, "Guest-1234", 30);
 
-        const left = await chipHelper.deductChips(req, "Guest-1234", 30);
-
-        expect(left).toBe(70);
-        expect(req.session.guestChips).toBe(70);
+        expect(left).toBe(970);
+        expect(chipHelper.getGuestChips("Guest-1234")).toBe(970);
         expect(dao.removeChips).not.toHaveBeenCalled();
     });
 
-    test("Guest without a chip balance cannot pay", async function() {
-        await expect(chipHelper.deductChips(guestRequest(undefined), "Guest-1234", 5))
-            .rejects.toThrow("Guest chip balance is unavailable.");
+    test("Another player's request can charge a guest", async function() {
+        // Ben starts the round, so it is Ben's request that charges the guest's ante
+        const bensRequest = { user: { username: "Ben" }, session: {} };
+
+        await chipHelper.deductChips(bensRequest, "Guest-1234", 5);
+
+        expect(chipHelper.getGuestChips("Guest-1234")).toBe(995);
     });
 
     test("Guest without enough chips cannot pay", async function() {
-        await expect(chipHelper.deductChips(guestRequest(10), "Guest-1234", 50))
+        await expect(chipHelper.deductChips(anyRequest, "Guest-1234", 5000))
             .rejects.toThrow("Not enough chips.");
+        expect(chipHelper.getGuestChips("Guest-1234")).toBe(1000);
     });
 
     test("Registered player pays from the database", async function() {
         dao.removeChips.mockResolvedValue(900);
 
-        const left = await chipHelper.deductChips({ session: {} }, "Ben", 100);
+        const left = await chipHelper.deductChips(anyRequest, "Ben", 100);
 
         expect(dao.removeChips).toHaveBeenCalledWith("Ben", 100);
         expect(left).toBe(900);
-    });
-
-    test("Request without a session uses the database", async function() {
-        dao.removeChips.mockResolvedValue(990);
-
-        await chipHelper.deductChips({}, "Ben", 10);
-
-        expect(dao.removeChips).toHaveBeenCalledWith("Ben", 10);
     });
 });
 
 describe("PG-02 Add Chips", function() {
 
     test("Amount must be a positive whole number", async function() {
-        await expect(chipHelper.addChips({}, "Ben", -5)).rejects.toThrow("positive integer");
+        await expect(chipHelper.addChips(anyRequest, "Ben", -5)).rejects.toThrow("positive integer");
     });
 
-    test("Guest winnings go into their session", async function() {
-        const req = guestRequest(100);
+    test("Guest winnings go into their server-side balance", async function() {
+        const total = await chipHelper.addChips(anyRequest, "Guest-1234", 25);
 
-        const total = await chipHelper.addChips(req, "Guest-1234", 25);
-
-        expect(total).toBe(125);
+        expect(total).toBe(1025);
+        expect(chipHelper.getGuestChips("Guest-1234")).toBe(1025);
         expect(dao.addChips).not.toHaveBeenCalled();
-    });
-
-    test("Guest without a balance starts from zero", async function() {
-        const req = guestRequest(undefined);
-
-        const total = await chipHelper.addChips(req, "Guest-1234", 40);
-
-        expect(total).toBe(40);
     });
 
     test("Registered player winnings go into the database", async function() {
         dao.addChips.mockResolvedValue(1200);
 
-        const total = await chipHelper.addChips({ session: { guestName: "Guest-1" } }, "Ben", 200);
+        const total = await chipHelper.addChips(anyRequest, "Ben", 200);
 
         expect(dao.addChips).toHaveBeenCalledWith("Ben", 200);
         expect(total).toBe(1200);
-    });
-
-    test("Request without a session uses the database", async function() {
-        dao.addChips.mockResolvedValue(1010);
-
-        await chipHelper.addChips({}, "Ben", 10);
-
-        expect(dao.addChips).toHaveBeenCalledWith("Ben", 10);
     });
 });

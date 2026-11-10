@@ -395,10 +395,10 @@ exports.getChips = async function(req, res) {
 try {
 const username = req.params.username;
 
-    // Guests store their chips in the session, not MongoDB.
-    if (req.session && req.session.guestName === username) {
+    // Guests have no account, so their chips are kept on the server by name.
+    if (chipHelper.isGuestName(username)) {
         return res.status(200).json({
-            chips: req.session.guestChips
+            chips: chipHelper.getGuestChips(username)
         });
     }
 

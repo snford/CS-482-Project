@@ -96,59 +96,60 @@ exports.startRound = async function (
             acted: false
         };
     });
+    // Chips taken so far, so they can be given back if the round can't start
+    const charged = [];
+
+    async function charge(player, amount) {
+        if (player.isBot || amount <= 0) {
+            return;
+        }
+        await chipHelper.deductChips(req, player.username, amount);
+        charged.push({ username: player.username, amount: amount });
+    }
+
     let pot = 0;
-    for (const player of hands) {
-            console.log(
-        "Taking ante from:",
-        player.username,
-        ante
-        );
+    let bringInPlayerIndex = 0;
 
-        if (!player.isBot && ante > 0) {
+    try {
+        for (const player of hands) {
+            await charge(player, ante);
 
-            await chipHelper.deductChips(
-                req,
-                player.username,
-                ante
-            );
+            player.streetBet = 0;
+            player.totalBet = ante;
+
+            pot += ante;
         }
 
-        player.streetBet = 0;
-        player.totalBet = ante;
+        // Deal the first three cards to each player.
+        for (const player of hands) {
+            gameDeal.firstDeal(deck, player.hand);
+            gameDeal.dealOneCard(deck, player.hand);
+        }
 
-        pot += ante;
+        bringInPlayerIndex =
+            getLowestUpCardPlayer(hands);
+
+        const bringInPlayer =
+            hands[bringInPlayerIndex];
+
+        if (bringIn > 0) {
+            await charge(bringInPlayer, bringIn);
+
+            bringInPlayer.streetBet =
+                bringIn;
+
+            bringInPlayer.totalBet +=
+                bringIn;
+
+            pot += bringIn;
+        }
+    } catch (error) {
+        // Someone couldn't pay: refund everyone who already did
+        for (const payment of charged) {
+            await chipHelper.addChips(req, payment.username, payment.amount);
+        }
+        throw error;
     }
-
-    // Deal the first three cards to each player.
-    for (const player of hands) {
-        gameDeal.firstDeal(deck, player.hand);
-        gameDeal.dealOneCard(deck, player.hand);
-    }
-
-    const bringInPlayerIndex =
-    getLowestUpCardPlayer(hands);
-
-    const bringInPlayer =
-        hands[bringInPlayerIndex];
-
-    if (bringIn > 0) {
-
-    if (!bringInPlayer.isBot) {
-        await chipHelper.deductChips(
-            req,
-            bringInPlayer.username,
-            bringIn
-        );
-    }
-
-    bringInPlayer.streetBet =
-        bringIn;
-
-    bringInPlayer.totalBet +=
-        bringIn;
-
-    pot += bringIn;
-}
 
     const round = {
         tableId,
