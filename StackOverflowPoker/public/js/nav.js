@@ -396,3 +396,504 @@ async function addAdminNavigationLink() {
       
 })();
 
+/* BT-02: Floating tutorial inside poker tables */
+(function () {
+    // Only run on the poker table page
+    const path = window.location.pathname;
+    if (path !== "/table.html" && !path.startsWith("/table/")) {
+        return;
+    }
+
+    function setupTableHelp() {
+        const params = new URLSearchParams(window.location.search);
+        const match = path.match(/^\/table\/([^/]+)/);
+
+        const tableId =
+            params.get("tableId") ||
+            params.get("id") ||
+            (match ? decodeURIComponent(match[1]) : null) ||
+            sessionStorage.getItem("currentTableId");
+
+        if (!tableId) return;
+
+        // Same six steps as the original tutorial
+        const steps = [
+            {
+                title: "Join a Table",
+                text: "Open the Lobby and join a public table or create your own table."
+            },
+            {
+                title: "Start the Game",
+                text: "Seven-Card Stud is played with 2 to 7 players. Start a round when enough players have joined."
+            },
+            {
+                title: "Get Your First Cards",
+                text: "Each player starts with three cards. Two are face down and one is face up."
+            },
+            {
+                title: "Choose Your Action",
+                text: "During betting, you can Fold to leave the hand, Check if you do not need to bet, Call to match a bet, or Raise to increase it."
+            },
+            {
+                title: "Receive More Cards",
+                text: "More cards are dealt during the round, with betting between deals. Each player eventually receives seven cards."
+            },
+            {
+                title: "Win the Hand",
+                text: "At the showdown, players use their best five cards out of seven. The strongest poker hand wins the pot."
+            }
+        ];
+
+        const handRankings = [
+            "Royal Flush",
+            "Straight Flush",
+            "Four of a Kind",
+            "Full House",
+            "Flush",
+            "Straight",
+            "Three of a Kind",
+            "Two Pair",
+            "One Pair",
+            "High Card"
+        ];
+
+        // All styles are kept here so no CSS file needs editing
+        const style = document.createElement("style");
+        style.textContent = `
+            .table-help-widget {
+                position: fixed;
+                left: 20px;
+                bottom: 20px;
+                z-index: 2000;
+                font-family: inherit;
+            }
+
+            .table-help-widget[hidden],
+            .table-help-panel[hidden],
+            .table-help-rankings[hidden],
+            .table-help-progress[hidden] {
+                display: none !important;
+            }
+
+            .table-help-button {
+                width: 55px;
+                height: 55px;
+                border: 2px solid white;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #bf40bf, #752080);
+                color: white;
+                font-size: 30px;
+                font-weight: bold;
+                box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+                cursor: pointer;
+                transition: transform 0.2s;
+            }
+
+            .table-help-button:hover {
+                transform: scale(1.1);
+            }
+
+            .table-help-panel {
+                position: absolute;
+                bottom: 70px;
+                left: 0;
+                width: min(365px, calc(100vw - 40px));
+                max-height: min(530px, 75vh);
+                overflow-y: auto;
+                background: var(--surface, #fff);
+                color: var(--ink, #29212e);
+                border: 1px solid var(--line, #ddd);
+                border-radius: 18px;
+                box-shadow: 0 12px 45px rgba(0,0,0,0.3);
+            }
+
+            .table-help-header {
+                background: linear-gradient(120deg, #8e2a8e, #bf40bf);
+                color: white;
+                padding: 15px 17px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+            }
+
+            .table-help-header strong {
+                font-size: 16px;
+            }
+
+            .table-help-close {
+                background: transparent;
+                border: none;
+                color: white;
+                font-size: 25px;
+                cursor: pointer;
+                line-height: 1;
+            }
+
+            .table-help-tabs {
+                display: flex;
+                gap: 8px;
+                padding: 14px 16px 0;
+            }
+
+            .table-help-tab {
+                flex: 1;
+                padding: 8px;
+                border: 1px solid var(--line, #ddd);
+                border-radius: 9px;
+                background: var(--surface, #fff);
+                color: var(--ink, #29212e);
+                cursor: pointer;
+                font-size: 13px;
+            }
+
+            .table-help-tab.active {
+                background: #bf40bf;
+                color: white;
+                border-color: #bf40bf;
+            }
+
+            .table-help-content {
+                padding: 16px;
+            }
+
+            .table-help-counter {
+                font-size: 12px;
+                color: var(--ink-muted, #777);
+                margin-bottom: 7px;
+            }
+
+            .table-help-title {
+                font-size: 19px;
+                font-weight: bold;
+                margin: 0 0 10px;
+                color: var(--ink, #29212e);
+            }
+
+            .table-help-description {
+                font-size: 14px;
+                line-height: 1.6;
+                min-height: 65px;
+                color: var(--ink, #29212e);
+            }
+
+            .table-help-progress {
+                height: 6px;
+                background: var(--line, #eee);
+                border-radius: 10px;
+                overflow: hidden;
+                margin: 14px 0;
+            }
+
+            .table-help-progress-bar {
+                height: 100%;
+                background: #bf40bf;
+                transition: width 0.2s;
+            }
+
+            .table-help-controls {
+                display: flex;
+                justify-content: space-between;
+                gap: 10px;
+            }
+
+            .table-help-control {
+                border: none;
+                border-radius: 10px;
+                padding: 9px 16px;
+                background: #bf40bf;
+                color: white;
+                cursor: pointer;
+                font-size: 13px;
+                font-weight: 600;
+            }
+
+            .table-help-control:disabled {
+                background: #aaa;
+                cursor: default;
+            }
+
+            .table-help-rankings {
+                padding-left: 23px;
+                font-size: 14px;
+                line-height: 1.9;
+            }
+
+            .table-help-footer {
+                border-top: 1px solid var(--line, #ddd);
+                padding: 12px 16px;
+                font-size: 12px;
+                text-align: center;
+            }
+
+            @media (max-width: 600px) {
+                .table-help-widget {
+                    left: 12px;
+                    bottom: 12px;
+                }
+
+                .table-help-button {
+                    width: 48px;
+                    height: 48px;
+                    font-size: 26px;
+                }
+
+                .table-help-panel {
+                    bottom: 60px;
+                    width: calc(100vw - 24px);
+                    max-height: 65vh;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+
+        const widget = document.createElement("div");
+        widget.className = "table-help-widget";
+        widget.hidden = true;
+
+        widget.innerHTML = `
+            <button
+                class="table-help-button"
+                id="tableHelpButton"
+                type="button"
+                aria-label="Open poker tutorial"
+                aria-expanded="false"
+                title="How to Play"
+            >?</button>
+
+            <section
+                class="table-help-panel"
+                id="tableHelpPanel"
+                aria-label="Poker tutorial"
+                hidden
+            >
+                <div class="table-help-header">
+                    <strong>♠ Poker Table Guide</strong>
+                    <button
+                        class="table-help-close"
+                        id="tableHelpClose"
+                        type="button"
+                        aria-label="Close tutorial"
+                    >&times;</button>
+                </div>
+
+                <div class="table-help-tabs">
+                    <button class="table-help-tab active"
+                            id="tableHelpGuideTab"
+                            type="button">
+                        How to Play
+                    </button>
+                    <button class="table-help-tab"
+                            id="tableHelpRanksTab"
+                            type="button">
+                        Hand Rankings
+                    </button>
+                </div>
+
+                <div class="table-help-content">
+                    <div id="tableHelpCounter"
+                         class="table-help-counter"></div>
+
+                    <h2 class="table-help-title"
+                        id="tableHelpTitle"></h2>
+
+                    <p class="table-help-description"
+                       id="tableHelpDescription"></p>
+
+                    <ol class="table-help-rankings"
+                        id="tableHelpRankings"
+                        hidden></ol>
+
+                    <div class="table-help-progress"
+                         id="tableHelpProgress">
+                        <div class="table-help-progress-bar"
+                             id="tableHelpProgressBar"></div>
+                    </div>
+
+                    <div class="table-help-controls"
+                         id="tableHelpControls">
+                        <button class="table-help-control"
+                                id="tableHelpPrevious"
+                                type="button">
+                            Previous
+                        </button>
+
+                        <button class="table-help-control"
+                                id="tableHelpNext"
+                                type="button">
+                            Next
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-help-footer">
+                    <a href="/tutorial.html">
+                        Open Full Tutorial
+                    </a>
+                </div>
+            </section>
+        `;
+
+        document.body.appendChild(widget);
+
+        const helpButton = document.getElementById("tableHelpButton");
+        const panel = document.getElementById("tableHelpPanel");
+        const closeButton = document.getElementById("tableHelpClose");
+        const guideTab = document.getElementById("tableHelpGuideTab");
+        const ranksTab = document.getElementById("tableHelpRanksTab");
+        const counter = document.getElementById("tableHelpCounter");
+        const title = document.getElementById("tableHelpTitle");
+        const description = document.getElementById("tableHelpDescription");
+        const rankings = document.getElementById("tableHelpRankings");
+        const progress = document.getElementById("tableHelpProgress");
+        const progressBar = document.getElementById("tableHelpProgressBar");
+        const controls = document.getElementById("tableHelpControls");
+        const previous = document.getElementById("tableHelpPrevious");
+        const next = document.getElementById("tableHelpNext");
+
+        let currentStep = 0;
+        let rankingMode = false;
+
+        // Fill the rankings once
+        handRankings.forEach(function (name) {
+            const item = document.createElement("li");
+            item.textContent = name;
+            rankings.appendChild(item);
+        });
+
+        function renderTutorial() {
+            guideTab.classList.toggle("active", !rankingMode);
+            ranksTab.classList.toggle("active", rankingMode);
+
+            if (rankingMode) {
+                counter.textContent = "Quick Reference";
+                title.textContent = "Poker Hand Rankings";
+                description.textContent = "Strongest to weakest:";
+                rankings.hidden = false;
+                progress.hidden = true;
+                controls.hidden = true;
+                controls.style.display = "none";
+            } else {
+                const step = steps[currentStep];
+
+                counter.textContent =
+                    "Step " + (currentStep + 1) + " of " + steps.length;
+
+                title.textContent = step.title;
+                description.textContent = step.text;
+
+                rankings.hidden = true;
+                progress.hidden = false;
+                controls.hidden = false;
+                controls.style.display = "flex";
+
+                progressBar.style.width =
+                    ((currentStep + 1) / steps.length * 100) + "%";
+
+                previous.disabled = currentStep === 0;
+                next.textContent =
+                    currentStep === steps.length - 1
+                        ? "Restart"
+                        : "Next";
+            }
+        }
+
+        function setOpen(open) {
+            panel.hidden = !open;
+            helpButton.setAttribute("aria-expanded", String(open));
+        }
+
+        helpButton.addEventListener("click", function () {
+            setOpen(panel.hidden);
+        });
+
+        closeButton.addEventListener("click", function () {
+            setOpen(false);
+            helpButton.focus();
+        });
+
+        guideTab.addEventListener("click", function () {
+            rankingMode = false;
+            renderTutorial();
+        });
+
+        ranksTab.addEventListener("click", function () {
+            rankingMode = true;
+            renderTutorial();
+        });
+
+        previous.addEventListener("click", function () {
+            if (currentStep > 0) currentStep--;
+            renderTutorial();
+        });
+
+        next.addEventListener("click", function () {
+            if (currentStep === steps.length - 1) {
+                currentStep = 0;
+            } else {
+                currentStep++;
+            }
+            renderTutorial();
+        });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape" && !panel.hidden) {
+                setOpen(false);
+                helpButton.focus();
+            }
+        });
+
+        renderTutorial();
+
+        // Only show the ? when the current player is seated.
+        // Works for both Google accounts and guests.
+        async function checkIfJoined() {
+            const playerName = SOP.user || SOP.guestName;
+
+            if (!playerName) {
+                widget.hidden = true;
+                setOpen(false);
+                return;
+            }
+
+            try {
+                const response = await fetch(
+                    "/api/tables/" + encodeURIComponent(tableId),
+                    {
+                        credentials: "same-origin",
+                        cache: "no-store"
+                    }
+                );
+
+                if (!response.ok) return;
+
+                const table = await response.json();
+                const players = Array.isArray(table.players)
+                    ? table.players
+                    : [];
+
+                const joined = players.includes(playerName);
+
+                widget.hidden = !joined;
+
+                if (!joined) setOpen(false);
+            } catch (error) {
+                // Keep the game working if the request fails.
+            }
+        }
+
+        SOP.ready.then(function () {
+            checkIfJoined();
+
+            // Detect joining or leaving without refreshing.
+            setInterval(checkIfJoined, 3000);
+        });
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", setupTableHelp);
+    } else {
+        setupTableHelp();
+    }
+})();
+
