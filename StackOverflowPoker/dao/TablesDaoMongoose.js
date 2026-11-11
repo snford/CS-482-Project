@@ -35,6 +35,14 @@ exports.readAll = async function() {
   return tables;
 };
 
+// SF-09: open tables (public or private) where any of these players is seated
+exports.readTablesWithPlayers = async function(usernames) {
+  return await Table.find({
+    status: { $in: ["waiting", "playing"] },
+    players: { $in: usernames }
+  });
+};
+
 //Lt-02: Joining a table
 exports.joinTable = async function(tableId, username) {
     const table = await Table.findById(tableId);

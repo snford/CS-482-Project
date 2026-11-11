@@ -125,6 +125,14 @@
                 }
                 SOP.me = me;
                 SOP.user = me.username || null;
+
+                // SF-09: check in once a minute so friends see you as online
+                setInterval(function () {
+                    if (!document.hidden) {
+                        fetch("/api/me", { headers: { Accept: "application/json" }, cache: "no-store" })
+                            .catch(function () { /* try again next minute */ });
+                    }
+                }, 60000);
             } else {
                 SOP.guestName = (me && me.guestName) || null;
             }

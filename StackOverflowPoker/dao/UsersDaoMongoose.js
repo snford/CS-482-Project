@@ -32,11 +32,26 @@ const userSchema = mongoose.Schema({
         type: String,
         enum: ["player", "admin"],
         default: "player"
-}
+},
+
+    // SF-09: last time this player used the site (shows friends who is online)
+    lastSeenAt: { type: Date }
 
 });
 
 const userModel = mongoose.model('user', userSchema);
+
+// SF-09: remember that this player is using the site right now
+exports.markSeen = async function(id) {
+    await userModel.updateOne({ _id: id }, { $set: { lastSeenAt: new Date() } });
+}
+
+// SF-09: when each of these players was last on the site
+exports.readLastSeen = async function(usernames) {
+    return await userModel.find({ username: { $in: usernames } })
+        .select("username lastSeenAt")
+        .lean();
+}
 
 // TT-03: read a user by their database id (what the login session stores)
 exports.readById = async function(id) {

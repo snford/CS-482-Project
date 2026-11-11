@@ -1,6 +1,7 @@
 const controller = require("./controllers/usersController");
 const tablesController = require("./controllers/tablesController");
 const messageController = require("./controllers/messageController");
+const friendsController = require("./controllers/friendsController");
 const express = require('express');
 const morgan = require('morgan');
 const session = require('express-session');
@@ -59,9 +60,6 @@ app.use(session({
     })
 }));
 
-// TT-03: who is logged in
-app.get('/api/me', controller.getMe);
-
 // TT-03: Google sign-in (values come from .env, never committed)
 const googleReady = Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET);
 
@@ -81,6 +79,9 @@ app.use(passport.initialize());
 
 // TT-03: figure out who is signed in for every request (req.user)
 app.use(loadUser);
+
+// TT-03: who is logged in (after loadUser, so it also counts as being online for SF-09)
+app.get('/api/me', controller.getMe);
 
 // AM-05: Protect administrator webpages
 const adminPages = [
@@ -137,6 +138,8 @@ app.post('/addfriend', requireLogin, controller.postAddFriend);
 app.post('/acceptfriend', requireLogin, controller.postAcceptFriend);
 app.post('/declinefriend', requireLogin, controller.postDeclineFriend);
 app.post('/removefriend', requireLogin, controller.postRemoveFriend);
+// SF-09: which friends are online or at a table
+app.get('/api/friends/status', requireLogin, friendsController.getFriendStatus);
 // ST-01: Player Statistics
 app.get('/stats/:username', controller.getPlayerStats);
 // ST-02: Leaderboard API

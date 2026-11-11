@@ -1,6 +1,7 @@
 // TT-03: tests for middleware/auth.js (who is signed in, and protected routes)
 jest.mock("../dao/UsersDaoMongoose", () => ({
-    readById: jest.fn()
+    readById: jest.fn(),
+    markSeen: jest.fn()
 }));
 const usersDao = require("../dao/UsersDaoMongoose");
 const auth = require("./auth");
@@ -119,5 +120,54 @@ describe("TT-03 Require Login", function() {
         let req = {};
 
         expect(auth.wantsJson(req)).toBe(false);
+    });
+});
+
+describe("SF-09 Last Seen", function() {
+
+    const MINUTE = 60 * 1000;
+
+    async function loadWith(user) {
+        usersDao.readById.mockResolvedValue(Object.assign({ _id: "abc", username: "Ben", needsUsername: false }, user));
+        let next = jest.fn();
+        await auth.loadUser({ session: { userId: "abc" } }, makeResponse(), next);
+        return next;
+    }
+
+    test('A player never seen before is marked as seen', async function() {
+        await loadWith({});
+
+        expect(usersDao.markSeen).toHaveBeenCalledWith("abc");
+    });
+
+    test('A player last seen over a minute ago is marked again', async function() {
+        await loadWith({ lastSeenAt: new Date(Date.now() - 2 * MINUTE) });
+
+        expect(usersDao.markSeen).toHaveBeenCalledTimes(1);
+    });
+
+    test('A player seen in the last minute is not saved again', async function() {
+        await loadWith({ lastSeenAt: new Date(Date.now() - 10 * 1000) });
+
+        expect(usersDao.markSeen).not.toHaveBeenCalled();
+    });
+
+    test('Players without a poker name yet are not marked', async function() {
+        usersDao.readById.mockResolvedValue({ _id: "abc", needsUsername: true });
+
+        await auth.loadUser({ session: { userId: "abc" } }, makeResponse(), jest.fn());
+
+        expect(usersDao.markSeen).not.toHaveBeenCalled();
+    });
+
+    test('A failed save does not stop the request', async function() {
+        const errorLog = jest.spyOn(console, "error").mockImplementation(() => {});
+        usersDao.markSeen.mockRejectedValueOnce(new Error("Database error"));
+
+        const next = await loadWith({});
+
+        expect(next).toHaveBeenCalled();
+        expect(errorLog).toHaveBeenCalled();
+        errorLog.mockRestore();
     });
 });

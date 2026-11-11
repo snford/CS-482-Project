@@ -21,6 +21,24 @@
 
         .friend-link:hover { color: var(--brand-700); }
 
+        /* SF-09: online / at a table / offline dot on each friend's avatar */
+        .friend-avatar { position: relative; display: inline-flex; flex-shrink: 0; }
+
+        .status-dot {
+            position: absolute;
+            right: -1px;
+            bottom: -1px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid var(--surface);
+            background: transparent;
+        }
+
+        .status-dot.online { background: var(--success); }
+        .status-dot.at-table { background: var(--gold-600); }
+        .status-dot.offline { background: #b9b0c0; }
+
         .request-row {
             background: var(--brand-50);
             border: 1px solid var(--brand-100);
@@ -231,9 +249,11 @@
         const row = document.createElement("a");
         row.className = "list-row friend-link";
         row.href = "/player.html?name=" + encodeURIComponent(name);
+        row.dataset.friend = name;
         row.innerHTML =
-          SOP.avatarHtml(name) +
-          '<div class="grow"><div class="title"></div><div class="sub">View profile</div></div>' +
+          '<span class="friend-avatar">' + SOP.avatarHtml(name) + '<span class="status-dot"></span></span>' +
+          '<div class="grow"><div class="title"></div><div class="sub friend-status">View profile</div></div>' +
+            '<button class="btn btn-light-soft btn-sm table-btn" hidden></button>' +
             '<button class="btn btn-primary btn-sm chat-btn" ' +
             'title="Message ' + SOP.escapeHtml(name) + '">' +
             '<i class="bi bi-chat-dots-fill"></i>' +
@@ -251,9 +271,94 @@
                 openChat(name);
             }
         );
+        row.querySelector(".table-btn").addEventListener("click", function(e) {
+            // Stop navigation to player.html
+            e.preventDefault();
+            e.stopPropagation();
+
+            goToFriendTable(this.dataset.tableId, this.dataset.canJoin === "true");
+        });
         container.appendChild(row);
       }
+
+      loadFriendStatus();
   }
+
+  // SF-09: show which friends are online or at a table
+  async function loadFriendStatus() {
+      if (!SOP.user || lstFriends.length === 0) return;
+
+      let statuses;
+      try {
+        const response = await fetch("/api/friends/status", { headers: { Accept: "application/json" }, cache: "no-store" });
+        if (!response.ok) return;
+        statuses = await response.json();
+      } catch (error) {
+        return; // keep the last status shown
+      }
+
+      for (const friend of statuses) {
+        const row = document.querySelector('.friend-link[data-friend="' + CSS.escape(friend.username) + '"]');
+        if (!row) continue;
+
+        const status = row.querySelector(".friend-status");
+        const button = row.querySelector(".table-btn");
+        const dot = row.querySelector(".status-dot");
+
+        dot.className = "status-dot " + (friend.table ? "at-table" : friend.online ? "online" : "offline");
+
+        if (friend.table) {
+          const table = friend.table;
+          status.textContent = (table.status === "playing" ? "Playing at " : "At ") + table.name +
+            " · " + table.players + "/" + table.maxPlayers + " players";
+          button.hidden = false;
+          button.dataset.tableId = table.id;
+          button.dataset.canJoin = String(table.canJoin);
+          button.innerHTML = table.canJoin
+            ? '<i class="bi bi-box-arrow-in-right"></i>Join'
+            : '<i class="bi bi-eye"></i>View';
+          button.title = (table.canJoin ? "Join " : "View ") + table.name;
+        } else {
+          status.textContent = friend.online ? "Online" : "Offline";
+          button.hidden = true;
+        }
+      }
+  }
+
+  // SF-09: sit down at a friend's table (or just open it if it's full or playing)
+  async function goToFriendTable(tableId, canJoin) {
+      const tablePage = "/table.html?tableId=" + encodeURIComponent(tableId);
+
+      if (!canJoin) {
+        window.location.href = tablePage;
+        return;
+      }
+
+      try {
+        const response = await fetch("/api/tables/join", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tableId: tableId })
+        });
+        const result = await response.json();
+
+        if (!response.ok) {
+          SOP.toast(result.msg || "Could not join that table.", "error");
+          loadFriendStatus();
+          return;
+        }
+
+        sessionStorage.setItem("currentTableId", tableId);
+        window.location.href = tablePage;
+      } catch (error) {
+        SOP.toast("Could not join that table.", "error");
+      }
+  }
+
+  // Keep friends' status fresh while this page is open
+  setInterval(function() {
+      if (!document.hidden) loadFriendStatus();
+  }, 30000);
 
   // SF-04: confirm a friend was removed (the server adds ?removed=Name)
   const removedName = new URLSearchParams(window.location.search).get("removed");

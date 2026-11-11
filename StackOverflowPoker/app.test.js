@@ -159,3 +159,13 @@ describe("SF-06 Table Chat", function() {
         expect(await readChat()).toEqual([]);
     });
 });
+
+test("SF-09: Friend status needs a signed-in player", async function() {
+    const cookie = cookieFrom(await request("/guest", { method: "POST" }));
+
+    const response = await request("/api/friends/status", {
+        headers: { accept: "application/json", cookie: cookie }
+    });
+
+    expect(response.status).toBe(401);
+});
