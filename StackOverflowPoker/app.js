@@ -18,6 +18,8 @@ const {
 
 // AM-05: Administrator dashboard controller
 const adminController = require('./controllers/adminController');
+// AM-01: Player reports and administrator conversations
+const reportsController = require("./controllers/reportsController");
 const app = express();
 
 app.use(morgan('dev'));
@@ -251,5 +253,44 @@ app.get("/messages/:friend",requireLogin,messageController.getConversation);
 app.post("/messages/table/send",messageController.sendTableChat);
 //SF-06: Get the messages for a table
 app.get("/messages/table/:tableId",messageController.getTableChat);
+
+// AM-01: Submit and manage player reports
+
+app.post(
+    "/api/reports",
+    requireLogin,
+    reportsController.createReport
+);
+
+app.get(
+    "/api/reports/mine",
+    requireLogin,
+    reportsController.getMine
+);
+
+app.get(
+    "/api/admin/reports",
+    requireAdmin,
+    reportsController.getAll
+);
+
+app.get(
+    "/api/reports/:id",
+    requireLogin,
+    reportsController.getOne
+);
+
+app.post(
+    "/api/reports/:id/messages",
+    requireLogin,
+    reportsController.sendMessage
+);
+
+app.patch(
+    "/api/admin/reports/:id/resolve",
+    requireAdmin,
+    reportsController.resolve
+);
+
 exports.app = app;
 
