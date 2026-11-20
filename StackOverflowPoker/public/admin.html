@@ -2,97 +2,122 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Admin Reports - Stack Overflow Poker</title>
-    <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/css/styles.css">
-    <link rel="stylesheet" href="/css/createTable.css">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+
+    <title>Player Reports - Stack Overflow Poker</title>
+
+    <link
+        rel="icon"
+        href="/images/logo.svg"
+        type="image/svg+xml"
+    >
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+        rel="stylesheet"
+    >
+
+    <link href="/css/styles.css" rel="stylesheet">
+    <link href="/css/createTable.css" rel="stylesheet">
 </head>
+
 <body>
     <div id="siteNav" data-variant="admin"></div>
+
     <script src="/js/nav.js"></script>
 
     <main class="container pb-5">
-        <header class="page-header d-flex flex-wrap align-items-end justify-content-between gap-3 fade-up">
-            <div>
-                <span class="eyebrow"><i class="bi bi-shield-lock-fill"></i>Admin dashboard</span>
-                <h1 class="page-title">Player reports</h1>
-                <p class="page-subtitle">Review reports and chat logs, then dismiss them or ban the player.</p>
-            </div>
-            <span class="pill pill-warning"><i class="bi bi-cone-striped"></i>Preview: not connected yet</span>
+        <header class="page-header">
+            <h1 class="page-title">
+                Player Reports
+            </h1>
+
+            <p class="page-subtitle">
+                Review reports, reply to players,
+                and resolve issues.
+            </p>
         </header>
 
-        <div class="row g-4 mb-4">
-            <div class="col-sm-4 fade-up delay-1">
-                <div class="stat-tile tile-danger"><span class="tile-icon"><i class="bi bi-flag-fill"></i></span>
-                    <div class="label">Open reports</div><div class="value">0</div></div>
-            </div>
-            <div class="col-sm-4 fade-up delay-2">
-                <div class="stat-tile tile-success"><span class="tile-icon"><i class="bi bi-check2-circle"></i></span>
-                    <div class="label">Resolved</div><div class="value">0</div></div>
-            </div>
-            <div class="col-sm-4 fade-up delay-3">
-                <div class="stat-tile tile-gold"><span class="tile-icon"><i class="bi bi-slash-circle"></i></span>
-                    <div class="label">Active bans</div><div class="value">0</div></div>
-            </div>
-        </div>
-
         <div class="row g-4">
-            <div class="col-lg-7 fade-up delay-2">
-                <div class="so-card p-0 overflow-hidden h-100">
-                    <table class="so-table">
-                        <thead>
-                            <tr><th>Report</th><th>Reason</th><th>Status</th></tr>
-                        </thead>
-                        <tbody>
-                            <tr><td colspan="3">
-                                <div class="empty-state">
-                                    <i class="bi bi-inbox"></i>
-                                    <strong>No reports</strong>
-                                    Reports from players will show up here.
-                                </div>
-                            </td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <section class="col-lg-5">
+                <div class="so-card">
+                    <h2 class="so-card-title">
+                        Reports
+                    </h2>
 
-            <div class="col-lg-5 fade-up delay-3">
-                <div class="so-card h-100">
-                    <h2 class="so-card-title"><i class="bi bi-file-text-fill"></i>Report detail</h2>
-                    <div class="placeholder-box p-3 mb-4 text-secondary small">
-                        <i class="bi bi-chat-left-text me-1"></i>Pick a report to see the player's chat log.
+                    <div id="reportList">
+                        Loading...
                     </div>
-                    <fieldset disabled>
-                        <label class="form-label d-block">Ban length</label>
-                        <div class="button-group mb-4" role="group" aria-label="Ban length">
-                            <button type="button" class="option-button selected">1 day</button>
-                            <button type="button" class="option-button">7 days</button>
-                            <button type="button" class="option-button">Forever</button>
-                        </div>
-                        <div class="d-flex gap-2">
-                            <button type="button" class="btn btn-light-soft flex-fill">Dismiss</button>
-                            <button type="button" class="btn btn-danger-soft flex-fill"><i class="bi bi-hammer"></i>Ban user</button>
-                        </div>
-                    </fieldset>
                 </div>
-            </div>
+            </section>
+
+            <section class="col-lg-7">
+                <div class="so-card">
+                    <h2
+                        class="so-card-title"
+                        id="reportTitle"
+                    >
+                        Select a report
+                    </h2>
+
+                    <div id="reportInfo"></div>
+
+                    <div
+                        id="conversation"
+                        class="border rounded p-3 mb-3"
+                        style="max-height:420px;min-height:180px;overflow:auto"
+                    ></div>
+
+                    <form id="messageForm" hidden>
+                        <label
+                            for="messageText"
+                            class="form-label"
+                        >
+                            Message
+                        </label>
+
+                        <textarea
+                            class="form-control mb-2"
+                            id="messageText"
+                            rows="3"
+                            maxlength="1000"
+                            required
+                        ></textarea>
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                        >
+                            Send message
+                        </button>
+                    </form>
+
+                    <button
+                        id="resolveButton"
+                        type="button"
+                        class="btn btn-success mt-3"
+                        hidden
+                    >
+                        Mark resolved
+                    </button>
+
+                    <p id="status" role="status"></p>
+                </div>
+            </section>
         </div>
     </main>
 
-    <footer class="site-footer">
-        <div class="container d-flex flex-wrap justify-content-between gap-2">
-            <span>&copy; Stack Overflow Chips &middot; Admin tools</span>
-            <span class="suits" aria-hidden="true">♠ ♥ ♣ ♦</span>
-        </div>
-    </footer>
+    <script src="/js/report-conversation.js"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        initReportConversation(true);
+    </script>
 </body>
 </html>
