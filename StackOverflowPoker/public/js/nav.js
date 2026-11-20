@@ -162,6 +162,7 @@
 
     const mainLinks = [
         { id: "lobbyLink", href: "/lobby.html", label: "Lobby", icon: "bi-suit-spade-fill", pages: ["lobby.html", "createtable.html", "table.html"] },
+        {id: "myReportsLink", href: "/my-reports.html", label: "My Reports", icon: "bi-flag-fill", pages: ["my-reports.html"] },
         { id: "friendsLink", href: "/friends.html", label: "Friends", icon: "bi-people-fill", pages: ["friends.html", "player.html", "report.html"] },
         { id: "statsLink", href: "/stats.html", label: "Stats", icon: "bi-bar-chart-fill", pages: ["stats.html"] },
         { id: "leaderboardLink", href: "/leaderboard.html", label: "Leaderboard", icon: "bi-trophy-fill", pages: ["leaderboard.html"] },
