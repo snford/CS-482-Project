@@ -1,0 +1,108 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+
+    <title>My Reports - Stack Overflow Poker</title>
+
+    <link rel="icon"
+          href="/images/logo.svg"
+          type="image/svg+xml">
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link href="/css/styles.css" rel="stylesheet">
+    <link href="/css/createTable.css" rel="stylesheet">
+</head>
+
+<body>
+    <div id="siteNav"></div>
+    <script src="/js/nav.js"></script>
+
+    <main class="container pb-5">
+        <header class="page-header">
+            <h1 class="page-title">My Reports</h1>
+
+            <p class="page-subtitle">
+                View your reports and talk to administrators.
+            </p>
+        </header>
+
+        <div class="row g-4">
+            <section class="col-lg-5">
+                <div class="so-card">
+                    <h2 class="so-card-title">Reports</h2>
+
+                    <div id="reportList">
+                        Loading...
+                    </div>
+                </div>
+            </section>
+
+            <section class="col-lg-7">
+                <div class="so-card">
+                    <h2 class="so-card-title" id="reportTitle">
+                        Select a report
+                    </h2>
+
+                    <div id="reportInfo"></div>
+
+                    <div
+                        id="conversation"
+                        class="border rounded p-3 mb-3"
+                        style="max-height:420px;min-height:180px;overflow:auto"
+                    ></div>
+
+                    <form id="messageForm" hidden>
+                        <label
+                            for="messageText"
+                            class="form-label"
+                        >
+                            Message
+                        </label>
+
+                        <textarea
+                            class="form-control mb-2"
+                            id="messageText"
+                            rows="3"
+                            maxlength="1000"
+                            required
+                        ></textarea>
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                        >
+                            Send message
+                        </button>
+                    </form>
+
+                    <button
+                        id="resolveButton"
+                        type="button"
+                        class="btn btn-success mt-3"
+                        hidden
+                    >
+                        Mark resolved
+                    </button>
+
+                    <p id="status" role="status"></p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="/js/report-conversation.js"></script>
+
+    <script>
+        initReportConversation(false);
+    </script>
+</body>
+</html>
