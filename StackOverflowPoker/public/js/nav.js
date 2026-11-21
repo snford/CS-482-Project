@@ -759,8 +759,45 @@ async function addAdminNavigationLink() {
         const previous = document.getElementById("tableHelpPrevious");
         const next = document.getElementById("tableHelpNext");
 
+        // BT-03: Save tutorial progress
         let currentStep = 0;
         let rankingMode = false;
+        let tutorialCompleted = false;
+        
+        function loadTutorialProgress() {
+            currentStep = 0;
+            tutorialCompleted = false;
+        
+            try {
+                const saved = JSON.parse(
+                    localStorage.getItem("sopTutorialProgress")
+                );
+        
+                if (saved && Number.isInteger(saved.step) &&
+                    saved.step >= 0 && saved.step < steps.length) {
+                    currentStep = saved.step;
+                }
+        
+                if (saved && saved.completed === true) {
+                    tutorialCompleted = true;
+                }
+            } catch (error) {
+                // Start from step one if no progress was saved.
+            }
+        }
+        
+        function saveTutorialProgress() {
+            try {
+                localStorage.setItem("sopTutorialProgress", JSON.stringify({
+                    step: currentStep,
+                    completed: tutorialCompleted
+                }));
+            } catch (error) {
+                // Keep the tutorial working if storage is unavailable.
+            }
+        }
+        
+        loadTutorialProgress();
 
         // Fill the rankings once
         handRankings.forEach(function (name) {
@@ -785,7 +822,8 @@ async function addAdminNavigationLink() {
                 const step = steps[currentStep];
 
                 counter.textContent =
-                    "Step " + (currentStep + 1) + " of " + steps.length;
+                    "Step " + (currentStep + 1) + " of " + steps.length +
+                    (tutorialCompleted ? " - Completed" : "");
 
                 title.textContent = step.title;
                 description.textContent = step.text;
@@ -811,7 +849,13 @@ async function addAdminNavigationLink() {
             helpButton.setAttribute("aria-expanded", String(open));
         }
 
+        // BT-03: Continue from saved progress
         helpButton.addEventListener("click", function () {
+            if (panel.hidden) {
+                loadTutorialProgress();
+                renderTutorial();
+            }
+        
             setOpen(panel.hidden);
         });
 
@@ -830,17 +874,26 @@ async function addAdminNavigationLink() {
             renderTutorial();
         });
 
+        // BT-03: Save progress when going backward
         previous.addEventListener("click", function () {
-            if (currentStep > 0) currentStep--;
+            if (currentStep > 0) {
+                currentStep--;
+                saveTutorialProgress();
+            }
+        
             renderTutorial();
         });
-
+        
+        // BT-03: Save progress when going forward
         next.addEventListener("click", function () {
             if (currentStep === steps.length - 1) {
+                tutorialCompleted = true;
                 currentStep = 0;
             } else {
                 currentStep++;
             }
+        
+            saveTutorialProgress();
             renderTutorial();
         });
 
