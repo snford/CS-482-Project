@@ -129,6 +129,43 @@
                         <button type="button" class="btn btn-sm btn-light-soft" data-filter="open">Open seats</button>
                         <button type="button" class="btn btn-sm btn-light-soft" data-filter="playing">In progress</button>
                     </div>
+                    <!-- LT-04: Advanced Lobby Filtering -->
+                    <div class="row g-2 mt-3">
+                    
+                        <div class="col-md-4">
+                            <label class="form-label" for="botFilter">Bot difficulty</label>
+                            <select id="botFilter" class="form-select">
+                                <option value="all">All difficulties</option>
+                                <option value="off">No bots</option>
+                                <option value="easy">Easy</option>
+                                <option value="medium">Medium</option>
+                                <option value="hard">Hard</option>
+                            </select>
+                        </div>
+                    
+                        <div class="col-md-4">
+                            <label class="form-label" for="seatFilter">Available seats</label>
+                            <select id="seatFilter" class="form-select">
+                                <option value="0">Any seats</option>
+                                <option value="1">At least 1</option>
+                                <option value="2">At least 2</option>
+                                <option value="3">At least 3</option>
+                            </select>
+                        </div>
+                    
+                        <div class="col-md-4">
+                            <label class="form-label" for="maxBetFilter">Maximum big bet</label>
+                            <input type="number" id="maxBetFilter"
+                                   class="form-control" min="0"
+                                   placeholder="Any limit">
+                        </div>
+                    
+                    </div>
+                    
+                    <button type="button" id="clearFilters"
+                            class="btn btn-sm btn-light-soft mt-3">
+                        Clear filters
+                    </button>
                 </div>
             </div>
 
@@ -288,13 +325,57 @@
         const list = document.getElementById("tablesList");
         const message = document.getElementById("tableMessage");
         const search = document.getElementById("tableSearch").value.trim().toLowerCase();
+        // LT-04: Get the selected filters
+        const botFilter = document.getElementById("botFilter").value;
+        const seatFilter = Number(document.getElementById("seatFilter").value);
+        const betValue = document.getElementById("maxBetFilter").value.trim();
+        const maxBigBet = betValue === "" ? null : Number(betValue);
 
+        // LT-04: Filter tables using the selected options
         const shown = allTables.filter(function (table) {
+        
             const players = Array.isArray(table.players) ? table.players.length : 0;
-            const open = table.status === "waiting" && players < (Number(table.maxPlayers) || 7);
-            if (search && !String(table.name).toLowerCase().includes(search)) return false;
-            if (activeFilter === "open") return open;
-            if (activeFilter === "playing") return table.status === "playing";
+            const maxPlayers = Number(table.maxPlayers) || 7;
+            const open = table.status === "waiting" && players < maxPlayers;
+        
+            const availableSeats = table.status === "waiting"
+                ? Math.max(0, maxPlayers - players)
+                : 0;
+        
+            // Filter by table name
+            if (search && !String(table.name).toLowerCase().includes(search)) {
+                return false;
+            }
+        
+            // Existing status filters
+            if (activeFilter === "open" && !open) {
+                return false;
+            }
+        
+            if (activeFilter === "playing" && table.status !== "playing") {
+                return false;
+            }
+        
+            // Filter by bot difficulty
+            if (botFilter !== "all" && (table.bots || "off") !== botFilter) {
+                return false;
+            }
+        
+            // Filter by available seats
+            if (seatFilter > 0 && availableSeats < seatFilter) {
+                return false;
+            }
+        
+            // Filter by maximum big bet
+            if (maxBigBet !== null) {
+                const bets = String(table.ante || "").split("/");
+                const bigBet = Number(bets[3]);
+        
+                if (bets.length < 4 || !Number.isFinite(bigBet) || bigBet > maxBigBet) {
+                    return false;
+                }
+            }
+        
             return true;
         });
 
@@ -332,6 +413,30 @@
 
     document.getElementById("tableSearch").addEventListener("input", renderTables);
     document.getElementById("refreshTables").addEventListener("click", showTables);
+    // LT-04: Update tables when a filter changes
+    ["botFilter", "seatFilter", "maxBetFilter"].forEach(function (id) {
+        document.getElementById(id).addEventListener("input", renderTables);
+    });
+    
+    // LT-04: Reset all filters
+    document.getElementById("clearFilters").addEventListener("click", function () {
+    
+        document.getElementById("tableSearch").value = "";
+        document.getElementById("botFilter").value = "all";
+        document.getElementById("seatFilter").value = "0";
+        document.getElementById("maxBetFilter").value = "";
+    
+        activeFilter = "all";
+    
+        document.querySelectorAll("[data-filter]").forEach(function (button) {
+            const selected = button.getAttribute("data-filter") === "all";
+    
+            button.className = "btn btn-sm " +
+                (selected ? "btn-primary" : "btn-light-soft");
+        });
+    
+        renderTables();
+    });
 
     document.querySelectorAll("[data-filter]").forEach(function (button) {
         button.addEventListener("click", function () {
