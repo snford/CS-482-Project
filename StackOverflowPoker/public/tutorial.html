@@ -28,6 +28,8 @@
                     <p id="stepNumber" class="text-secondary"></p>
                     <h2 id="stepTitle" class="h4"></h2>
                     <p id="stepText"></p>
+                    <!-- BT-03: Tutorial progress -->
+                    <p id="tutorialProgress" class="text-secondary small mt-3"></p>
 
                     <div class="d-flex justify-content-between mt-4">
                         <button id="previousButton"
@@ -96,13 +98,45 @@
             }
         ];
 
+        // BT-03: Load saved tutorial progress
         let currentStep = 0;
+        let tutorialCompleted = false;
+        
+        try {
+            const saved = JSON.parse(
+                localStorage.getItem("sopTutorialProgress")
+            );
+        
+            if (saved && Number.isInteger(saved.step) &&
+                saved.step >= 0 && saved.step < steps.length) {
+                currentStep = saved.step;
+            }
+        
+            if (saved && saved.completed === true) {
+                tutorialCompleted = true;
+            }
+        } catch (error) {
+            // Start from the beginning if no progress was saved.
+        }
 
         const stepNumber = document.getElementById("stepNumber");
         const stepTitle = document.getElementById("stepTitle");
         const stepText = document.getElementById("stepText");
         const previousButton = document.getElementById("previousButton");
         const nextButton = document.getElementById("nextButton");
+        const tutorialProgress = document.getElementById("tutorialProgress");
+
+        // BT-03: Save the current tutorial step
+        function saveProgress() {
+            try {
+                localStorage.setItem("sopTutorialProgress", JSON.stringify({
+                    step: currentStep,
+                    completed: tutorialCompleted
+                }));
+            } catch (error) {
+                // Keep the tutorial working if storage is unavailable.
+            }
+        }
 
         function showStep() {
             const step = steps[currentStep];
@@ -112,6 +146,11 @@
 
             stepTitle.textContent = step.title;
             stepText.textContent = step.text;
+            if (tutorialProgress) {
+                tutorialProgress.textContent = tutorialCompleted
+                    ? "Tutorial completed. You can review it again."
+                    : "Your tutorial progress is saved in this browser.";
+            }
 
             previousButton.disabled = currentStep === 0;
 
@@ -122,20 +161,25 @@
             }
         }
 
+        // BT-03: Remember progress when moving backward
         previousButton.addEventListener("click", function() {
             if (currentStep > 0) {
                 currentStep--;
+                saveProgress();
                 showStep();
             }
         });
-
+        
+        // BT-03: Remember progress when moving forward
         nextButton.addEventListener("click", function() {
             if (currentStep === steps.length - 1) {
+                tutorialCompleted = true;
                 currentStep = 0;
             } else {
                 currentStep++;
             }
-
+        
+            saveProgress();
             showStep();
         });
 
