@@ -1,5 +1,6 @@
 const usersDao = require("../dao/UsersDaoMongoose");
 const adsDao = require("../dao/AdsDaoMongoose");
+const mongoose = require("mongoose");
 
 // AM-05: Return dashboard information
 exports.getDashboard = async function(req, res) {
@@ -185,6 +186,99 @@ exports.createAd = async function(req, res) {
 };
 
 
+
+// TT-04: Update an existing advertisement
+exports.updateAd = async function(req, res) {
+    const adId = req.params.adId;
+
+    if (!mongoose.isValidObjectId(adId)) {
+        return res.status(400).json({
+            msg: "Invalid advertisement ID."
+        });
+    }
+
+    const name = req.body.name;
+    const imageUrl = req.body.imageUrl;
+    const linkUrl = req.body.linkUrl;
+    const placement = req.body.placement;
+    const intervalMinutes = Number(req.body.intervalMinutes);
+    const active = req.body.active;
+
+    // Check the updated information
+    if (
+        typeof name !== "string" || !name.trim() ||
+        typeof imageUrl !== "string" || !imageUrl.trim() ||
+        typeof linkUrl !== "string" || !linkUrl.trim() ||
+        !["lobby", "table"].includes(placement) ||
+        !Number.isInteger(intervalMinutes) ||
+        intervalMinutes < 1 ||
+        typeof active !== "boolean"
+    ) {
+        return res.status(400).json({
+            msg: "Invalid advertisement information."
+        });
+    }
+
+    try {
+        const ad = await adsDao.updateAd(adId, {
+            name: name.trim(),
+            imageUrl: imageUrl.trim(),
+            linkUrl: linkUrl.trim(),
+            placement: placement,
+            intervalMinutes: intervalMinutes,
+            active: active
+        });
+
+        if (!ad) {
+            return res.status(404).json({
+                msg: "Advertisement not found."
+            });
+        }
+
+        return res.status(200).json({
+            msg: "Advertisement updated successfully.",
+            ad: ad
+        });
+
+    } catch (error) {
+        console.error("Error updating ad:", error);
+        return res.status(500).json({
+            msg: "Could not update advertisement."
+        });
+    }
+};
+
+
+// TT-04: Delete an existing advertisement
+exports.deleteAd = async function(req, res) {
+    const adId = req.params.adId;
+
+    if (!mongoose.isValidObjectId(adId)) {
+        return res.status(400).json({
+            msg: "Invalid advertisement ID."
+        });
+    }
+
+    try {
+        const ad = await adsDao.deleteAd(adId);
+
+        if (!ad) {
+            return res.status(404).json({
+                msg: "Advertisement not found."
+            });
+        }
+
+        return res.status(200).json({
+            msg: "Advertisement deleted successfully."
+        });
+
+    } catch (error) {
+        console.error("Error deleting ad:", error);
+        return res.status(500).json({
+            msg: "Could not delete advertisement."
+        });
+    }
+};
     
 // AV-01: Get active ads for the Lobby or Table
 exports.getActiveAds = async function(req, res) {
