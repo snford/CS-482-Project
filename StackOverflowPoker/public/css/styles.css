@@ -149,6 +149,26 @@ a:hover { color: var(--brand); }
     background: #fff;
     box-shadow: 0 4px 12px rgba(0, 0, 0, .12);
 }
+/* Center and space out the top navigation */
+@media (min-width: 1400px) {
+    .site-nav .navbar > .container {
+        max-width: 100%;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
+    .site-nav #siteNavLinks {
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .site-nav #siteNavLinks .navbar-nav {
+        flex: 1;
+        justify-content: space-evenly;
+        gap: .5rem !important;
+        margin-right: 0 !important;
+    }
+}
 /* Reports button */
 .site-nav #myReportsLink {
     border: 1px solid rgba(255, 255, 255, 0.7);
