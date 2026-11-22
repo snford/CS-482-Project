@@ -939,11 +939,18 @@ async function loadChips() {
     // Check for advertisement changes every 5 seconds
     setInterval(loadTableAd, 5000);
 
-document
-    .getElementById("sendChatButton")
-    .addEventListener(
-        "click",
-        sendChat
+    // Send chat message when Enter is pressed
+    document.getElementById("chatInput").addEventListener("keypress", function(e) {
+        if (e.key === "Enter") {
+            sendChat();
+        }
+    });
+    
+    document
+        .getElementById("sendChatButton")
+        .addEventListener(
+            "click",
+            sendChat
     );
     async function loadChat() {
     if (!tableId) return;
