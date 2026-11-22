@@ -449,62 +449,165 @@
     });
 
 
-    // AV-01: Load an active advertisement for the Lobby
-    async function loadLobbyAd() {
-        const adLink = document.getElementById("adLink");
-        const adImage = document.getElementById("adImage");
-        const adMessage = document.getElementById("adMessage");
 
-        try {
-            const response = await fetch("/api/ads/lobby");
+// TT-04: Automatically update lobby advertisements
+let lobbyAds = [];
+let lobbyAdIndex = 0;
+let lobbyAdTimer = null;
+let lastLobbyAdData = null;
+let lobbyAdLoading = false;
 
-            if (!response.ok) {
-                throw new Error("Could not load ads");
-            }
+// Display the current advertisement
+function showLobbyAd() {
+    const adLink = document.getElementById("adLink");
+    const adImage = document.getElementById("adImage");
+    const adMessage = document.getElementById("adMessage");
 
-            const ads = await response.json();
+    // Stop the old rotation timer
+    clearTimeout(lobbyAdTimer);
+    lobbyAdTimer = null;
 
-            if (ads.length === 0) {
-                adMessage.textContent = "No advertisement available";
-                adLink.hidden = true;
-                return;
-            }
-
-            let adIndex = 0;
-
-            function showAd() {
-                const ad = ads[adIndex];
-
-            adImage.src = ad.imageUrl;
-            adImage.alt = ad.name;
-            adMessage.textContent = ad.name;
-
-            if (ad.linkUrl.startsWith("https://") ||
-                ad.linkUrl.startsWith("http://")) {
-                adLink.href = ad.linkUrl;
-            } else {
-                adLink.removeAttribute("href");
-            }
-
-            adLink.hidden = false;
-            adIndex = (adIndex + 1) % ads.length;
-
-                if (ads.length > 1) {
-                    const minutes = Number(ad.intervalMinutes) || 5;
-
-                    setTimeout(showAd, minutes * 60 * 1000);
-                }
-            }
-
-            showAd();
-
-        } catch (error) {
-            adMessage.textContent = "Advertisement unavailable";
-            adLink.hidden = true;
-        }
+    if (lobbyAds.length === 0) {
+        adMessage.textContent = "No advertisement available";
+        adLink.hidden = true;
+        return;
     }
 
-    loadLobbyAd();
+    const ad = lobbyAds[lobbyAdIndex];
+
+    adImage.src = ad.imageUrl;
+    adImage.alt = ad.name;
+    adMessage.textContent = ad.name;
+
+    if (ad.linkUrl.startsWith("https://") ||
+        ad.linkUrl.startsWith("http://")) {
+        adLink.href = ad.linkUrl;
+    } else {
+        adLink.removeAttribute("href");
+    }
+
+    adLink.hidden = false;
+
+    // AV-02: Rotate advertisements
+    if (lobbyAds.length > 1) {
+        const minutes = Number(ad.intervalMinutes) || 5;
+
+        lobbyAdTimer = setTimeout(function() {
+            lobbyAdIndex = (lobbyAdIndex + 1) % lobbyAds.length;
+            showLobbyAd();
+        }, minutes * 60 * 1000);
+    }
+}
+
+
+// TT-04: Automatically update lobby advertisements
+let lobbyAds = [];
+let lobbyAdIndex = 0;
+let lobbyAdTimer = null;
+let lastLobbyAdData = null;
+let lobbyAdLoading = false;
+
+// Display the current advertisement
+function showLobbyAd() {
+    const adLink = document.getElementById("adLink");
+    const adImage = document.getElementById("adImage");
+    const adMessage = document.getElementById("adMessage");
+
+    // Stop the old rotation timer
+    clearTimeout(lobbyAdTimer);
+    lobbyAdTimer = null;
+
+    if (lobbyAds.length === 0) {
+        adMessage.textContent = "No advertisement available";
+        adLink.hidden = true;
+        return;
+    }
+
+    const ad = lobbyAds[lobbyAdIndex];
+
+    adImage.src = ad.imageUrl;
+    adImage.alt = ad.name;
+    adMessage.textContent = ad.name;
+
+    if (ad.linkUrl.startsWith("https://") ||
+        ad.linkUrl.startsWith("http://")) {
+        adLink.href = ad.linkUrl;
+    } else {
+        adLink.removeAttribute("href");
+    }
+
+    adLink.hidden = false;
+
+    // AV-02: Rotate advertisements
+    if (lobbyAds.length > 1) {
+        const minutes = Number(ad.intervalMinutes) || 5;
+
+        lobbyAdTimer = setTimeout(function() {
+            lobbyAdIndex = (lobbyAdIndex + 1) % lobbyAds.length;
+            showLobbyAd();
+        }, minutes * 60 * 1000);
+    }
+}
+
+// TT-04: Check for advertisement changes
+async function loadLobbyAd() {
+    if (lobbyAdLoading) return;
+
+    lobbyAdLoading = true;
+
+    try {
+        const response = await fetch("/api/ads/lobby", {
+            cache: "no-store"
+        });
+
+        if (!response.ok) {
+            throw new Error("Could not load advertisements");
+        }
+
+        const ads = await response.json();
+
+        if (!Array.isArray(ads)) {
+            throw new Error("Invalid advertisements");
+        }
+
+        const newData = JSON.stringify(ads);
+
+        // Only update the display when ads have changed
+        if (newData !== lastLobbyAdData) {
+            const currentAd = lobbyAds[lobbyAdIndex];
+            const currentId = currentAd ? currentAd._id : null;
+
+            lobbyAds = ads;
+            lastLobbyAdData = newData;
+
+            // Keep showing the same ad if it still exists
+            const index = lobbyAds.findIndex(function(ad) {
+                return ad._id === currentId;
+            });
+
+            lobbyAdIndex = index >= 0 ? index : 0;
+
+            showLobbyAd();
+        }
+
+    } catch (error) {
+        // Keep the previous ad if an update request fails
+        if (lastLobbyAdData === null) {
+            document.getElementById("adMessage").textContent =
+                "Advertisement unavailable";
+            document.getElementById("adLink").hidden = true;
+        }
+    } finally {
+        lobbyAdLoading = false;
+    }
+}
+
+// Load advertisements when the page opens
+loadLobbyAd();
+
+// Check for advertisement changes every 5 seconds
+setInterval(loadLobbyAd, 5000);
+
 
     
     showTables();
