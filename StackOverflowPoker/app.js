@@ -241,12 +241,11 @@ app.get("/table/:tableId", (req, res) => {
 app.post("/api/tables/leave", tablesController.leaveTable);
 // PG-02: Retrieve chip balance
 app.get('/users/:username/chips', controller.getChips);
-// PG-02: Add chips
-app.post('/users/:username/chips/add', controller.addChips);
-// PG-02: Remove chips
-app.post('/users/:username/chips/remove', controller.removeChips);
-// PG-02: Set chip balance
-app.put('/users/:username/chips', controller.setChips);
+// PG-02: Add, remove, or set a player's chips.
+// TT-05: administrators only. Players' chips only change by playing.
+app.post('/users/:username/chips/add', requireAdmin, controller.addChips);
+app.post('/users/:username/chips/remove', requireAdmin, controller.removeChips);
+app.put('/users/:username/chips', requireAdmin, controller.setChips);
 //PG-01: Start a new round of Seven-Card Stud
 app.post("/api/tables/:tableId/start-round",tablesController.startRound);   
 //PG-01: Start the game

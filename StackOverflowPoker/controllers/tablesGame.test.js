@@ -45,6 +45,12 @@ function roundWith(players, extra) {
     }, extra);
 }
 
+// TT-05: the game engine says it is this round's first player's turn
+function itsTurn(round) {
+    sevenStud.checkTurn.mockReturnValue({ round: round, player: round.players[0] });
+    return round;
+}
+
 function cards(n) {
     const list = [];
     for (let i = 0; i < n; i++) {
@@ -331,20 +337,21 @@ describe("PG-02 Betting Actions", function() {
     });
 
     test("Call pays what is owed", async function() {
-        sevenStud.getRound.mockReturnValue(roundWith([{ username: "Ben", streetBet: 2 }], { currentBet: 6 }));
+        itsTurn(roundWith([{ username: "Ben", streetBet: 2 }], { currentBet: 6 }));
         sevenStud.call.mockReturnValue({ pot: 10 });
         const res = makeResponse();
         const req = asPlayer("Ben");
 
         await controller.call(req, res);
 
+        expect(sevenStud.checkTurn).toHaveBeenCalledWith(tableId, "Ben");
         expect(chipHelper.deductChips).toHaveBeenCalledWith(req, "Ben", 4);
         expect(sevenStud.call).toHaveBeenCalledWith(tableId, "Ben");
         expect(res.json).toHaveBeenCalledWith({ pot: 10 });
     });
 
     test("Call without enough chips", async function() {
-        sevenStud.getRound.mockReturnValue(roundWith([{ username: "Ben" }], { currentBet: 6 }));
+        itsTurn(roundWith([{ username: "Ben" }], { currentBet: 6 }));
         chipHelper.deductChips.mockRejectedValue(new Error("Not enough chips."));
         const res = makeResponse();
 
@@ -355,7 +362,7 @@ describe("PG-02 Betting Actions", function() {
     });
 
     test("Early streets raise by the small bet, plus what is owed", async function() {
-        sevenStud.getRound.mockReturnValue(roundWith([{ username: "Ben", streetBet: 1 }],
+        itsTurn(roundWith([{ username: "Ben", streetBet: 1 }],
             { currentBet: 3, street: 4, smallBet: 20, bigBet: 40 }));
         sevenStud.raise.mockReturnValue({ currentBet: 23 });
         const res = makeResponse();
@@ -369,7 +376,7 @@ describe("PG-02 Betting Actions", function() {
     });
 
     test("From fifth street on, raises use the big bet", async function() {
-        sevenStud.getRound.mockReturnValue(roundWith([{ username: "Ben" }],
+        itsTurn(roundWith([{ username: "Ben" }],
             { currentBet: 0, street: 5, smallBet: 20, bigBet: 40 }));
         const req = asPlayer("Ben");
 
@@ -379,12 +386,36 @@ describe("PG-02 Betting Actions", function() {
     });
 
     test("Raise with no round", async function() {
-        sevenStud.getRound.mockReturnValue(null);
+        sevenStud.checkTurn.mockImplementation(() => { throw new Error("Round not found"); });
         const res = makeResponse();
 
-        await controller.raise(asPlayer("Ben", { body: { amount: 5 } }), res);
+        await controller.raise(asPlayer("Ben"), res);
 
         expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({ msg: "Round not found" });
+    });
+
+    test("TT-05: Calling out of turn is refused before any chips are taken", async function() {
+        sevenStud.checkTurn.mockImplementation(() => { throw new Error("It's not your turn."); });
+        const res = makeResponse();
+
+        await controller.call(asPlayer("Ben"), res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(res.json).toHaveBeenCalledWith({ msg: "It's not your turn." });
+        expect(chipHelper.deductChips).not.toHaveBeenCalled();
+        expect(sevenStud.call).not.toHaveBeenCalled();
+    });
+
+    test("TT-05: Raising out of turn is refused before any chips are taken", async function() {
+        sevenStud.checkTurn.mockImplementation(() => { throw new Error("It's not your turn."); });
+        const res = makeResponse();
+
+        await controller.raise(asPlayer("Ben"), res);
+
+        expect(res.status).toHaveBeenCalledWith(400);
+        expect(chipHelper.deductChips).not.toHaveBeenCalled();
+        expect(sevenStud.raise).not.toHaveBeenCalled();
     });
 });
 

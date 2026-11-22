@@ -16,7 +16,8 @@ jest.mock("../game/sevenStud", () => ({
     startRound: jest.fn(),
     playBotTurns: jest.fn(),
     getRound: jest.fn(),
-    endRound: jest.fn()
+    endRound: jest.fn(),
+    leaveRound: jest.fn()
 }));
 jest.mock("../game/chipHelper", () => ({
     addChips: jest.fn()
@@ -312,6 +313,17 @@ test("TT-03: Leave a table as the signed-in player", async function() {
     await controller.leaveTable(asPlayer("Dennis", { tableId, username: "Shane" }), res);
 
     expect(dao.leaveTable).toHaveBeenCalledWith(tableId, "Dennis");
+    expect(res.status).toHaveBeenCalledWith(200);
+});
+
+test("PG-03: Leaving mid-game folds the player and lets the bots play on", async function() {
+    dao.leaveTable.mockResolvedValue({ _id: tableId, players: [] });
+    const res = makeResponse();
+
+    await controller.leaveTable(asPlayer("Dennis", { tableId }), res);
+
+    expect(gameRounds.leaveRound).toHaveBeenCalledWith(tableId, "Dennis");
+    expect(gameRounds.playBotTurns).toHaveBeenCalledWith(tableId);
     expect(res.status).toHaveBeenCalledWith(200);
 });
 

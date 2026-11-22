@@ -24,6 +24,13 @@ function checkUntilStreet(id, street) {
     return round;
 }
 
+// The player whose turn it is checks. (From 4th street on, the best face-up
+// hand acts first, so tests can't assume who goes first.)
+function checkByCurrentPlayer(id) {
+    const round = sevenStud.getRound(id);
+    return sevenStud.check(id, round.players[round.currentPlayer].username);
+}
+
 function card(rank, suit) {
     return { rank: rank, suit: suit };
 }
@@ -120,11 +127,17 @@ describe("PG-02 Fold", function() {
     test("Folding passes the turn and skips folded players", async function() {
         const id = newTableId();
         await start(id, [{ username: "Ben" }, { username: "Amy" }, { username: "Cal" }]);
+        sevenStud.raise(id, "Ben", 2);
 
-        // The turn moves on from Ben, skips Amy (folded), and lands on Cal
+        // Amy folds on her turn, so it moves on to Cal
         const round = sevenStud.fold(id, "Amy");
-
         expect(round.status).toBe("betting");
+        expect(round.players[round.currentPlayer].username).toBe("Cal");
+
+        // Next street: after Ben checks, the turn skips Amy and goes to Cal
+        sevenStud.call(id, "Cal");
+        round.currentPlayer = 0; // Ben first, so the skip over Amy is what we test
+        sevenStud.check(id, "Ben");
         expect(round.players[round.currentPlayer].username).toBe("Cal");
     });
 
@@ -152,12 +165,13 @@ describe("PG-02 Check, Call And Raise", function() {
         const id = newTableId();
         await start(id, twoPlayers());
 
-        sevenStud.check(id, "Ben");
-        const round = sevenStud.check(id, "Amy");
+        checkByCurrentPlayer(id);
+        const round = checkByCurrentPlayer(id);
 
         expect(round.street).toBe(4);
         expect(round.players[0].hand.cards.length).toBe(4);
-        expect(round.currentPlayer).toBe(0);
+        expect(round.players[1].hand.cards.length).toBe(4);
+        expect([0, 1]).toContain(round.currentPlayer);
     });
 
     test("Cannot check when there is a bet to call", async function() {
@@ -259,8 +273,8 @@ describe("PG-02 Showdown", function() {
             card("2", "Clubs"), card("4", "Diamonds"), card("6", "Hearts"), card("8", "Spades"),
             card("9", "Clubs"), card("J", "Diamonds"), card("3", "Spades")
         ];
-        sevenStud.check(id, "Ben");
-        sevenStud.check(id, "Amy");
+        checkByCurrentPlayer(id);
+        checkByCurrentPlayer(id);
 
         expect(round.status).toBe("complete");
         expect(round.winners).toEqual([{ username: "Ben", hand: "Four of a Kind", winnings: 20 }]);
@@ -283,8 +297,8 @@ describe("PG-02 Showdown", function() {
         };
         round.players[0].hand.cards = sameHand("Hearts");
         round.players[1].hand.cards = sameHand("Spades");
-        sevenStud.check(id, "Ben");
-        sevenStud.check(id, "Amy");
+        checkByCurrentPlayer(id);
+        checkByCurrentPlayer(id);
 
         expect(round.winners.length).toBe(2);
         expect(round.winners[0].winnings).toBe(5);
@@ -309,7 +323,7 @@ describe("PG-02 Showdown", function() {
         const round = checkUntilStreet(id, 7);
         round.players.forEach(p => { p.folded = true; });
 
-        expect(() => sevenStud.check(id, "Ben")).toThrow("No players remaining.");
+        expect(() => checkByCurrentPlayer(id)).toThrow("No players remaining.");
     });
 
     test("If everyone has folded, the next street starts with seat 0", async function() {
@@ -482,5 +496,132 @@ describe("PG-02 Antes And Bring-In", function() {
 
         expect(chipHelper.getGuestChips("Guest-501")).toBe(5);
         expect(chipHelper.getGuestChips("Guest-502")).toBe(5);
+    });
+});
+
+describe("TT-05 Turn Order", function() {
+
+    test("Folding out of turn is refused", async function() {
+        const id = newTableId();
+        const round = await start(id, twoPlayers());
+
+        expect(() => sevenStud.fold(id, "Amy")).toThrow("It's not your turn.");
+        expect(round.players[1].folded).toBe(false);
+    });
+
+    test("Checking out of turn is refused", async function() {
+        const id = newTableId();
+        const round = await start(id, twoPlayers());
+
+        expect(() => sevenStud.check(id, "Amy")).toThrow("It's not your turn.");
+        expect(round.currentPlayer).toBe(0);
+    });
+
+    test("Calling out of turn is refused", async function() {
+        const id = newTableId();
+        const round = await start(id, [{ username: "Ben" }, { username: "Amy" }, { username: "Cal" }]);
+        sevenStud.raise(id, "Ben", 4);
+
+        // It is Amy's turn, so Cal can't call yet
+        expect(() => sevenStud.call(id, "Cal")).toThrow("It's not your turn.");
+        expect(round.pot).toBe(4);
+    });
+
+    test("Raising out of turn is refused", async function() {
+        const id = newTableId();
+        const round = await start(id, twoPlayers());
+
+        expect(() => sevenStud.raise(id, "Amy", 4)).toThrow("It's not your turn.");
+        expect(round.currentBet).toBe(0);
+    });
+
+    test("Nobody can act after the round is over", async function() {
+        const id = newTableId();
+        await start(id, twoPlayers());
+        sevenStud.fold(id, "Ben");
+
+        expect(() => sevenStud.check(id, "Amy")).toThrow("This round is already over.");
+    });
+
+    test("Acting at a table with no round is refused", function() {
+        expect(() => sevenStud.fold("no-such-table", "Ben")).toThrow("Round not found");
+        expect(() => sevenStud.call("no-such-table", "Ben")).toThrow("Round not found");
+    });
+
+    test("The turn check returns the round and player", async function() {
+        const id = newTableId();
+        const round = await start(id, twoPlayers());
+
+        const result = sevenStud.checkTurn(id, "Ben");
+
+        expect(result.round).toBe(round);
+        expect(result.player.username).toBe("Ben");
+    });
+});
+
+describe("PG-03 + TT-05 Leaving Mid-Game", function() {
+
+    function threePlayers() {
+        return [{ username: "Ben" }, { username: "Amy" }, { username: "Cal" }];
+    }
+
+    test("Leaving when it isn't your turn folds you, and the turn stays put", async function() {
+        const id = newTableId();
+        const round = await start(id, threePlayers());
+
+        sevenStud.leaveRound(id, "Cal");
+
+        expect(round.players[2].folded).toBe(true);
+        expect(round.players[round.currentPlayer].username).toBe("Ben");
+        expect(round.lastAction).toBe("Cal left the table");
+    });
+
+    test("Leaving on your turn passes the turn to the next player", async function() {
+        const id = newTableId();
+        const round = await start(id, threePlayers());
+
+        sevenStud.leaveRound(id, "Ben");
+
+        expect(round.players[0].folded).toBe(true);
+        expect(round.players[round.currentPlayer].username).toBe("Amy");
+    });
+
+    test("If only one player is left, they win the pot", async function() {
+        const id = newTableId();
+        const round = await start(id, twoPlayers());
+        sevenStud.raise(id, "Ben", 6);
+
+        sevenStud.leaveRound(id, "Ben");
+
+        expect(round.status).toBe("complete");
+        expect(round.winners).toEqual([{ username: "Amy", hand: "Last Player Remaining", winnings: 6 }]);
+    });
+
+    test("Leaving a table with no game running does nothing", function() {
+        expect(sevenStud.leaveRound("no-such-table", "Ben")).toBeNull();
+    });
+
+    test("Leaving after the round is over changes nothing", async function() {
+        const id = newTableId();
+        const round = await start(id, twoPlayers());
+        sevenStud.fold(id, "Ben");
+
+        sevenStud.leaveRound(id, "Amy");
+
+        expect(round.players[1].folded).toBe(false);
+        expect(round.winners[0].username).toBe("Amy");
+    });
+
+    test("Someone not in the round, or already folded, changes nothing", async function() {
+        const id = newTableId();
+        const round = await start(id, threePlayers());
+        sevenStud.fold(id, "Ben");
+        const turnBefore = round.currentPlayer;
+
+        sevenStud.leaveRound(id, "Ghost");
+        sevenStud.leaveRound(id, "Ben");
+
+        expect(round.currentPlayer).toBe(turnBefore);
+        expect(round.status).toBe("betting");
     });
 });

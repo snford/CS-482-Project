@@ -112,19 +112,10 @@ exports.leaveTable = async function(req, res) {
     }
 
     try {
-        const round = gameRounds.getRound(tableId);
-
-        // Player leaves while game is running
-        if (round && round.status !== "complete") {
-
-            const player = round.players.find(
-                p => p.username === username
-            );
-
-            if (player && !player.folded) {
-                gameRounds.fold(tableId, username);
-            }
-        }
+        // PG-03: a player leaving while the game is running is folded, even
+        // when it isn't their turn. If the turn passes to a bot, the bots play.
+        gameRounds.leaveRound(tableId, username);
+        gameRounds.playBotTurns(tableId);
 
         await dao.leaveTable(tableId, username);
 
@@ -432,14 +423,11 @@ exports.call = async function(req, res) {
     try {
         const username = playerName(req);
 
-        const round =
-            gameRounds.getRound(
-                req.params.tableId
-            );
-
-        const player =
-            round.players.find(
-                p => p.username === username
+        // TT-05: make sure it is this player's turn before taking any chips
+        const { round, player } =
+            gameRounds.checkTurn(
+                req.params.tableId,
+                username
             );
 
         const amountToCall =
@@ -470,20 +458,17 @@ exports.raise = async function(req, res) {
     try {
         const username = playerName(req);
 
-        const currentRound =
-            gameRounds.getRound(
-                req.params.tableId
+        // TT-05: make sure it is this player's turn before taking any chips
+        const { round: currentRound, player } =
+            gameRounds.checkTurn(
+                req.params.tableId,
+                username
             );
 
         const raiseAmount =
             currentRound.street >= 5
                 ? currentRound.bigBet
                 : currentRound.smallBet;
-
-        const player =
-            currentRound.players.find(
-                p => p.username === username
-            );
 
         const amountToCall =
             currentRound.currentBet -

@@ -95,14 +95,20 @@ describe("PG-02 Get Chips", function() {
     });
 });
 
+// TT-05: only admins can add or remove chips, and they change the player in the URL
+function adminChanging(username, amount) {
+    return { user: { username: "Shane", role: "admin" }, params: { username: username }, body: { amount: amount } };
+}
+
 describe("PG-02 Add Chips", function() {
 
-    test("Add chips to the signed-in player", async function() {
+    test("Admin adds chips to the player in the URL", async function() {
         dao.addChips.mockResolvedValue(1100);
         const res = makeResponse();
 
-        await controller.addChips({ user: player(), body: { amount: 100 } }, res);
+        await controller.addChips(adminChanging("Ben", 100), res);
 
+        // Ben's chips change, not the admin's
         expect(dao.addChips).toHaveBeenCalledWith("Ben", 100);
         expect(res.json).toHaveBeenCalledWith({ msg: "Chips added successfully", chips: 1100 });
     });
@@ -110,7 +116,7 @@ describe("PG-02 Add Chips", function() {
     test("Amount must be positive", async function() {
         const res = makeResponse();
 
-        await controller.addChips({ user: player(), body: { amount: 0 } }, res);
+        await controller.addChips(adminChanging("Ben", 0), res);
 
         expect(res.status).toHaveBeenCalledWith(400);
     });
@@ -119,15 +125,16 @@ describe("PG-02 Add Chips", function() {
         dao.addChips.mockRejectedValue(new Error("User not found"));
         const res = makeResponse();
 
-        await controller.addChips({ user: player(), body: { amount: 10 } }, res);
+        await controller.addChips(adminChanging("Ghost", 10), res);
 
         expect(res.status).toHaveBeenCalledWith(404);
     });
 
-    test("Signed-out request fails safely", async function() {
+    test("Other database error", async function() {
+        dao.addChips.mockRejectedValue(new Error("Database error"));
         const res = makeResponse();
 
-        await controller.addChips({ body: { amount: 10 } }, res);
+        await controller.addChips(adminChanging("Ben", 10), res);
 
         expect(res.status).toHaveBeenCalledWith(500);
     });
@@ -135,11 +142,11 @@ describe("PG-02 Add Chips", function() {
 
 describe("PG-02 Remove Chips", function() {
 
-    test("Remove chips from the signed-in player", async function() {
+    test("Admin removes chips from the player in the URL", async function() {
         dao.removeChips.mockResolvedValue(900);
         const res = makeResponse();
 
-        await controller.removeChips({ user: player(), body: { amount: 100 } }, res);
+        await controller.removeChips(adminChanging("Ben", 100), res);
 
         expect(dao.removeChips).toHaveBeenCalledWith("Ben", 100);
         expect(res.status).toHaveBeenCalledWith(200);
@@ -148,7 +155,7 @@ describe("PG-02 Remove Chips", function() {
     test("Amount must be positive", async function() {
         const res = makeResponse();
 
-        await controller.removeChips({ user: player(), body: { amount: -3 } }, res);
+        await controller.removeChips(adminChanging("Ben", -3), res);
 
         expect(res.status).toHaveBeenCalledWith(400);
     });
@@ -157,7 +164,7 @@ describe("PG-02 Remove Chips", function() {
         dao.removeChips.mockRejectedValue(new Error("User not found or insufficient chips"));
         const res = makeResponse();
 
-        await controller.removeChips({ user: player(), body: { amount: 5000 } }, res);
+        await controller.removeChips(adminChanging("Ben", 5000), res);
 
         expect(res.status).toHaveBeenCalledWith(400);
         expect(res.json).toHaveBeenCalledWith({ msg: "User not found or insufficient chips" });
@@ -167,7 +174,7 @@ describe("PG-02 Remove Chips", function() {
         dao.removeChips.mockRejectedValue(new Error("Database error"));
         const res = makeResponse();
 
-        await controller.removeChips({ user: player(), body: { amount: 5 } }, res);
+        await controller.removeChips(adminChanging("Ben", 5), res);
 
         expect(res.status).toHaveBeenCalledWith(500);
     });

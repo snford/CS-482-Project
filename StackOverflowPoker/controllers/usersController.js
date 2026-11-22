@@ -419,7 +419,8 @@ const username = req.params.username;
 //PG-02: Adds chips to a user's account.
 exports.addChips = async function(req, res) {
     try {
-        const username = req.user.username;
+        // TT-05: an admin changes the player named in the URL
+        const username = req.params.username;
         const { amount } = req.body;
 
         if (!Number.isSafeInteger(amount) || amount <= 0) {
@@ -453,7 +454,8 @@ exports.addChips = async function(req, res) {
 //PG-02: Removes chips from a user's account.
 exports.removeChips = async function(req, res) {
     try {
-        const username = req.user.username;
+        // TT-05: an admin changes the player named in the URL
+        const username = req.params.username;
         const { amount } = req.body;
 
         if (!Number.isSafeInteger(amount) || amount <= 0) {

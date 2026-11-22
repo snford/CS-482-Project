@@ -262,8 +262,18 @@ exports.playBotTurns = function(tableId) {
 };
 
 
-exports.fold = function(tableId, username) {
+// TT-05: a player can only act during a round they are in, and only on their turn.
+// Returns the round and the player so the action can go ahead.
+exports.checkTurn = function(tableId, username) {
     const round = activeRounds.get(String(tableId));
+
+    if (!round) {
+        throw new Error("Round not found");
+    }
+
+    if (round.status !== "betting") {
+        throw new Error("This round is already over.");
+    }
 
     const player = round.players.find(
         p => p.username === username
@@ -273,8 +283,18 @@ exports.fold = function(tableId, username) {
         throw new Error("Player not found");
     }
 
+    if (round.players[round.currentPlayer] !== player) {
+        throw new Error("It's not your turn.");
+    }
+
+    return { round, player };
+};
+
+// Folds a player. If only one player is left, they win and the round ends.
+// Returns true if the round ended.
+function foldPlayer(round, player) {
     player.folded = true;
-    round.lastAction = `${username} folded`;
+    round.lastAction = `${player.username} folded`;
 
     const activePlayers = round.players.filter(
         p => !p.folded
@@ -292,20 +312,52 @@ exports.fold = function(tableId, username) {
             winnings: round.pot
         }];
 
+        return true;
+    }
+
+    return false;
+}
+
+exports.fold = function(tableId, username) {
+    const { round, player } = exports.checkTurn(tableId, username);
+
+    if (!foldPlayer(round, player)) {
+        nextPlayer(round);
+    }
+
+    return round;
+};
+
+// PG-03 + TT-05: a player who leaves mid-game is folded even if it isn't
+// their turn (they can't wait for it). The turn only moves on if it was theirs.
+exports.leaveRound = function(tableId, username) {
+    const round = activeRounds.get(String(tableId));
+
+    if (!round || round.status !== "betting") {
+        return round || null;
+    }
+
+    const player = round.players.find(
+        p => p.username === username
+    );
+
+    if (!player || player.folded) {
         return round;
     }
 
-    nextPlayer(round);
+    const wasTheirTurn = round.players[round.currentPlayer] === player;
+
+    if (!foldPlayer(round, player) && wasTheirTurn) {
+        nextPlayer(round);
+    }
+
+    round.lastAction = `${username} left the table`;
 
     return round;
 };
 
 exports.check = function(tableId, username) {
-    const round = activeRounds.get(String(tableId));
-
-    const player = round.players.find(
-        p => p.username === username
-    );
+    const { round, player } = exports.checkTurn(tableId, username);
 
     if (player.streetBet !== round.currentBet) {
         throw new Error("Cannot check");
@@ -324,11 +376,7 @@ exports.check = function(tableId, username) {
 };
 
 exports.call = function(tableId, username) {
-    const round = activeRounds.get(String(tableId));
-
-    const player = round.players.find(
-        p => p.username === username
-    );
+    const { round, player } = exports.checkTurn(tableId, username);
 
     const amountToCall =
         round.currentBet - player.streetBet;
@@ -357,21 +405,7 @@ exports.raise = function (
     username,
     raiseAmount
 ) {
-    const round =
-        activeRounds.get(String(tableId));
-
-    if (!round) {
-        throw new Error("Round not found");
-    }
-
-    const player =
-        round.players.find(
-            p => p.username === username
-        );
-
-    if (!player) {
-        throw new Error("Player not found");
-    }
+    const { round, player } = exports.checkTurn(tableId, username);
 
     const amountToCall =
         round.currentBet - player.streetBet;

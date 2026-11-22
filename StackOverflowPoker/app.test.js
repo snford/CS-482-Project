@@ -169,3 +169,34 @@ test("SF-09: Friend status needs a signed-in player", async function() {
 
     expect(response.status).toBe(401);
 });
+
+describe("TT-05 Chip Changes Are Admin Only", function() {
+
+    async function sendChips(method, path, cookie) {
+        return await request(path, {
+            method: method,
+            headers: Object.assign({ "content-type": "application/json" }, cookie ? { cookie: cookie } : {}),
+            body: JSON.stringify({ amount: 1000000 })
+        });
+    }
+
+    test("Signed-out visitors can't set, add, or remove chips", async function() {
+        expect((await sendChips("PUT", "/users/Ben/chips")).status).toBe(401);
+        expect((await sendChips("POST", "/users/Ben/chips/add")).status).toBe(401);
+        expect((await sendChips("POST", "/users/Ben/chips/remove")).status).toBe(401);
+    });
+
+    test("Guests can't give themselves chips either", async function() {
+        const cookie = cookieFrom(await request("/guest", { method: "POST" }));
+
+        const response = await sendChips("POST", "/users/Ben/chips/add", cookie);
+
+        expect(response.status).toBe(401);
+    });
+
+    test("Anyone can still see a player's chips", async function() {
+        const response = await request("/users/Guest-1234/chips");
+
+        expect(response.status).toBe(200);
+    });
+});
