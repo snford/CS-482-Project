@@ -1,4 +1,4 @@
-/* ==========================================================================
+ /* ==========================================================================
    Stack Overflow Poker — shared design system
    Brand color #bf40bf (client), purple top bar, rounded cards (UI mockups).
    ========================================================================== */
@@ -398,6 +398,12 @@ a:hover { color: var(--brand); }
     max-width: none !important;
     max-height: none !important;
 }
+
+/* Let Home page ad boxes fit the advertisement */
+.ad-slot.h-100:has(a:not([hidden])) {
+    height: auto !important;
+}
+
 
 /* ---------- Buttons ---------- */
 .btn {
