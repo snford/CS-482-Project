@@ -126,10 +126,14 @@ a:hover { color: var(--brand); }
 .site-nav .nav-link {
     color: rgba(255, 255, 255, .86);
     font-weight: 500;
+    border: 1px solid rgba(255, 255, 255, 0.6);
     border-radius: 999px;
     padding: .45rem .95rem !important;
     display: flex;
     align-items: center;
+    justify-content: center;
+    text-align: center;
+    white-space: nowrap;
     gap: .45rem;
     transition: background-color .2s ease, color .2s ease;
 }
