@@ -101,6 +101,7 @@
               Pot: --
             </div>
             <div class="street">Waiting</div>
+            <div class="action">Game has not started</div>
             <div class="status" id="tableStatus">No hand in progress</div>
           </div>
           <div class="seats" id="seats"></div>
@@ -371,6 +372,7 @@
               if (dealtCards.length > 0) {
                   seat.appendChild(cardsContainer);
               }
+              
           }
         seats.appendChild(seat);
       }
@@ -616,6 +618,9 @@ async function loadRound() {
       document.querySelector(".street")
           .textContent = "Waiting";
 
+        document.querySelector(".action")
+            .textContent = "Game has not started";
+
       document.querySelector(".turn-message")
           .textContent = "No hand in progress";
 
@@ -694,6 +699,10 @@ async function loadRound() {
                 <i></i><i></i><i></i>
             </span>
             Pot: ${result.pot}`;
+
+        document.querySelector(".action")
+        .textContent =
+            result.lastAction || "Waiting";
 
         document.querySelector(".street")
             .textContent = `Street ${result.street}`;

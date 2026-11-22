@@ -67,6 +67,40 @@ function getLowestUpCardPlayer(players) {
     return lowestIndex;
 }
 
+function getHighestShowingPlayer(players) {
+
+    let bestIndex = -1;
+    let bestHand = null;
+
+    for (let i = 0; i < players.length; i++) {
+
+        const player = players[i];
+
+        if (player.folded) {
+            continue;
+        }
+
+        const showingCards =
+            player.hand.cards
+                .slice(2)
+                .map(toPokerSolverCard);
+
+        const hand =
+            PokerHand.solve(showingCards);
+
+        if (
+            !bestHand ||
+            PokerHand.winners(
+                [bestHand, hand]
+            )[0] === hand
+        ) {
+            bestHand = hand;
+            bestIndex = i;
+        }
+    }
+
+    return bestIndex;
+}
 
 exports.startRound = async function (
     tableId,
@@ -93,7 +127,7 @@ exports.startRound = async function (
             folded: false,
             streetBet: 0,
             totalBet: 0,
-            acted: false
+            acted: false,
         };
     });
     // Chips taken so far, so they can be given back if the round can't start
@@ -163,7 +197,8 @@ exports.startRound = async function (
         smallBet,
         bigBet,
         bettingComplete: false,
-        winningsAwarded: false
+        winningsAwarded: false,
+        lastAction: `game started. ${hands[bringInPlayerIndex].username} has the bring-in of ${bringIn}.`,
     };
 
     activeRounds.set(String(tableId), round);
@@ -239,6 +274,7 @@ exports.fold = function(tableId, username) {
     }
 
     player.folded = true;
+    round.lastAction = `${username} folded`;
 
     const activePlayers = round.players.filter(
         p => !p.folded
@@ -276,6 +312,7 @@ exports.check = function(tableId, username) {
     }
 
     player.acted = true;
+    round.lastAction = `${username} checked`;
 
     if (bettingRoundComplete(round)) {
         advanceStreet(round);
@@ -302,6 +339,8 @@ exports.call = function(tableId, username) {
         round.pot += amountToCall;
 
         player.acted = true;
+        round.lastAction =
+        `${username} called ${amountToCall}`;
 
 
     if (bettingRoundComplete(round)) {
@@ -353,6 +392,8 @@ exports.raise = function (
     });
 
     player.acted = true;
+    round.lastAction =
+    `${username} raised ${raiseAmount}`;
 
     nextPlayer(round);
 
@@ -362,6 +403,8 @@ exports.raise = function (
 function advanceStreet(round) {
 
     round.street++;
+    round.lastAction =
+    `Street ${round.street} started`;
 
     // Reset betting
     round.currentBet = 0;
@@ -392,11 +435,20 @@ function advanceStreet(round) {
     }
 
     // Set first active player
-    round.currentPlayer =
-        round.players.findIndex(
-            player => !player.folded
-        );
+    if (round.street >= 4) {
 
+        round.currentPlayer =
+            getHighestShowingPlayer(
+                round.players
+            );
+
+    } else {
+
+        round.currentPlayer =
+            round.players.findIndex(
+                player => !player.folded
+            );
+    }
     if (round.currentPlayer < 0) {
         round.currentPlayer = 0;
     }
@@ -463,6 +515,7 @@ function showdown(round) {
         winner.player.winnings = winnings;
     });
 
+    round.lastAction = "Showdown";
     round.status = "complete";
     round.winners = winners.map(winner => ({
         username: winner.username,

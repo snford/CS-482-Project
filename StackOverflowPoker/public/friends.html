@@ -77,6 +77,20 @@
 
         .bubble.them { background: #f2eef5; border-bottom-left-radius: 4px; }
         .bubble.me { align-self: flex-end; color: #fff; background: linear-gradient(135deg, #cf55cf, var(--brand-700)); border-bottom-right-radius: 4px; }
+        .unread-badge {
+            display: inline-block;
+            margin-left: .4rem;
+            min-width: 20px;
+            padding: 0 6px;
+            border-radius: 10px;
+            background: #dc3545;
+            color: #fff;
+            font-size: .72rem;
+            font-weight: 600;
+            text-align: center;
+            line-height: 20px;
+            vertical-align: middle;
+        }
     </style>
 </head>
 <body>
@@ -267,7 +281,7 @@
                 // Stop navigation to player.html
                 e.preventDefault();
                 e.stopPropagation();
-
+                MsgNotify.clear(name);
                 openChat(name);
             }
         );
@@ -280,7 +294,7 @@
         });
         container.appendChild(row);
       }
-
+      renderUnread();
       loadFriendStatus();
   }
 
@@ -371,7 +385,6 @@
   async function openChat(friendName) {
 
     activeFriend = friendName;
-
     document.getElementById("chatStatus")
     .textContent = "Chatting with " + friendName;
 
@@ -447,13 +460,11 @@ document.getElementById("messageInput")
 
 });
 
-setInterval(async function() {
-
-    if (activeFriend) {
-        await openChat(activeFriend);
+window.addEventListener("new-message", function(e) {
+    if (e.detail.friend === activeFriend) {
+        openChat(activeFriend);
     }
-
-}, 3000);
+});
 
 async function sendMessage() {
 
@@ -494,6 +505,26 @@ async function sendMessage() {
         activeFriend
     );
 }
+function renderUnread() {
+    const unread = MsgNotify.unread();
+    document.querySelectorAll(".friend-link").forEach(function(row) {
+        const count = unread[row.dataset.friend] || 0;
+        const title = row.querySelector(".title");
+        let badge = title.querySelector(".unread-badge");
+        if (count > 0) {
+            if (!badge) {
+                badge = document.createElement("span");
+                badge.className = "unread-badge";
+                title.appendChild(badge);
+            }
+            badge.textContent = count;
+        } else if (badge) {
+            badge.remove();
+        }
+    });
+}
+window.addEventListener("unread-changed", renderUnread);
+
 </script>
 </body>
 </html>

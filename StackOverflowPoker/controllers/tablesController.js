@@ -112,6 +112,20 @@ exports.leaveTable = async function(req, res) {
     }
 
     try {
+        const round = gameRounds.getRound(tableId);
+
+        // Player leaves while game is running
+        if (round && round.status !== "complete") {
+
+            const player = round.players.find(
+                p => p.username === username
+            );
+
+            if (player && !player.folded) {
+                gameRounds.fold(tableId, username);
+            }
+        }
+
         await dao.leaveTable(tableId, username);
 
         return res.status(200).json({
@@ -361,6 +375,7 @@ exports.getRound = async function (req, res) {
             status: round.status,
             pot: round.pot,
             currentBet: round.currentBet,
+            lastAction: round.lastAction || "Waiting for action",
             currentPlayer:
                 round.players[
                     round.currentPlayer

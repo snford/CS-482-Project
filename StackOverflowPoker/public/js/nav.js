@@ -958,3 +958,136 @@ async function addAdminNavigationLink() {
     }
 })();
 
+(function () {
+    const baseTitle = document.title;
+
+    // Badge styles live here so every page gets them
+    const style = document.createElement("style");
+    style.textContent =
+        ".unread-badge{display:inline-block;margin-left:.4rem;min-width:20px;padding:0 6px;" +
+        "border-radius:10px;background:#dc3545;color:#fff;font-size:.72rem;font-weight:600;" +
+        "text-align:center;line-height:20px;vertical-align:middle;}";
+    document.head.appendChild(style);
+
+    function key(name) { return name + ":" + SOP.me.username; }
+    function load(k) {
+        try { return JSON.parse(localStorage.getItem(k)) || {}; } catch (e) { return {}; }
+    }
+    function save(k, v) {
+        try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* ignore */ }
+    }
+
+    // Update the tab title and the badge on the nav's Friends link
+    function refresh() {
+        const total = Object.values(load(key("msgUnread"))).reduce(function (a, n) { return a + n; }, 0);
+        document.title = total > 0 ? "(" + total + ") " + baseTitle : baseTitle;
+
+        const link = document.getElementById("friendsLink");
+        if (link) {
+            let badge = link.querySelector(".unread-badge");
+            if (total > 0) {
+                if (!badge) {
+                    badge = document.createElement("span");
+                    badge.className = "unread-badge";
+                    link.appendChild(badge);
+                }
+                badge.textContent = total;
+            } else if (badge) {
+                badge.remove();
+            }
+        }
+        window.dispatchEvent(new Event("unread-changed"));
+    }
+
+    // Used by friends.html
+    window.MsgNotify = {
+        unread: function () { return SOP.me ? load(key("msgUnread")) : {}; },
+        clear: function (friend) {
+            if (!SOP.me || !friend) return;
+            const unread = load(key("msgUnread"));
+            if (unread[friend]) {
+                delete unread[friend];
+                save(key("msgUnread"), unread);
+                refresh();
+            }
+        }
+    };
+
+    // Browsers only allow the permission prompt after a user click
+    document.addEventListener("click", function () {
+        if ("Notification" in window && Notification.permission === "default") {
+            Notification.requestPermission();
+        }
+    }, { once: true });
+
+    function popup(friend, text) {
+        if (!("Notification" in window) || Notification.permission !== "granted" || !document.hidden) return;
+        const n = new Notification("New message from " + friend, { body: text });
+        n.onclick = function () {
+            window.focus();
+            window.location.href = "/friends.html";
+            n.close();
+        };
+    }
+
+    async function check() {
+        const lastSeen = load(key("msgLastSeen"));
+        const unread = load(key("msgUnread"));
+        let changed = false;
+
+        for (const friend of SOP.me.friends || []) {
+            let msgs;
+            try {
+                const r = await fetch("/messages/" + encodeURIComponent(friend), { cache: "no-store" });
+                if (!r.ok) continue;
+                msgs = await r.json();
+            } catch (e) { continue; }
+
+            const incoming = msgs.filter(function (m) { return m.from !== SOP.me.username; });
+            const newest = incoming.reduce(function (a, m) {
+                return Math.max(a, new Date(m.sentAt).getTime());
+            }, 0);
+
+            // First run: record a baseline so old messages don't alert
+            if (!(friend in lastSeen)) {
+                lastSeen[friend] = newest;
+                changed = true;
+                continue;
+            }
+
+            const fresh = incoming.filter(function (m) {
+                return new Date(m.sentAt).getTime() > lastSeen[friend];
+            });
+            if (fresh.length === 0) continue;
+            lastSeen[friend] = newest;
+            changed = true;
+            window.dispatchEvent(new CustomEvent("new-message", { detail: { friend: friend } }));
+            // Already looking at this chat on the friends page: no alert
+            const open = (typeof activeFriend !== "undefined") ? activeFriend : null;
+            if (friend === open && !document.hidden) continue;
+
+            const text = fresh[fresh.length - 1].text;
+            unread[friend] = (unread[friend] || 0) + fresh.length;
+            SOP.toast(friend + ": " + text, "success");
+            popup(friend, text);
+        }
+
+        if (changed) {
+            save(key("msgLastSeen"), lastSeen);
+            save(key("msgUnread"), unread);
+            refresh();
+        }
+    }
+
+    document.addEventListener("visibilitychange", function () {
+        if (!document.hidden && typeof activeFriend !== "undefined") MsgNotify.clear(activeFriend);
+    });
+
+    SOP.ready.then(function () {
+        // Signed-in players only, and not on the logo-only sign-in page
+        if (!SOP.user || !SOP.me || !document.getElementById("siteNavRight")) return;
+        refresh();
+        check();
+        setInterval(check, 5000);
+    });
+})();
