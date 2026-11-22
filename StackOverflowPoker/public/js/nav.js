@@ -373,7 +373,7 @@ async function addAdminNavigationLink() {
 
         // Add the text
         adminLink.appendChild(
-            document.createTextNode(" Admin Dashboard")
+            document.createTextNode(" Admin")
         );
 
         // Insert the link into the navigation
