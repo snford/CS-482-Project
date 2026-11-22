@@ -166,7 +166,8 @@
         { id: "friendsLink", href: "/friends.html", label: "Friends", icon: "bi-people-fill", pages: ["friends.html", "player.html", "report.html"] },
         { id: "statsLink", href: "/stats.html", label: "Stats", icon: "bi-bar-chart-fill", pages: ["stats.html"] },
         { id: "leaderboardLink", href: "/leaderboard.html", label: "Leaderboard", icon: "bi-trophy-fill", pages: ["leaderboard.html"] },
-        { id: "profileLink", href: "/profile.html", label: "Profile", icon: "bi-person-circle", pages: ["profile.html"] }
+        { id: "profileLink", href: "/profile.html", label: "Profile", icon: "bi-person-circle", pages: ["profile.html"] },
+        { id: "tutorialLink", href: "/tutorial.html", label: "Tutorial", icon: "bi-book-half", pages: ["tutorial.html"] }
     ];
 
     const adminLinks = [
@@ -196,6 +197,13 @@
         href: "/adminads.html",
         label: "Ads",
         icon: "bi-megaphone-fill"
+    },
+    {
+        id: "tutorialLink",
+        href: "/tutorial.html",
+        label: "Tutorial",
+        icon: "bi-book-half",
+        pages: ["tutorial.html"]
     },
     {
         id: "backToSiteLink",
@@ -664,7 +672,7 @@ async function addAdminNavigationLink() {
 
         const widget = document.createElement("div");
         widget.className = "table-help-widget";
-        widget.hidden = true;
+        widget.hidden = false;
 
         widget.innerHTML = `
             <button
@@ -912,50 +920,6 @@ async function addAdminNavigationLink() {
         });
 
         renderTutorial();
-
-        // Only show the ? when the current player is seated.
-        // Works for both Google accounts and guests.
-        async function checkIfJoined() {
-            const playerName = SOP.user || SOP.guestName;
-
-            if (!playerName) {
-                widget.hidden = true;
-                setOpen(false);
-                return;
-            }
-
-            try {
-                const response = await fetch(
-                    "/api/tables/" + encodeURIComponent(tableId),
-                    {
-                        credentials: "same-origin",
-                        cache: "no-store"
-                    }
-                );
-
-                if (!response.ok) return;
-
-                const table = await response.json();
-                const players = Array.isArray(table.players)
-                    ? table.players
-                    : [];
-
-                const joined = players.includes(playerName);
-
-                widget.hidden = !joined;
-
-                if (!joined) setOpen(false);
-            } catch (error) {
-                // Keep the game working if the request fails.
-            }
-        }
-
-        SOP.ready.then(function () {
-            checkIfJoined();
-
-            // Detect joining or leaving without refreshing.
-            setInterval(checkIfJoined, 3000);
-        });
     }
 
     if (document.readyState === "loading") {
