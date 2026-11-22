@@ -53,3 +53,20 @@ exports.readActive = async function(placement) {
         active: true
     });
 };
+
+// TT-04: Edit an existing advertisement
+exports.updateAd = async function(adId, data) {
+    return await Ad.findByIdAndUpdate(
+        adId,
+        data,
+        {
+            new: true,
+            runValidators: true
+        }
+    );
+};
+
+// TT-04: Delete an existing advertisement
+exports.deleteAd = async function(adId) {
+    return await Ad.findByIdAndDelete(adId);
+};
