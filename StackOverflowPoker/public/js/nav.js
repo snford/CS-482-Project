@@ -173,7 +173,7 @@
     {
         id: "adminDashboardLink",
         href: "/admin-dashboard.html",
-        label: "Admin Dashboard",
+        label: "Admin",
         icon: "bi-speedometer2",
         pages: ["admin-dashboard.html"]
 
