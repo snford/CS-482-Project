@@ -185,6 +185,13 @@
         icon: "bi-flag-fill"
     },
     {
+    id: "adminChatLogsLink",
+    href: "/admin-chat-logs.html",
+    label: "Chat Logs",
+    icon: "bi-chat-dots-fill",
+    pages: ["admin-chat-logs.html"]
+    },
+    {
         id: "adminAdsLink",
         href: "/adminads.html",
         label: "Ads",
