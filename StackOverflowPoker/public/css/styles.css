@@ -149,7 +149,8 @@ a:hover { color: var(--brand); }
     background: #fff;
     box-shadow: 0 4px 12px rgba(0, 0, 0, .12);
 }
-/* Center and space out the top navigation */
+
+/* Center the navigation with small gaps */
 @media (min-width: 1400px) {
     .site-nav .navbar > .container {
         max-width: 100%;
@@ -159,13 +160,13 @@ a:hover { color: var(--brand); }
 
     .site-nav #siteNavLinks {
         align-items: center;
-        gap: 1rem;
+        gap: .5rem;
     }
 
     .site-nav #siteNavLinks .navbar-nav {
         flex: 1;
-        justify-content: space-evenly;
-        gap: .5rem !important;
+        justify-content: center;
+        gap: .375rem !important;
         margin-right: 0 !important;
     }
 }
