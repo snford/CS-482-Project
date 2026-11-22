@@ -103,9 +103,6 @@
                                 class="btn btn-light-soft w-100 mt-2 d-none">
                             Cancel edit
                         </button>
-                                id="cancelEditButton"
-                                class="btn btn-light-soft w-100 mt-2 d-none">
-                            Cancel edit
                         </button>
                     </form>
                     <p id="adMessage" class="mt-3"></p>
@@ -305,7 +302,7 @@
                 list.innerHTML = "";
                 const row = list.insertRow();
                 const cell = row.insertCell();
-                cell.colSpan = 4;
+                cell.colSpan = 5;
                 cell.textContent = "Could not load ads.";
             }
         }
