@@ -181,6 +181,20 @@ app.post(
     adminController.createAd
 );
 
+// TT-04: Administrator updates an advertisement
+app.put(
+    "/api/admin/ads/:adId",
+    requireAdmin,
+    adminController.updateAd
+);
+
+// TT-04: Administrator deletes an advertisement
+app.delete(
+    "/api/admin/ads/:adId",
+    requireAdmin,
+    adminController.deleteAd
+);
+
 // AV-01: Get active ads for the Lobby or Table
 app.get(
     "/api/ads/:placement",
