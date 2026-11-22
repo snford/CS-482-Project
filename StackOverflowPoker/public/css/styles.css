@@ -351,7 +351,7 @@ a:hover { color: var(--brand); }
 }
 
 .ad-slot {
-    border: 2px dashed #d6c6dd;
+    border: none;
     border-radius: var(--radius-lg);
     background: linear-gradient(135deg, #fbf7fc, #f4ecf6);
     color: var(--ink-muted);
