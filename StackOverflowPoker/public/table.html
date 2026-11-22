@@ -831,73 +831,114 @@ async function loadChips() {
         () => playerAction("raise")
     );
 
-    // AV-01: Load an active advertisement for the Table
-    // AV-02: Rotate active Table advertisements
-    async function loadTableAd() {
+    // TT-04: Automatically update table advertisements
+    let tableAds = [];
+    let tableAdIndex = 0;
+    let tableAdTimer = null;
+    let lastTableAdData = null;
+    let tableAdLoading = false;
+    
+    // Display the current advertisement
+    function showTableAd() {
         const adLink = document.getElementById("tableAdLink");
         const adImage = document.getElementById("tableAdImage");
         const adMessage = document.getElementById("tableAdMessage");
-
-        try {
-            const response = await fetch("/api/ads/table");
-
-            if (!response.ok) {
-                throw new Error("Could not load ads");
-            }
-
-            const ads = await response.json();
-
-            if (ads.length === 0) {
-                adMessage.textContent = "No advertisement available";
-                adLink.hidden = true;
-                return;
-            }
-
-            let adIndex = 0;
-
-            function showAd() {
-                const ad = ads[adIndex];
-
-                adImage.src = ad.imageUrl;
-                adImage.alt = ad.name;
-                adMessage.textContent = ad.name;
-
-                if (ad.linkUrl.startsWith("https://") ||
-                    ad.linkUrl.startsWith("http://")) {
-                    adLink.href = ad.linkUrl;
-                } else {
-                    adLink.removeAttribute("href");
-                }
-
-                adLink.hidden = false;
-                adIndex = (adIndex + 1) % ads.length;
-
-                // Wait before displaying the next ad
-                if (ads.length > 1) {
-                    const minutes = Number(ad.intervalMinutes) || 5;
-
-                    setTimeout(showAd, minutes * 60 * 1000);
-                }
-            }
-
-            showAd();
-
-        } catch (error) {
-            adMessage.textContent = "Advertisement unavailable";
+    
+        // Stop the previous rotation timer
+        clearTimeout(tableAdTimer);
+        tableAdTimer = null;
+    
+        if (tableAds.length === 0) {
+            adMessage.textContent = "No advertisement available";
             adLink.hidden = true;
+            return;
+        }
+    
+        const ad = tableAds[tableAdIndex];
+    
+        adImage.src = ad.imageUrl;
+        adImage.alt = ad.name;
+        adMessage.textContent = ad.name;
+    
+        if (ad.linkUrl.startsWith("https://") ||
+            ad.linkUrl.startsWith("http://")) {
+            adLink.href = ad.linkUrl;
+        } else {
+            adLink.removeAttribute("href");
+        }
+    
+        adLink.hidden = false;
+    
+        // AV-02: Rotate advertisements
+        if (tableAds.length > 1) {
+            const minutes = Number(ad.intervalMinutes) || 5;
+    
+            tableAdTimer = setTimeout(function() {
+                tableAdIndex = (tableAdIndex + 1) % tableAds.length;
+                showTableAd();
+            }, minutes * 60 * 1000);
         }
     }
-    loadTableAd();
-document
-    .getElementById("chatInput")
-    .addEventListener(
-        "keypress",
-        function(e) {
-            if (e.key === "Enter") {
-                sendChat();
+    
+    // TT-04: Check for changes to table advertisements
+    async function loadTableAd() {
+        if (tableAdLoading) return;
+    
+        tableAdLoading = true;
+    
+        try {
+            const response = await fetch("/api/ads/table", {
+                cache: "no-store"
+            });
+    
+            if (!response.ok) {
+                throw new Error("Could not load advertisements");
             }
+    
+            const ads = await response.json();
+    
+            if (!Array.isArray(ads)) {
+                throw new Error("Invalid advertisements");
+            }
+    
+            const newData = JSON.stringify(ads);
+    
+            // Only update the display if advertisements changed
+            if (newData !== lastTableAdData) {
+                const currentAd = tableAds[tableAdIndex];
+                const currentId = currentAd ? currentAd._id : null;
+    
+                tableAds = ads;
+                lastTableAdData = newData;
+    
+                // Keep the same ad if it still exists
+                const index = tableAds.findIndex(function(ad) {
+                    return ad._id === currentId;
+                });
+    
+                tableAdIndex = index >= 0 ? index : 0;
+    
+                showTableAd();
+            }
+    
+        } catch (error) {
+            // Keep existing ads if the request fails
+            if (lastTableAdData === null) {
+                document.getElementById("tableAdMessage").textContent =
+                    "Advertisement unavailable";
+                document.getElementById("tableAdLink").hidden = true;
+            }
+        } finally {
+            tableAdLoading = false;
         }
-    );
+    }
+    
+    // Load advertisements when the page opens
+    loadTableAd();
+    
+    // Check for advertisement changes every 5 seconds
+    setInterval(loadTableAd, 5000);
+
 document
     .getElementById("sendChatButton")
     .addEventListener(
