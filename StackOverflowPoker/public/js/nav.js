@@ -428,16 +428,7 @@ async function addAdminNavigationLink() {
     }
 
     function setupTableHelp() {
-        const params = new URLSearchParams(window.location.search);
-        const match = path.match(/^\/table\/([^/]+)/);
-
-        const tableId =
-            params.get("tableId") ||
-            params.get("id") ||
-            (match ? decodeURIComponent(match[1]) : null) ||
-            sessionStorage.getItem("currentTableId");
-
-        if (!tableId) return;
+        
 
         // Same six steps as the original tutorial
         const steps = [
