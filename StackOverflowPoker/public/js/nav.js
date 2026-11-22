@@ -1098,3 +1098,119 @@ async function addAdminNavigationLink() {
         setInterval(check, 5000);
     });
 })();
+
+/* TT-04: Show ads in placeholders on other pages */
+(function() {
+
+    function startSiteAds() {
+        // Find ad boxes that don't already have ad code
+        const slots = Array.from(document.querySelectorAll(".ad-slot"))
+            .filter(function(slot) {
+                return !slot.querySelector("a");
+            });
+
+        if (slots.length === 0) return;
+
+        // Use table ads on table pages and lobby ads elsewhere
+        const placement = window.location.pathname.startsWith("/table")
+            ? "table" : "lobby";
+
+        let ads = [];
+        let adIndex = 0;
+        let lastData = null;
+        let lastChange = Date.now();
+
+        // Add an image and link to each empty ad box
+        slots.forEach(function(slot) {
+            const link = document.createElement("a");
+            const image = document.createElement("img");
+
+            link.hidden = true;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            image.alt = "Advertisement";
+
+            link.appendChild(image);
+            slot.appendChild(link);
+        });
+
+        function showSiteAd() {
+            const ad = ads[adIndex];
+
+            slots.forEach(function(slot) {
+                const link = slot.querySelector("a");
+
+                if (!ad) {
+                    link.hidden = true;
+                    return;
+                }
+
+                const image = link.querySelector("img");
+                image.src = ad.imageUrl;
+                image.alt = ad.name;
+
+                if (typeof ad.linkUrl === "string" &&
+                    /^https?:\/\//i.test(ad.linkUrl)) {
+                    link.href = ad.linkUrl;
+                } else {
+                    link.removeAttribute("href");
+                }
+
+                link.hidden = false;
+            });
+        }
+
+        async function updateSiteAds() {
+            try {
+                const response = await fetch("/api/ads/" + placement, {
+                    cache: "no-store"
+                });
+
+                if (!response.ok) return;
+
+                const newAds = await response.json();
+                if (!Array.isArray(newAds)) return;
+
+                const newData = JSON.stringify(newAds);
+
+                if (newData !== lastData) {
+                    const current = ads[adIndex];
+                    const currentId = current ? current._id : null;
+
+                    ads = newAds;
+                    lastData = newData;
+
+                    const found = ads.findIndex(function(ad) {
+                        return ad._id === currentId;
+                    });
+
+                    adIndex = found >= 0 ? found : 0;
+                    lastChange = Date.now();
+                    showSiteAd();
+
+                } else if (ads.length > 1) {
+                    const minutes = Number(ads[adIndex].intervalMinutes) || 5;
+
+                    if (Date.now() - lastChange >= minutes * 60000) {
+                        adIndex = (adIndex + 1) % ads.length;
+                        lastChange = Date.now();
+                        showSiteAd();
+                    }
+                }
+
+            } catch (error) {
+                console.error("Could not load advertisements:", error);
+            }
+        }
+
+        updateSiteAds();
+        setInterval(updateSiteAds, 5000);
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", startSiteAds);
+    } else {
+        startSiteAds();
+    }
+
+})();
