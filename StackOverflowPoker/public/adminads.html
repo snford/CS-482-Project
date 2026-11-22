@@ -33,11 +33,17 @@
                 <div class="so-card p-0 overflow-hidden h-100">
                     <table class="so-table">
                         <thead>
-                            <tr><th>Ad</th><th>Placement</th><th>Interval</th><th>Active</th></tr>
+                            <tr>
+                                <th>Ad</th>
+                                <th>Placement</th>
+                                <th>Interval</th>
+                                <th>Active</th>
+                                <th>Actions</th>
+                            </tr>
                         </thead>
                         <tbody id="adsList">
                             <tr>
-                                <td colspan="4">Loading ads...</td>
+                                <td colspan="5">Loading ads...</td>
                             </tr>
                         </tbody>
                     </table>
@@ -46,7 +52,10 @@
 
             <div class="col-lg-5 fade-up delay-2">
                 <div class="so-card">
-                    <h2 class="so-card-title"><i class="bi bi-plus-square-fill"></i>New ad</h2>
+                    <h2 class="so-card-title">
+                        <i class="bi bi-plus-square-fill"></i>
+                        <span id="adFormTitle">New ad</span>
+                    </h2>
                     <form id="adForm">
                         <label class="form-label" for="adName">Ad name</label>
                         <input class="form-control mb-3" id="adName" type="text" placeholder="Casino promo" required>
@@ -84,9 +93,19 @@
                             <input class="form-check-input" type="checkbox" role="switch" id="adActive" checked>
                             <label class="form-check-label" for="adActive">Active</label>
                         </div>
-
                         <button type="submit" class="btn btn-primary w-100">
-                            <i class="bi bi-floppy-fill"></i>Save ad
+                            <i class="bi bi-floppy-fill"></i>
+                            <span id="saveAdText">Save ad</span>
+                        </button>
+                        
+                        <button type="button"
+                                id="cancelEditButton"
+                                class="btn btn-light-soft w-100 mt-2 d-none">
+                            Cancel edit
+                        </button>
+                                id="cancelEditButton"
+                                class="btn btn-light-soft w-100 mt-2 d-none">
+                            Cancel edit
                         </button>
                     </form>
                     <p id="adMessage" class="mt-3"></p>
@@ -104,6 +123,85 @@
 
     
     <script>
+       
+        // TT-04: Keep track of the ad being edited
+        let editingAdId = null;
+        
+        // Reset the form to create a new ad
+        function resetAdForm() {
+            editingAdId = null;
+        
+            document.getElementById("adForm").reset();
+            document.getElementById("adFormTitle").textContent = "New ad";
+            document.getElementById("saveAdText").textContent = "Save ad";
+            document.getElementById("cancelEditButton").classList.add("d-none");
+        }
+        
+        // Fill the form with an existing ad
+        function editAd(ad) {
+            editingAdId = ad._id;
+        
+            document.getElementById("adName").value = ad.name;
+            document.getElementById("adImage").value = ad.imageUrl;
+            document.getElementById("adLink").value = ad.linkUrl;
+            document.getElementById("adPlacement").value = ad.placement;
+            document.getElementById("adInterval").value = ad.intervalMinutes;
+            document.getElementById("adActive").checked = ad.active;
+        
+            document.getElementById("adFormTitle").textContent = "Edit ad";
+            document.getElementById("saveAdText").textContent = "Update ad";
+            document.getElementById("cancelEditButton").classList.remove("d-none");
+            document.getElementById("adMessage").textContent = "";
+        
+            document.getElementById("adName").focus();
+        }
+        
+        // Cancel editing
+        document.getElementById("cancelEditButton").addEventListener("click", function() {
+            resetAdForm();
+            document.getElementById("adMessage").textContent = "";
+        });
+        
+        // Update or delete an advertisement
+        async function changeAd(adId, method, data) {
+            const message = document.getElementById("adMessage");
+        
+            const options = {
+                method: method
+            };
+        
+            if (method === "PUT") {
+                options.headers = {
+                    "Content-Type": "application/json"
+                };
+                options.body = JSON.stringify(data);
+            }
+        
+            try {
+                const response = await fetch(
+                    "/api/admin/ads/" + encodeURIComponent(adId),
+                    options
+                );
+        
+                const result = await response.json();
+                message.textContent = result.msg || "Could not change advertisement.";
+        
+                if (response.ok) {
+                    if (method === "DELETE" && editingAdId === adId) {
+                        resetAdForm();
+                    }
+        
+                    if (method === "PUT" && editingAdId === adId) {
+                        document.getElementById("adActive").checked = data.active;
+                    }
+        
+                    await loadAds();
+                }
+            } catch (error) {
+                message.textContent = "Could not change advertisement.";
+            }
+        }
+         
         // AV-01: Show saved advertisements
         async function loadAds() {
             const list = document.getElementById("adsList");
@@ -121,7 +219,7 @@
                 if (ads.length === 0) {
                     const row = list.insertRow();
                     const cell = row.insertCell();
-                    cell.colSpan = 4;
+                    cell.colSpan = 5;
                     cell.textContent = "No ads yet.";
                     return;
                 }
@@ -147,6 +245,60 @@
                         ad.intervalMinutes + " min";
                     row.insertCell().textContent =
                         ad.active ? "Yes" : "No";
+
+
+                    // TT-04: Advertisement management buttons
+                    const actions = row.insertCell();
+                    
+                    // Edit button
+                    const editButton = document.createElement("button");
+                    editButton.type = "button";
+                    editButton.className = "btn btn-sm btn-light-soft me-1";
+                    editButton.textContent = "Edit";
+                    
+                    editButton.addEventListener("click", function() {
+                        editAd(ad);
+                    });
+                    
+                    actions.appendChild(editButton);
+                    
+                    // Enable or disable button
+                    const toggleButton = document.createElement("button");
+                    toggleButton.type = "button";
+                    toggleButton.className = "btn btn-sm btn-light-soft me-1";
+                    toggleButton.textContent = ad.active ? "Disable" : "Enable";
+                    
+                    toggleButton.addEventListener("click", function() {
+                        const updatedAd = {
+                            name: ad.name,
+                            imageUrl: ad.imageUrl,
+                            linkUrl: ad.linkUrl,
+                            placement: ad.placement,
+                            intervalMinutes: ad.intervalMinutes,
+                            active: !ad.active
+                        };
+                    
+                        changeAd(ad._id, "PUT", updatedAd);
+                    });
+                    
+                    actions.appendChild(toggleButton);
+                    
+                    // Delete button
+                    const deleteButton = document.createElement("button");
+                    deleteButton.type = "button";
+                    deleteButton.className = "btn btn-sm btn-outline-danger";
+                    deleteButton.textContent = "Delete";
+                    
+                    deleteButton.addEventListener("click", function() {
+                        if (confirm("Delete advertisement: " + ad.name + "?")) {
+                            changeAd(ad._id, "DELETE");
+                        }
+                    });
+                    
+                    actions.appendChild(deleteButton);
+
+
+                    
                 }
     
             } catch (error) {
@@ -177,8 +329,15 @@
                 };
     
                 try {
-                    const response = await fetch("/api/admin/ads", {
-                        method: "POST",
+                    // TT-04: Create a new ad or update an existing one
+                    const url = editingAdId
+                        ? "/api/admin/ads/" + encodeURIComponent(editingAdId)
+                        : "/api/admin/ads";
+                    
+                    const method = editingAdId ? "PUT" : "POST";
+                    
+                    const response = await fetch(url, {
+                        method: method,
                         headers: {
                             "Content-Type": "application/json"
                         },
@@ -189,7 +348,7 @@
                     message.textContent = result.msg;
     
                     if (response.ok) {
-                        document.getElementById("adForm").reset();
+                        resetAdForm();
                         loadAds();
                     }
     
