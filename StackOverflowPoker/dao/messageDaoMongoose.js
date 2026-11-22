@@ -78,3 +78,64 @@ exports.deleteAll = async function(check) {
         await Message.deleteMany({});
     }
 };
+
+
+ // AM-03: Search existing stored messages with bounded, paginated results.
+exports.searchChatLogs = async function({
+    type = "all",
+    player = "",
+    search = "",
+    page = 1,
+    limit = 25
+}) {
+    const query = {};
+
+    if (type === "private") {
+        query.tableId = null;
+        query.to = { $ne: null };
+    }
+
+    if (type === "table") {
+        query.tableId = { $ne: null };
+    }
+
+    if (player) {
+        const escaped = player.replace(
+            /[.*+?^${}()|[\]\\]/g,
+            "\\$&"
+        );
+        const match = new RegExp(escaped, "i");
+
+        query.$or = [
+            { from: match },
+            { to: match }
+        ];
+    }
+
+    if (search) {
+        const escaped = search.replace(
+            /[.*+?^${}()|[\]\\]/g,
+            "\\$&"
+        );
+
+        query.text = new RegExp(escaped, "i");
+    }
+
+    const [messages, total] = await Promise.all([
+        Message.find(query)
+            .sort({ sentAt: -1, _id: -1 })
+            .skip((page - 1) * limit)
+            .limit(limit)
+            .lean(),
+
+        Message.countDocuments(query)
+    ]);
+
+    return {
+        messages,
+        total,
+        page,
+        limit
+    };
+};
+

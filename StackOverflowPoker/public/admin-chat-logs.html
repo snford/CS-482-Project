@@ -1,0 +1,222 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+
+    <title>Chat Logs - Stack Overflow Poker</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+        rel="stylesheet"
+    >
+
+    <link href="/css/styles.css" rel="stylesheet">
+    <link href="/css/createTable.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: #160e1d;
+            color: #f5edf8;
+        }
+
+        .log-panel {
+            background: #26182f;
+            border: 1px solid #60406d;
+            border-radius: 14px;
+            padding: 22px;
+        }
+
+        .log-table {
+            color: #f5edf8;
+        }
+
+        .log-table th,
+        .log-table td {
+            background: transparent;
+            color: inherit;
+            border-color: #60406d;
+            vertical-align: top;
+        }
+
+        .log-text {
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            max-width: 440px;
+        }
+
+        .muted {
+            color: #d8c5df;
+        }
+
+        .form-control,
+        .form-select {
+            background: #fff;
+            color: #222;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Administrator navigation -->
+    <div id="siteNav" data-variant="admin"></div>
+    <script src="/js/nav.js"></script>
+
+    <main class="container py-4">
+        <h1>Chat Logs</h1>
+
+        <p class="muted">
+            Administrator review of stored private messages
+            and poker table chat.
+        </p>
+
+        <!-- Search filters -->
+        <section class="log-panel mb-4">
+            <form
+                id="filters"
+                class="row g-3 align-items-end"
+            >
+                <div class="col-md-3">
+                    <label
+                        class="form-label"
+                        for="type"
+                    >
+                        Chat type
+                    </label>
+
+                    <select
+                        id="type"
+                        class="form-select"
+                    >
+                        <option value="all">
+                            All messages
+                        </option>
+
+                        <option value="private">
+                            Private messages
+                        </option>
+
+                        <option value="table">
+                            Table chat
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label
+                        class="form-label"
+                        for="player"
+                    >
+                        Player username
+                    </label>
+
+                    <input
+                        id="player"
+                        class="form-control"
+                        maxlength="60"
+                        placeholder="Sender or recipient"
+                    >
+                </div>
+
+                <div class="col-md-4">
+                    <label
+                        class="form-label"
+                        for="search"
+                    >
+                        Message contains
+                    </label>
+
+                    <input
+                        id="search"
+                        class="form-control"
+                        maxlength="100"
+                        placeholder="Search message text"
+                    >
+                </div>
+
+                <div class="col-md-2">
+                    <button
+                        class="btn btn-primary w-100"
+                        type="submit"
+                    >
+                        Search
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <!-- Chat log results -->
+        <section class="log-panel">
+            <div
+                class="d-flex justify-content-between align-items-center mb-3"
+            >
+                <h2 class="h4 mb-0">
+                    Stored messages
+                </h2>
+
+                <span id="count" class="muted"></span>
+            </div>
+
+            <div
+                id="status"
+                role="status"
+                class="mb-2"
+            ></div>
+
+            <div class="table-responsive">
+                <table class="table log-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>Type</th>
+                            <th>From</th>
+                            <th>To / Table</th>
+                            <th>Message</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="rows"></tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div
+                class="d-flex justify-content-between align-items-center"
+            >
+                <button
+                    id="previous"
+                    class="btn btn-outline-light"
+                    type="button"
+                >
+                    Previous
+                </button>
+
+                <span id="pageInfo"></span>
+
+                <button
+                    id="next"
+                    class="btn btn-outline-light"
+                    type="button"
+                >
+                    Next
+                </button>
+            </div>
+        </section>
+    </main>
+
+    <!-- Required for collapsible navigation -->
+    <script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+    ></script>
+
+    <script src="/js/admin-chat-logs.js"></script>
+</body>
+</html>

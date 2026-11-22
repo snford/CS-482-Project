@@ -20,6 +20,7 @@ const {
 const adminController = require('./controllers/adminController');
 // AM-01: Player reports and administrator conversations
 const reportsController = require("./controllers/reportsController");
+const chatLogsController = require("./controllers/chatLogsController");
 const app = express();
 
 app.use(morgan('dev'));
@@ -89,7 +90,8 @@ app.get('/api/me', controller.getMe);
 const adminPages = [
     "/admin-dashboard.html",
     "/admin.html",
-    "/adminads.html"
+    "/adminads.html",
+    "/admin-chat-logs.html"
 ];
 
 // Only administrators can access these pages
@@ -304,6 +306,13 @@ app.patch(
     "/api/admin/reports/:id/resolve",
     requireAdmin,
     reportsController.resolve
+);
+
+// AM-03: Protected access to private and table chat history
+app.get(
+    "/api/admin/chat-logs",
+    requireAdmin,
+    chatLogsController.getLogs
 );
 
 exports.app = app;
