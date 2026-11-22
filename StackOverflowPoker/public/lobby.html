@@ -450,54 +450,6 @@
 
 
 
-// TT-04: Automatically update lobby advertisements
-let lobbyAds = [];
-let lobbyAdIndex = 0;
-let lobbyAdTimer = null;
-let lastLobbyAdData = null;
-let lobbyAdLoading = false;
-
-// Display the current advertisement
-function showLobbyAd() {
-    const adLink = document.getElementById("adLink");
-    const adImage = document.getElementById("adImage");
-    const adMessage = document.getElementById("adMessage");
-
-    // Stop the old rotation timer
-    clearTimeout(lobbyAdTimer);
-    lobbyAdTimer = null;
-
-    if (lobbyAds.length === 0) {
-        adMessage.textContent = "No advertisement available";
-        adLink.hidden = true;
-        return;
-    }
-
-    const ad = lobbyAds[lobbyAdIndex];
-
-    adImage.src = ad.imageUrl;
-    adImage.alt = ad.name;
-    adMessage.textContent = ad.name;
-
-    if (ad.linkUrl.startsWith("https://") ||
-        ad.linkUrl.startsWith("http://")) {
-        adLink.href = ad.linkUrl;
-    } else {
-        adLink.removeAttribute("href");
-    }
-
-    adLink.hidden = false;
-
-    // AV-02: Rotate advertisements
-    if (lobbyAds.length > 1) {
-        const minutes = Number(ad.intervalMinutes) || 5;
-
-        lobbyAdTimer = setTimeout(function() {
-            lobbyAdIndex = (lobbyAdIndex + 1) % lobbyAds.length;
-            showLobbyAd();
-        }, minutes * 60 * 1000);
-    }
-}
 
 
 // TT-04: Automatically update lobby advertisements
