@@ -162,18 +162,19 @@
 
     const mainLinks = [
         { id: "lobbyLink", href: "/lobby.html", label: "Lobby", icon: "bi-suit-spade-fill", pages: ["lobby.html", "createtable.html", "table.html"] },
-        {id: "myReportsLink", href: "/my-reports.html", label: "My Reports", icon: "bi-flag-fill", pages: ["my-reports.html"] },
+        { id: "myReportsLink", href: "/my-reports.html", label: "Reports", icon: "bi-flag-fill", pages: ["my-reports.html"] },
         { id: "friendsLink", href: "/friends.html", label: "Friends", icon: "bi-people-fill", pages: ["friends.html", "player.html", "report.html"] },
         { id: "statsLink", href: "/stats.html", label: "Stats", icon: "bi-bar-chart-fill", pages: ["stats.html"] },
         { id: "leaderboardLink", href: "/leaderboard.html", label: "Leaderboard", icon: "bi-trophy-fill", pages: ["leaderboard.html"] },
-        { id: "profileLink", href: "/profile.html", label: "Profile", icon: "bi-person-circle", pages: ["profile.html"] }
+        { id: "profileLink", href: "/profile.html", label: "Profile", icon: "bi-person-circle", pages: ["profile.html"] },
+        { id: "tutorialLink", href: "/tutorial.html", label: "Tutorial", icon: "bi-book-half", pages: ["tutorial.html"] }
     ];
 
     const adminLinks = [
     {
         id: "adminDashboardLink",
         href: "/admin-dashboard.html",
-        label: "Admin Dashboard",
+        label: "Admin",
         icon: "bi-speedometer2",
         pages: ["admin-dashboard.html"]
 
@@ -185,10 +186,24 @@
         icon: "bi-flag-fill"
     },
     {
+    id: "adminChatLogsLink",
+    href: "/admin-chat-logs.html",
+    label: "Chat Logs",
+    icon: "bi-chat-dots-fill",
+    pages: ["admin-chat-logs.html"]
+    },
+    {
         id: "adminAdsLink",
         href: "/adminads.html",
         label: "Ads",
         icon: "bi-megaphone-fill"
+    },
+    {
+        id: "tutorialLink",
+        href: "/tutorial.html",
+        label: "Tutorial",
+        icon: "bi-book-half",
+        pages: ["tutorial.html"]
     },
     {
         id: "backToSiteLink",
@@ -366,7 +381,7 @@ async function addAdminNavigationLink() {
 
         // Add the text
         adminLink.appendChild(
-            document.createTextNode(" Admin Dashboard")
+            document.createTextNode(" Admin")
         );
 
         // Insert the link into the navigation
@@ -413,16 +428,7 @@ async function addAdminNavigationLink() {
     }
 
     function setupTableHelp() {
-        const params = new URLSearchParams(window.location.search);
-        const match = path.match(/^\/table\/([^/]+)/);
-
-        const tableId =
-            params.get("tableId") ||
-            params.get("id") ||
-            (match ? decodeURIComponent(match[1]) : null) ||
-            sessionStorage.getItem("currentTableId");
-
-        if (!tableId) return;
+        
 
         // Same six steps as the original tutorial
         const steps = [
@@ -657,7 +663,7 @@ async function addAdminNavigationLink() {
 
         const widget = document.createElement("div");
         widget.className = "table-help-widget";
-        widget.hidden = true;
+        widget.hidden = false;
 
         widget.innerHTML = `
             <button
@@ -905,50 +911,6 @@ async function addAdminNavigationLink() {
         });
 
         renderTutorial();
-
-        // Only show the ? when the current player is seated.
-        // Works for both Google accounts and guests.
-        async function checkIfJoined() {
-            const playerName = SOP.user || SOP.guestName;
-
-            if (!playerName) {
-                widget.hidden = true;
-                setOpen(false);
-                return;
-            }
-
-            try {
-                const response = await fetch(
-                    "/api/tables/" + encodeURIComponent(tableId),
-                    {
-                        credentials: "same-origin",
-                        cache: "no-store"
-                    }
-                );
-
-                if (!response.ok) return;
-
-                const table = await response.json();
-                const players = Array.isArray(table.players)
-                    ? table.players
-                    : [];
-
-                const joined = players.includes(playerName);
-
-                widget.hidden = !joined;
-
-                if (!joined) setOpen(false);
-            } catch (error) {
-                // Keep the game working if the request fails.
-            }
-        }
-
-        SOP.ready.then(function () {
-            checkIfJoined();
-
-            // Detect joining or leaving without refreshing.
-            setInterval(checkIfJoined, 3000);
-        });
     }
 
     if (document.readyState === "loading") {
@@ -1090,4 +1052,120 @@ async function addAdminNavigationLink() {
         check();
         setInterval(check, 5000);
     });
+})();
+
+/* TT-04: Show ads in placeholders on other pages */
+(function() {
+
+    function startSiteAds() {
+        // Find ad boxes that don't already have ad code
+        const slots = Array.from(document.querySelectorAll(".ad-slot"))
+            .filter(function(slot) {
+                return !slot.querySelector("a");
+            });
+
+        if (slots.length === 0) return;
+
+        // Use table ads on table pages and lobby ads elsewhere
+        const placement = window.location.pathname.startsWith("/table")
+            ? "table" : "lobby";
+
+        let ads = [];
+        let adIndex = 0;
+        let lastData = null;
+        let lastChange = Date.now();
+
+        // Add an image and link to each empty ad box
+        slots.forEach(function(slot) {
+            const link = document.createElement("a");
+            const image = document.createElement("img");
+
+            link.hidden = true;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            image.alt = "Advertisement";
+
+            link.appendChild(image);
+            slot.appendChild(link);
+        });
+
+        function showSiteAd() {
+            const ad = ads[adIndex];
+
+            slots.forEach(function(slot) {
+                const link = slot.querySelector("a");
+
+                if (!ad) {
+                    link.hidden = true;
+                    return;
+                }
+
+                const image = link.querySelector("img");
+                image.src = ad.imageUrl;
+                image.alt = ad.name;
+
+                if (typeof ad.linkUrl === "string" &&
+                    /^https?:\/\//i.test(ad.linkUrl)) {
+                    link.href = ad.linkUrl;
+                } else {
+                    link.removeAttribute("href");
+                }
+
+                link.hidden = false;
+            });
+        }
+
+        async function updateSiteAds() {
+            try {
+                const response = await fetch("/api/ads/" + placement, {
+                    cache: "no-store"
+                });
+
+                if (!response.ok) return;
+
+                const newAds = await response.json();
+                if (!Array.isArray(newAds)) return;
+
+                const newData = JSON.stringify(newAds);
+
+                if (newData !== lastData) {
+                    const current = ads[adIndex];
+                    const currentId = current ? current._id : null;
+
+                    ads = newAds;
+                    lastData = newData;
+
+                    const found = ads.findIndex(function(ad) {
+                        return ad._id === currentId;
+                    });
+
+                    adIndex = found >= 0 ? found : 0;
+                    lastChange = Date.now();
+                    showSiteAd();
+
+                } else if (ads.length > 1) {
+                    const minutes = Number(ads[adIndex].intervalMinutes) || 5;
+
+                    if (Date.now() - lastChange >= minutes * 60000) {
+                        adIndex = (adIndex + 1) % ads.length;
+                        lastChange = Date.now();
+                        showSiteAd();
+                    }
+                }
+
+            } catch (error) {
+                console.error("Could not load advertisements:", error);
+            }
+        }
+
+        updateSiteAds();
+        setInterval(updateSiteAds, 5000);
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", startSiteAds);
+    } else {
+        startSiteAds();
+    }
+
 })();
