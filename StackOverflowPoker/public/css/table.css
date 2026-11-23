@@ -576,3 +576,44 @@
     .action-buttons { margin-left: 0; width: 100%; }
     .game-button { flex: 1 1 40%; min-width: 0; }
 }
+
+/* UP-04: Hand helper (same glass box as "Your Chips") */
+.hand-helper {
+    min-width: 240px;
+    max-width: 320px;
+    padding: 1rem;
+    border-radius: var(--radius);
+    background: rgba(255, 255, 255, .08);
+    border: 1px solid rgba(255, 255, 255, .15);
+}
+
+.hand-helper h3 {
+    color: #fff;
+    font-size: 1rem;
+    margin-bottom: .5rem;
+    font-family: var(--font-display);
+}
+
+.hand-helper h3 .bi { color: var(--gold); }
+
+.hand-name { font-weight: 700; font-size: 1.05rem; }
+
+.hand-strength {
+    height: 8px;
+    margin: .5rem 0 .6rem;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, .15);
+}
+
+.hand-strength span {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--gold), #3fb47c);
+    transition: width .4s ease;
+}
+
+.hand-draw { color: var(--gold); font-size: .85rem; margin: 0 0 .35rem; }
+.hand-tip { color: rgba(255, 255, 255, .75); font-size: .85rem; margin: 0; }

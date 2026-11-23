@@ -427,3 +427,22 @@ test("LT-03: Database error while loading a table", async function() {
 
     expect(res.status).toHaveBeenCalledWith(500);
 });
+
+test("UP-04: The hand helper describes only your own hand", async function() {
+    sevenStud.getRound.mockReturnValue(roundWith([
+        { username: "Ben", hand: { cards: [
+            { rank: "K", suit: "Hearts" }, { rank: "K", suit: "Clubs" }, { rank: "4", suit: "Spades" }
+        ] } },
+        { username: "Amy", hand: { cards: [
+            { rank: "A", suit: "Hearts" }, { rank: "A", suit: "Clubs" }, { rank: "A", suit: "Spades" }
+        ] } }
+    ]));
+    const res = makeResponse();
+
+    await controller.getRound(asPlayer("Ben"), res);
+    const view = res.json.mock.calls[0][0];
+
+    // Ben sees his pair of kings, not Amy's three aces
+    expect(view.myHand.description).toBe("Pair, K's");
+    expect(view.myHand.strength).toBe(2);
+});

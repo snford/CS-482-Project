@@ -2,6 +2,7 @@ const dao = require("../dao/TablesDaoMongoose");
 const mongoose = require("mongoose");
 const gameRounds = require("../game/sevenStud");
 const chipHelper = require("../game/chipHelper");
+const handHelper = require("../game/handHelper");
 
 //Lt-01: View Lobbys
 exports.getTables = async function(req, res) {
@@ -372,7 +373,9 @@ exports.getRound = async function (req, res) {
                     round.currentPlayer
                 ]?.username,
             winners: round.winners || [],
-            players
+            players,
+            // UP-04: how strong the requesting player's own hand is (never other players')
+            myHand: handHelper.describeHand(currentPlayer.hand.cards)
         });
     } catch (error) {
         console.error("Error retrieving round:", error);

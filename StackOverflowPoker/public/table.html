@@ -170,6 +170,15 @@
 
             <p id="betMessage"></p>
         </div>
+
+        <!-- UP-04: Hand helper (turned on or off on the Profile page) -->
+        <div class="hand-helper" id="handHelper" hidden>
+            <h3><i class="bi bi-lightbulb-fill me-1"></i>Hand helper</h3>
+            <div class="hand-name" id="handHelperName"></div>
+            <div class="hand-strength" title="Hand strength"><span id="handHelperBar"></span></div>
+            <p class="hand-draw" id="handHelperDraw" hidden></p>
+            <p class="hand-tip" id="handHelperTip"></p>
+        </div>
     </section>
   </main>
 
@@ -605,9 +614,40 @@ startRoundButton.addEventListener("click", async function () {
     }
 });
 
+// UP-04: the hand helper is on unless the player turned it off on their Profile
+function handHelperOn() {
+    try {
+        return localStorage.getItem("sop-handHelper") !== "false";
+    } catch (error) {
+        return true; // storage blocked: keep the default
+    }
+}
+
+// UP-04: show how strong the player's own hand is (hidden when there is no hand)
+function showHandHelper(hand) {
+    const box = document.getElementById("handHelper");
+
+    if (!hand || !handHelperOn()) {
+        box.hidden = true;
+        return;
+    }
+
+    box.hidden = false;
+    document.getElementById("handHelperName").textContent = hand.description;
+    document.getElementById("handHelperBar").style.width =
+        Math.round(hand.strength / hand.maxStrength * 100) + "%";
+
+    const draw = document.getElementById("handHelperDraw");
+    draw.hidden = !hand.draw;
+    draw.textContent = hand.draw || "";
+
+    document.getElementById("handHelperTip").textContent = hand.tip;
+}
+
 async function loadRound() {
   if (!tableId || !currentTable || currentTable.status !== "playing") {
       currentRound = null;
+      showHandHelper(null);
 
       document.querySelector(".pot").innerHTML =
           `<span class="chip-stack">
@@ -641,6 +681,7 @@ async function loadRound() {
 
         if (response.status === 404) {
             currentRound = null;
+            showHandHelper(null);
 
             document.querySelector(".pot").innerHTML =
                 `<span class="chip-stack">
@@ -668,6 +709,7 @@ async function loadRound() {
         }
         currentRound = result;
         showTable(currentTable);
+        showHandHelper(result.status === "betting" ? result.myHand : null);
 
         if (result.status === "complete") {
         document.querySelector(".turn-message").textContent =
