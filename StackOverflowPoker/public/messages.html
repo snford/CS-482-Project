@@ -75,6 +75,10 @@
                         </div>
                     </form>
                     <div id="inboxContainer" class="convo-list"></div>
+                    <div class="so-card mt-4 fade-up delay-2" id="blockedCard" hidden>
+                        <h2 class="so-card-title"><i class="bi bi-slash-circle"></i>Blocked</h2>
+                        <div id="blockedList"></div>
+                    </div>
                 </div>
             </div>
 
@@ -84,6 +88,7 @@
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <h2 class="so-card-title mb-0"><i class="bi bi-chat-dots-fill"></i><span id="chatName">Select a conversation</span></h2>
                         <a id="profileLink" href="#" class="btn btn-light-soft btn-sm" hidden>View profile</a>
+                        <button id="blockBtn" type="button" class="btn btn-danger-soft btn-sm" hidden>Block</button>
                     </div>
                     <div id="chatMessages" class="chat-messages">
                         <div class="chat-empty">Pick a conversation, or type a username to start a new one.</div>
@@ -147,6 +152,7 @@
                 document.getElementById("profileLink").hidden = true;
                 input.value = "";
                 input.disabled = true;
+                applyBlockState();
                 sendBtn.disabled = true;
                 chatBox.innerHTML = '<div class="chat-empty">Pick a conversation, or type a username to start a new one.</div>';
             }
@@ -263,6 +269,7 @@
             });
 
             await refreshChat(true);
+            applyBlockState();
             input.focus();
         }
 
@@ -354,13 +361,78 @@
                 document.getElementById("messagesPage").hidden = true;
                 return;
             }
-
+            await loadBlocked();
             // /messages.html?user=Name opens that conversation (used by notification clicks)
             const wanted = new URLSearchParams(window.location.search).get("user");
             if (wanted && wanted !== SOP.me.username) {
                 await openChat(wanted);
             }
             loadInbox();
+        });
+        let blockedUsers = [];
+        const blockBtn = document.getElementById("blockBtn");
+
+        async function loadBlocked() {
+            try {
+                const r = await fetch("/api/blocks", { cache: "no-store" });
+                if (r.ok) blockedUsers = await r.json();
+            } catch (e) { /* keep the last list */ }
+            renderBlocked();
+            applyBlockState();
+        }
+
+        function renderBlocked() {
+            const card = document.getElementById("blockedCard");
+            const list = document.getElementById("blockedList");
+            card.hidden = blockedUsers.length === 0;
+            list.replaceChildren();
+
+            for (const name of blockedUsers) {
+                const row = document.createElement("div");
+                row.className = "list-row";
+                row.innerHTML = SOP.avatarHtml(name) +
+                    '<div class="grow"><div class="title"></div></div>' +
+                    '<button type="button" class="btn btn-light-soft btn-sm">Unblock</button>';
+                row.querySelector(".title").textContent = name;
+                row.querySelector("button").addEventListener("click", function () {
+                    setBlocked(name, false);
+                });
+                list.appendChild(row);
+            }
+        }
+
+        // Update the chat header button and disable typing to someone you've blocked
+        function applyBlockState() {
+            const isBlocked = blockedUsers.includes(activeFriend);
+            blockBtn.hidden = !activeFriend;
+            blockBtn.textContent = isBlocked ? "Unblock" : "Block";
+            input.disabled = !activeFriend || isBlocked;
+            sendBtn.disabled = !activeFriend || isBlocked;
+            input.placeholder = isBlocked ? "You've blocked this user" : "Type a message";
+        }
+
+        async function setBlocked(name, block) {
+            if (block && !confirm("Block " + name + "? They won't be able to message you.")) return;
+
+            const r = block
+                ? await fetch("/api/blocks", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ username: name })
+                })
+                : await fetch("/api/blocks/" + encodeURIComponent(name), { method: "DELETE" });
+
+            if (!r.ok) {
+                SOP.toast("Could not update block.", "error");
+                return;
+            }
+            if (block) MsgNotify.clear(name);
+            SOP.toast(block ? "Blocked " + name : "Unblocked " + name, "success");
+            await loadBlocked();
+        }
+
+        blockBtn.addEventListener("click", function () {
+            if (activeFriend) setBlocked(activeFriend, !blockedUsers.includes(activeFriend));
         });
     </script>
 </body>

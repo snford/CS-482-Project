@@ -1,5 +1,6 @@
 const messageDao = require("../dao/messageDaoMongoose");
 const userDao = require("../dao/UsersDaoMongoose");
+const blockDao = require("../dao/blockDaoMongoose");
 
 function myName(req) {
     return (
@@ -26,6 +27,13 @@ exports.sendMessage = async function(req, res) {
 
         const recipient = await userDao.readByUsername(to);
         if (!recipient) return res.status(404).json({ msg: "That user doesn't exist." });
+
+        if (await blockDao.isBlocked(to, from)) {
+            return res.status(403).json({ msg: "You can't message this user." });
+        }
+        if (await blockDao.isBlocked(from, to)) {
+            return res.status(403).json({ msg: "You've blocked this user. Unblock them to send a message." });
+        }
 
         const message =
             await messageDao.sendMessage(

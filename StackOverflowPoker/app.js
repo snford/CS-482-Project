@@ -10,6 +10,7 @@ const mongoose = require('mongoose');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const authController = require('./controllers/authController');
+const blockController = require("./controllers/blockController");
 const {
     loadUser,
     requireLogin,
@@ -270,6 +271,11 @@ app.get("/messages/:friend",requireLogin,messageController.getConversation);
 app.post("/messages/table/send",messageController.sendTableChat);
 //SF-06: Get the messages for a table
 app.get("/messages/table/:tableId",messageController.getTableChat);
+
+//Block and unblock users
+app.get("/api/blocks", requireLogin, blockController.list);
+app.post("/api/blocks", requireLogin, blockController.block);
+app.delete("/api/blocks/:username", requireLogin, blockController.unblock);
 
 // AM-01: Submit and manage player reports
 

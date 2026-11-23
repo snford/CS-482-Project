@@ -94,6 +94,9 @@
                         <button type="button" class="btn btn-primary" id="messageButton">
                             <i class="bi bi-chat-dots-fill"></i>Message
                         </button>
+                        <button type="button" class="btn btn-danger-soft" id="blockButton" hidden>
+                            <i class="bi bi-slash-circle"></i><span>Block</span>
+                        </button>
                         <a id="reportLink" href="/report.html" class="btn btn-danger-soft">
                             <i class="bi bi-flag-fill"></i>Report Player
                         </a>
@@ -379,6 +382,55 @@
                 });
                 document.addEventListener("visibilitychange", function () {
                     if (!document.hidden) MsgNotify.clear(target);
+                });
+            });
+        })();
+        (function () {
+            const btn = document.getElementById("blockButton");
+            let blocked = false;
+
+            function render() {
+                btn.querySelector("span").textContent = blocked ? "Unblock" : "Block";
+                // Can't write to someone you've blocked
+                const input = document.getElementById("dmInput");
+                const send = document.getElementById("dmSend");
+                input.disabled = blocked;
+                send.disabled = blocked;
+                input.placeholder = blocked ? "You've blocked this user" : "Type a message";
+            }
+
+            SOP.ready.then(async function () {
+                if (!SOP.user || !playerName || playerName === SOP.me.username) return;
+
+                try {
+                    const r = await fetch("/api/blocks", { cache: "no-store" });
+                    if (!r.ok) return;
+                    blocked = (await r.json()).includes(playerName);
+                } catch (e) { return; }
+
+                btn.hidden = false;
+                render();
+
+                btn.addEventListener("click", async function () {
+                    if (!blocked && !confirm("Block " + playerName + "? They won't be able to message you.")) return;
+
+                    const r = blocked
+                        ? await fetch("/api/blocks/" + encodeURIComponent(playerName), { method: "DELETE" })
+                        : await fetch("/api/blocks", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ username: playerName })
+                        });
+
+                    if (!r.ok) {
+                        SOP.toast("Could not update block.", "error");
+                        return;
+                    }
+
+                    blocked = !blocked;
+                    if (blocked) MsgNotify.clear(playerName);
+                    render();
+                    SOP.toast(blocked ? "Blocked " + playerName : "Unblocked " + playerName, "success");
                 });
             });
         })();
