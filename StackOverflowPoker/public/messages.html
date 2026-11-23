@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Messages - Stack Overflow Poker</title>
+    <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+
+    <style>
+        .convo-row { cursor: pointer; border-radius: var(--radius); }
+        .convo-row:hover, .convo-row.active { background: var(--brand-50); }
+        .convo-list { max-height: 420px; overflow-y: auto; }
+
+        .chat-messages {
+            height: 420px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: .6rem;
+            padding: 1rem;
+            background: var(--brand-50);
+            border-radius: 12px;
+        }
+        .bubble { max-width: 70%; padding: .6rem .9rem; border-radius: 16px; font-size: .92rem; word-break: break-word; }
+        .bubble.them { background: #f2eef5; color: #29212e; border-bottom-left-radius: 4px; }
+        .bubble.me { align-self: flex-end; color: #fff; background: linear-gradient(135deg, #cf55cf, var(--brand-700)); border-bottom-right-radius: 4px; }
+        .chat-empty { margin: auto; color: var(--ink-muted); font-size: .9rem; text-align: center; }
+        .convo-close {
+            background: transparent;
+            border: 0;
+            color: var(--ink-muted);
+            padding: .2rem .4rem;
+            border-radius: 6px;
+            line-height: 1;
+            opacity: .6;
+        }
+        .convo-close:hover { opacity: 1; background: rgba(0,0,0,.06); color: #dc3545; }
+    </style>
+</head>
+<body>
+    <div id="siteNav"></div>
+    <script src="/js/nav.js"></script>
+
+    <main class="container pb-5">
+        <header class="page-header fade-up">
+            <span class="eyebrow"><i class="bi bi-chat-dots-fill"></i>Messages</span>
+            <h1 class="page-title">Your conversations</h1>
+            <p class="page-subtitle">Messages from friends and other players.</p>
+        </header>
+
+        <div id="signedOut" class="so-card text-center" hidden>
+            <div class="empty-state">
+                <i class="bi bi-person-lock"></i>
+                <strong>Sign in to see your messages</strong>
+            </div>
+            <a href="/index.html" class="btn btn-primary">Sign in</a>
+        </div>
+
+        <div class="row g-4" id="messagesPage">
+            <!-- Conversation list -->
+            <div class="col-lg-4">
+                <div class="so-card fade-up delay-1">
+                    <h2 class="so-card-title"><i class="bi bi-chat-left-text-fill"></i>Conversations</h2>
+                    <form id="newChatForm" class="mb-3">
+                        <div class="input-group">
+                            <input type="text" id="newChatName" class="form-control" placeholder="Message any username" required>
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i></button>
+                        </div>
+                    </form>
+                    <div id="inboxContainer" class="convo-list"></div>
+                </div>
+            </div>
+
+            <!-- Chat -->
+            <div class="col-lg-8 fade-up delay-2">
+                <div class="so-card">
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <h2 class="so-card-title mb-0"><i class="bi bi-chat-dots-fill"></i><span id="chatName">Select a conversation</span></h2>
+                        <a id="profileLink" href="#" class="btn btn-light-soft btn-sm" hidden>View profile</a>
+                    </div>
+                    <div id="chatMessages" class="chat-messages">
+                        <div class="chat-empty">Pick a conversation, or type a username to start a new one.</div>
+                    </div>
+                    <div class="input-group mt-3">
+                        <input id="messageInput" type="text" class="form-control" maxlength="500" placeholder="Type a message" disabled>
+                        <button id="sendBtn" class="btn btn-primary" type="button" aria-label="Send" disabled>
+                            <i class="bi bi-send-fill"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="container d-flex flex-wrap justify-content-between gap-2">
+            <span>&copy; Stack Overflow Chips &middot; Virtual chips only, no real-money gambling.</span>
+            <span class="suits" aria-hidden="true">♠ ♥ ♣ ♦</span>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // nav.js reads this so it doesn't alert you about the chat you're reading
+        let activeFriend = null;
+        let lastRenderedId = null;
+
+        const chatBox = document.getElementById("chatMessages");
+        const input = document.getElementById("messageInput");
+        const sendBtn = document.getElementById("sendBtn");
+
+        function makeBubble(msg) {
+            const el = document.createElement("div");
+            const mine = msg.from === SOP.me.username;
+            el.className = "bubble " + (mine ? "me" : "them");
+            const time = new Date(msg.sentAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+            el.textContent = mine ? msg.text + " : " + time : time + " : " + msg.text;
+            return el;
+        }
+
+        function hiddenKey() { return "msgHidden:" + SOP.me.username; }
+        function getHidden() {
+            try { return JSON.parse(localStorage.getItem(hiddenKey())) || {}; } catch (e) { return {}; }
+        }
+        function setHidden(h) {
+            try { localStorage.setItem(hiddenKey(), JSON.stringify(h)); } catch (e) { /* ignore */ }
+        }
+
+        function hideConversation(row) {
+            const hidden = getHidden();
+            // Remember the last message's time; anything newer brings it back
+            hidden[row.user] = row.sentAt ? new Date(row.sentAt).getTime() : Date.now();
+            setHidden(hidden);
+            MsgNotify.clear(row.user);
+
+            if (activeFriend === row.user) {
+                activeFriend = null;
+                lastRenderedId = null;
+                document.getElementById("chatName").textContent = "Select a conversation";
+                document.getElementById("profileLink").hidden = true;
+                input.value = "";
+                input.disabled = true;
+                sendBtn.disabled = true;
+                chatBox.innerHTML = '<div class="chat-empty">Pick a conversation, or type a username to start a new one.</div>';
+            }
+            loadInbox();
+        }
+
+        // ---- Conversation list ----
+        async function loadInbox() {
+            let rows;
+            try {
+                const r = await fetch("/messages/inbox", { cache: "no-store" });
+                if (!r.ok) return;
+                rows = await r.json();
+            } catch (e) { return; }
+
+            const hidden = getHidden();
+            rows = rows.filter(function (r) {
+                const t = hidden[r.user];
+                if (!t) return true;
+                // A newer message than the one you hid brings the conversation back
+                if (r.sentAt && new Date(r.sentAt).getTime() > t) {
+                    delete hidden[r.user];
+                    setHidden(hidden);
+                    return true;
+                }
+                return false;
+            });
+
+            // Keep the open conversation in the list even before its first message
+            if (activeFriend && !rows.some(r => r.user === activeFriend)) {
+                rows.unshift({ user: activeFriend, from: "", text: "New conversation", sentAt: null });
+            }
+
+            const container = document.getElementById("inboxContainer");
+            if (rows.length === 0) {
+                container.innerHTML = '<div class="empty-state py-3"><i class="bi bi-chat-square"></i>No conversations yet.</div>';
+                return;
+            }
+
+            const friends = SOP.me.friends || [];
+            container.replaceChildren();
+            for (const row of rows) {
+                const el = document.createElement("div");
+                el.className = "list-row convo-row" + (row.user === activeFriend ? " active" : "");
+                el.dataset.friend = row.user;
+                el.innerHTML = SOP.avatarHtml(row.user) +
+                    '<div class="grow"><div class="title"></div><div class="sub text-truncate"></div></div>';
+
+                el.querySelector(".title").textContent = row.user;
+                if (!friends.includes(row.user)) {
+                    const tag = document.createElement("span");
+                    tag.className = "pill pill-muted ms-2";
+                    tag.textContent = "Not friends";
+                    el.querySelector(".title").appendChild(tag);
+                }
+                el.querySelector(".sub").textContent =
+                    (row.from === SOP.me.username ? "You: " : "") + row.text;
+
+                const x = document.createElement("button");
+                x.type = "button";
+                x.className = "convo-close";
+                x.title = "Remove from list";
+                x.setAttribute("aria-label", "Remove conversation with " + row.user + " from the list");
+                x.innerHTML = '<i class="bi bi-x-lg"></i>';
+                x.addEventListener("click", function (e) {
+                    e.stopPropagation();   // don't open the chat
+                    hideConversation(row);
+                });
+                el.appendChild(x);
+                el.addEventListener("click", function () { openChat(row.user); });
+                container.appendChild(el);
+            }
+            renderUnread();
+        }
+
+        // Red badges from nav.js's unread counts
+        function renderUnread() {
+            const unread = MsgNotify.unread();
+            document.querySelectorAll(".convo-row").forEach(function (row) {
+                const count = unread[row.dataset.friend] || 0;
+                const title = row.querySelector(".title");
+                let badge = title.querySelector(".unread-badge");
+                if (count > 0) {
+                    if (!badge) {
+                        badge = document.createElement("span");
+                        badge.className = "unread-badge";
+                        title.appendChild(badge);
+                    }
+                    badge.textContent = count;
+                } else if (badge) {
+                    badge.remove();
+                }
+            });
+        }
+        window.addEventListener("unread-changed", renderUnread);
+
+        // ---- Chat ----
+        async function openChat(name) {
+            const hidden = getHidden();
+            if (hidden[name]) { delete hidden[name]; setHidden(hidden); }
+            activeFriend = name;
+            lastRenderedId = null;
+            MsgNotify.clear(name);
+
+            document.getElementById("chatName").textContent = name;
+            const link = document.getElementById("profileLink");
+            link.href = "/player.html?name=" + encodeURIComponent(name);
+            link.hidden = false;
+            input.disabled = false;
+            sendBtn.disabled = false;
+
+            document.querySelectorAll(".convo-row").forEach(function (row) {
+                row.classList.toggle("active", row.dataset.friend === name);
+            });
+
+            await refreshChat(true);
+            input.focus();
+        }
+
+        async function refreshChat(forceScroll) {
+            const friend = activeFriend;
+            if (!friend) return;
+
+            let messages;
+            try {
+                const r = await fetch("/messages/" + encodeURIComponent(friend), { cache: "no-store" });
+                if (!r.ok) return;
+                messages = await r.json();
+            } catch (e) { return; }
+            if (activeFriend !== friend) return;   // switched chats while loading
+
+            const lastId = messages.length ? messages[messages.length - 1]._id : "none";
+            if (lastId === lastRenderedId) return;  // nothing new
+
+            const nearBottom = lastRenderedId === null ||
+                chatBox.scrollHeight - chatBox.scrollTop - chatBox.clientHeight < 80;
+
+            chatBox.replaceChildren();
+            if (messages.length === 0) {
+                chatBox.innerHTML = '<div class="chat-empty">No messages yet. Say hi!</div>';
+            } else {
+                for (const m of messages) chatBox.appendChild(makeBubble(m));
+            }
+            lastRenderedId = lastId;
+
+            if (forceScroll || nearBottom) chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        async function sendMessage() {
+            if (!activeFriend) return;
+            const text = input.value.trim();
+            if (!text) return;
+
+            const response = await fetch("/messages/send", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ to: activeFriend, text: text })
+            });
+
+            if (!response.ok) {
+                let msg = "Could not send message.";
+                try { msg = (await response.json()).msg || msg; } catch (e) { /* keep default */ }
+                SOP.toast(msg, "error");
+                return;   // keep the text in the box
+            }
+
+            input.value = "";
+            await refreshChat(true);
+            loadInbox();
+        }
+
+        sendBtn.addEventListener("click", sendMessage);
+        input.addEventListener("keydown", function (e) { if (e.key === "Enter") sendMessage(); });
+
+        // Start a chat with any username
+        document.getElementById("newChatForm").addEventListener("submit", function (e) {
+            e.preventDefault();
+            const field = document.getElementById("newChatName");
+            const name = field.value.trim();
+            if (!name) return;
+            if (name === SOP.me.username) {
+                SOP.toast("You can't message yourself.", "error");
+                return;
+            }
+            field.value = "";
+            openChat(name).then(loadInbox);
+        });
+
+        // nav.js fires this when someone sends you a message
+        window.addEventListener("new-message", function (e) {
+            loadInbox();
+            if (e.detail.friend === activeFriend) {
+                MsgNotify.clear(activeFriend);
+                refreshChat();
+            }
+        });
+
+        document.addEventListener("visibilitychange", function () {
+            if (!document.hidden) MsgNotify.clear(activeFriend);
+        });
+
+        SOP.ready.then(async function () {
+            if (!SOP.user) {
+                document.getElementById("signedOut").hidden = false;
+                document.getElementById("messagesPage").hidden = true;
+                return;
+            }
+
+            // /messages.html?user=Name opens that conversation (used by notification clicks)
+            const wanted = new URLSearchParams(window.location.search).get("user");
+            if (wanted && wanted !== SOP.me.username) {
+                await openChat(wanted);
+            }
+            loadInbox();
+        });
+    </script>
+</body>
+</html>

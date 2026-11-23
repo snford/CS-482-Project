@@ -262,6 +262,8 @@ app.post("/api/tables/:tableId/call",tablesController.call);
 app.post("/api/tables/:tableId/raise",tablesController.raise);
 //SF-05: Send a message to a friend
 app.post("/messages/send",requireLogin,messageController.sendMessage);
+app.get("/messages/new", requireLogin, messageController.getNew);
+app.get("/messages/inbox", requireLogin, messageController.getInbox);
 //SF-05: Get the conversation with a friend
 app.get("/messages/:friend",requireLogin,messageController.getConversation);
 //SF-06: Send a message to a table

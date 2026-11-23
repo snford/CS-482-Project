@@ -16,6 +16,20 @@
     <style>
         .player-hero { text-align: center; padding-top: 2.6rem; }
         .player-hero .avatar { margin-bottom: 1rem; }
+        .dm-messages {
+            height: 320px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: .6rem;
+            padding: 1rem;
+            background: var(--brand-50);
+            border-radius: 12px;
+        }
+        .dm-messages .bubble { max-width: 70%; padding: .6rem .9rem; border-radius: 16px; font-size: .92rem; word-break: break-word; }
+        .dm-messages .bubble.them { background: #f2eef5; color: #29212e; border-bottom-left-radius: 4px; }
+        .dm-messages .bubble.me { align-self: flex-end; color: #fff; background: linear-gradient(135deg, #cf55cf, var(--brand-700)); border-bottom-right-radius: 4px; }
+        .dm-empty { margin: auto; color: var(--ink-muted); font-size: .9rem; }
     </style>
 </head>
 <body>
@@ -77,7 +91,7 @@
                                 <i class="bi bi-person-dash-fill"></i>Remove Friend
                             </button>
                         </form>
-                        <button type="button" class="btn btn-light-soft" disabled title="Messaging is coming soon">
+                        <button type="button" class="btn btn-primary" id="messageButton">
                             <i class="bi bi-chat-dots-fill"></i>Message
                         </button>
                         <a id="reportLink" href="/report.html" class="btn btn-danger-soft">
@@ -85,8 +99,21 @@
                         </a>
                     </div>
                 </div>
+                <div class="so-card mt-4 fade-up" id="dmSection" hidden>
+                <h2 class="so-card-title">
+                    <i class="bi bi-chat-dots-fill"></i>Message <span id="dmName"></span>
+                </h2>
+                <div id="dmMessages" class="dm-messages"></div>
+                <div class="input-group mt-3">
+                    <input id="dmInput" type="text" class="form-control" maxlength="500" placeholder="Type a message">
+                    <button id="dmSend" class="btn btn-primary" type="button" aria-label="Send">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
+                </div>
+            </div>
             </div>
         </div>
+        
     </main>
 
     <footer class="site-footer">
@@ -226,6 +253,135 @@
         });
 
         SOP.ready.then(loadPlayer);
+
+        let activeFriend = null;
+
+        (function () {
+            const PAGE_SIZE = 30;
+            const target = (playerName || "").trim();
+
+            const section = document.getElementById("dmSection");
+            const box = document.getElementById("dmMessages");
+            const input = document.getElementById("dmInput");
+            const messageButton = document.getElementById("messageButton");
+
+            let oldest = null, newest = 0, hasMore = true, loadingOlder = false;
+
+            function makeBubble(msg) {
+                const el = document.createElement("div");
+                const mine = msg.from === SOP.me.username;
+                el.className = "bubble " + (mine ? "me" : "them");
+                const time = new Date(msg.sentAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+                el.textContent = mine ? msg.text + " : " + time : time + " : " + msg.text;
+                return el;
+            }
+
+            async function fetchMessages(before) {
+                let url = "/messages/" + encodeURIComponent(target) + "?limit=" + PAGE_SIZE;
+                if (before) url += "&before=" + encodeURIComponent(before);
+                const r = await fetch(url, { cache: "no-store" });
+                return r.ok ? r.json() : [];
+            }
+
+            async function loadLatest() {
+                const messages = await fetchMessages();
+                box.replaceChildren();
+                if (messages.length === 0) {
+                    box.innerHTML = '<div class="dm-empty">No messages yet. Say hi!</div>';
+                    return;
+                }
+                for (const m of messages) box.appendChild(makeBubble(m));
+                oldest = messages[0]._id;
+                newest = new Date(messages[messages.length - 1].sentAt).getTime();
+                hasMore = messages.length === PAGE_SIZE;
+                box.scrollTop = box.scrollHeight;
+            }
+
+            async function refresh() {
+                const messages = await fetchMessages();
+                const fresh = messages.filter(m => new Date(m.sentAt).getTime() > newest);
+                if (fresh.length === 0) return;
+
+                const empty = box.querySelector(".dm-empty");
+                if (empty) empty.remove();
+                if (!oldest) oldest = fresh[0]._id;
+
+                const nearBottom = box.scrollHeight - box.scrollTop - box.clientHeight < 80;
+                const sentByMe = fresh.some(m => m.from === SOP.me.username);
+                for (const m of fresh) box.appendChild(makeBubble(m));
+                newest = new Date(fresh[fresh.length - 1].sentAt).getTime();
+                if (nearBottom || sentByMe) box.scrollTop = box.scrollHeight;
+            }
+
+            async function loadOlder() {
+                if (loadingOlder || !hasMore || !oldest) return;
+                loadingOlder = true;
+                try {
+                    const older = await fetchMessages(oldest);
+                    hasMore = older.length === PAGE_SIZE;
+                    if (older.length === 0) return;
+                    const before = box.scrollHeight;
+                    const frag = document.createDocumentFragment();
+                    for (const m of older) frag.appendChild(makeBubble(m));
+                    box.insertBefore(frag, box.firstChild);
+                    box.scrollTop += box.scrollHeight - before;
+                    oldest = older[0]._id;
+                } finally {
+                    loadingOlder = false;
+                }
+            }
+
+            async function send() {
+                const text = input.value.trim();
+                if (!text) return;
+
+                const r = await fetch("/messages/send", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ to: target, text: text })
+                });
+                if (!r.ok) {
+                    let msg = "Could not send message.";
+                    try { msg = (await r.json()).msg || msg; } catch (e) { /* keep default */ }
+                    SOP.toast(msg, "error");
+                    return;
+                }
+                input.value = "";
+                await refresh();
+            }
+
+            SOP.ready.then(function () {
+                // Only for signed-in players viewing someone else's profile
+                if (!SOP.user || !target || target === SOP.me.username) {
+                    messageButton.hidden = true;
+                    return;
+                }
+
+                messageButton.addEventListener("click", function () {
+                    section.hidden = false;
+                    section.scrollIntoView({ behavior: "smooth", block: "center" });
+                    input.focus();
+                });
+
+                section.hidden = true;           // show the chat right away
+                document.getElementById("dmName").textContent = target;
+                activeFriend = target;
+                MsgNotify.clear(target);
+
+                loadLatest();
+
+                box.addEventListener("scroll", function () { if (box.scrollTop < 40) loadOlder(); });
+                document.getElementById("dmSend").addEventListener("click", send);
+                input.addEventListener("keydown", function (e) { if (e.key === "Enter") send(); });
+
+                window.addEventListener("new-message", function (e) {
+                    if (e.detail.friend === target) refresh();
+                });
+                document.addEventListener("visibilitychange", function () {
+                    if (!document.hidden) MsgNotify.clear(target);
+                });
+            });
+        })();
     </script>
 </body>
 </html>

@@ -18,13 +18,14 @@ exports.sendMessage = async function(req, res) {
         const to = req.body.to;
         const text = req.body.text;
 
-        const sender = await userDao.readByUsername(from);
+        if (!from) return res.status(401).json({ msg: "Sign in to send messages." });
+        if (!to || to === from) return res.status(400).json({ msg: "Invalid recipient." });
 
-        if (!sender.friends.includes(to)) {
-            return res.status(403).json({
-                msg: "You can only message friends."
-            });
-        }
+        const sender = await userDao.readByUsername(from);
+        if (!sender) return res.status(403).json({ msg: "Sign in to send messages." });
+
+        const recipient = await userDao.readByUsername(to);
+        if (!recipient) return res.status(404).json({ msg: "That user doesn't exist." });
 
         const message =
             await messageDao.sendMessage(
@@ -52,13 +53,7 @@ exports.getConversation = async function(req, res) {
         const me = myName(req);
         const friend = req.params.friend;
 
-        const user = await userDao.readByUsername(me);
-
-        if (!user.friends.includes(friend)) {
-            return res.status(403).json({
-                msg: "Not friends."
-            });
-        }
+        if (!me) return res.status(401).json({ msg: "Sign in first." });    
 
         const messages =
             await messageDao.getConversation(
@@ -108,4 +103,39 @@ exports.getTableChat = async function(req, res) {
         );
 
     res.json(messages);
+};
+
+exports.getNew = async function(req, res) {
+    try {
+        const me = myName(req);
+        if (!me) return res.status(401).json({ msg: "Sign in first." });
+
+        const now = Date.now();
+        const sinceMs = Number(req.query.since);
+        if (!Number.isFinite(sinceMs)) return res.json({ now, messages: [] });
+
+        const messages = await messageDao.getNewMessagesFor(me, new Date(sinceMs));
+        res.json({ now, messages });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ msg: "Failed to check messages." });
+    }
+};
+
+exports.getInbox = async function(req, res) {
+    try {
+        const me = myName(req);
+        if (!me) return res.status(401).json({ msg: "Sign in first." });
+
+        const rows = await messageDao.getInbox(me);
+        res.json(rows.map(r => ({
+            user: r._id,
+            from: r.last.from,
+            text: r.last.text,
+            sentAt: r.last.sentAt
+        })));
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ msg: "Failed to load conversations." });
+    }
 };

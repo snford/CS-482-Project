@@ -139,3 +139,21 @@ exports.searchChatLogs = async function({
     };
 };
 
+exports.getNewMessagesFor = async function(me, since) {
+    return await Message.find({ to: me, sentAt: { $gt: since } })
+        .sort({ sentAt: 1 })
+        .limit(100);
+};
+
+exports.getInbox = async function(me) {
+    return await Message.aggregate([
+        { $match: { to: { $ne: null }, tableId: null, $or: [{ from: me }, { to: me }] } },
+        { $sort: { _id: -1 } },
+        { $group: {
+            _id: { $cond: [{ $eq: ["$from", me] }, "$to", "$from"] },
+            last: { $first: "$$ROOT" }
+        }},
+        { $sort: { "last._id": -1 } },
+        { $limit: 50 }
+    ]);
+};

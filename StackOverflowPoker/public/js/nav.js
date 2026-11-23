@@ -164,10 +164,12 @@
         { id: "lobbyLink", href: "/lobby.html", label: "Lobby", icon: "bi-suit-spade-fill", pages: ["lobby.html", "createtable.html", "table.html"] },
         { id: "myReportsLink", href: "/my-reports.html", label: "Reports", icon: "bi-flag-fill", pages: ["my-reports.html"] },
         { id: "friendsLink", href: "/friends.html", label: "Friends", icon: "bi-people-fill", pages: ["friends.html", "player.html", "report.html"] },
+        { id: "messagesLink", href: "/messages.html", label: "Messages", icon: "bi-chat-dots-fill", pages: ["messages.html"] },
         { id: "statsLink", href: "/stats.html", label: "Stats", icon: "bi-bar-chart-fill", pages: ["stats.html"] },
         { id: "leaderboardLink", href: "/leaderboard.html", label: "Leaderboard", icon: "bi-trophy-fill", pages: ["leaderboard.html"] },
         { id: "profileLink", href: "/profile.html", label: "Profile", icon: "bi-person-circle", pages: ["profile.html"] },
-        { id: "tutorialLink", href: "/tutorial.html", label: "Tutorial", icon: "bi-book-half", pages: ["tutorial.html"] }
+        { id: "tutorialLink", href: "/tutorial.html", label: "Tutorial", icon: "bi-book-half", pages: ["tutorial.html"] },
+        
     ];
 
     const adminLinks = [
@@ -941,23 +943,35 @@ async function addAdminNavigationLink() {
 
     // Update the tab title and the badge on the nav's Friends link
     function refresh() {
-        const total = Object.values(load(key("msgUnread"))).reduce(function (a, n) { return a + n; }, 0);
+        const unread = load(key("msgUnread"));
+        const friends = (SOP.me && SOP.me.friends) || [];
+
+        let friendTotal = 0, otherTotal = 0;
+        for (const name in unread) {
+            if (friends.includes(name)) friendTotal += unread[name];
+            else otherTotal += unread[name];
+        }
+        const total = friendTotal + otherTotal;
         document.title = total > 0 ? "(" + total + ") " + baseTitle : baseTitle;
 
-        const link = document.getElementById("friendsLink");
-        if (link) {
+        function setBadge(id, count) {
+            const link = document.getElementById(id);
+            if (!link) return;
             let badge = link.querySelector(".unread-badge");
-            if (total > 0) {
+            if (count > 0) {
                 if (!badge) {
                     badge = document.createElement("span");
                     badge.className = "unread-badge";
                     link.appendChild(badge);
                 }
-                badge.textContent = total;
+                badge.textContent = count;
             } else if (badge) {
                 badge.remove();
             }
         }
+
+        setBadge("friendsLink", friendTotal);
+        setBadge("messagesLink", otherTotal);
         window.dispatchEvent(new Event("unread-changed"));
     }
 
@@ -987,59 +1001,50 @@ async function addAdminNavigationLink() {
         const n = new Notification("New message from " + friend, { body: text });
         n.onclick = function () {
             window.focus();
-            window.location.href = "/friends.html";
+            window.location.href = "/messages.html?user=" + encodeURIComponent(friend);
             n.close();
         };
     }
 
-    async function check() {
-        const lastSeen = load(key("msgLastSeen"));
-        const unread = load(key("msgUnread"));
-        let changed = false;
+async function check() {
+    const sinceState = load(key("msgSince"));
+    let url = "/messages/new";
+    if (sinceState.t) url += "?since=" + encodeURIComponent(sinceState.t);
 
-        for (const friend of SOP.me.friends || []) {
-            let msgs;
-            try {
-                const r = await fetch("/messages/" + encodeURIComponent(friend), { cache: "no-store" });
-                if (!r.ok) continue;
-                msgs = await r.json();
-            } catch (e) { continue; }
+    let data;
+    try {
+        const r = await fetch(url, { cache: "no-store" });
+        if (!r.ok) return;
+        data = await r.json();
+    } catch (e) { return; }
 
-            const incoming = msgs.filter(function (m) { return m.from !== SOP.me.username; });
-            const newest = incoming.reduce(function (a, m) {
-                return Math.max(a, new Date(m.sentAt).getTime());
-            }, 0);
+    // Remember the server's clock so the next check only asks for newer messages
+    save(key("msgSince"), { t: data.now });
+    if (!data.messages || data.messages.length === 0) return;
 
-            // First run: record a baseline so old messages don't alert
-            if (!(friend in lastSeen)) {
-                lastSeen[friend] = newest;
-                changed = true;
-                continue;
-            }
+    const unread = load(key("msgUnread"));
+    const byUser = {};
+    for (const m of data.messages) (byUser[m.from] = byUser[m.from] || []).push(m);
 
-            const fresh = incoming.filter(function (m) {
-                return new Date(m.sentAt).getTime() > lastSeen[friend];
-            });
-            if (fresh.length === 0) continue;
-            lastSeen[friend] = newest;
-            changed = true;
-            window.dispatchEvent(new CustomEvent("new-message", { detail: { friend: friend } }));
-            // Already looking at this chat on the friends page: no alert
-            const open = (typeof activeFriend !== "undefined") ? activeFriend : null;
-            if (friend === open && !document.hidden) continue;
+    for (const user in byUser) {
+        const fresh = byUser[user];
 
-            const text = fresh[fresh.length - 1].text;
-            unread[friend] = (unread[friend] || 0) + fresh.length;
-            SOP.toast(friend + ": " + text, "success");
-            popup(friend, text);
-        }
+        // Lets friends.html and player.html refresh the open chat
+        window.dispatchEvent(new CustomEvent("new-message", { detail: { friend: user } }));
 
-        if (changed) {
-            save(key("msgLastSeen"), lastSeen);
-            save(key("msgUnread"), unread);
-            refresh();
-        }
+        // Already looking at this chat: no alert
+        const open = (typeof activeFriend !== "undefined") ? activeFriend : null;
+        if (user === open && !document.hidden) continue;
+
+        const text = fresh[fresh.length - 1].text;
+        unread[user] = (unread[user] || 0) + fresh.length;
+        SOP.toast(user + ": " + text, "success");
+        popup(user, text);
     }
+
+    save(key("msgUnread"), unread);
+    refresh();
+}
 
     document.addEventListener("visibilitychange", function () {
         if (!document.hidden && typeof activeFriend !== "undefined") MsgNotify.clear(activeFriend);
