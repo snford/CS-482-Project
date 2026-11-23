@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const gameRounds = require("../game/sevenStud");
 const chipHelper = require("../game/chipHelper");
 const handHelper = require("../game/handHelper");
+const usersDao = require("../dao/UsersDaoMongoose");
 
 //Lt-01: View Lobbys
 exports.getTables = async function(req, res) {
@@ -284,37 +285,50 @@ exports.getRound = async function (req, res) {
     try {
         const round = gameRounds.getRound(String(tableId));
 
-        if (
-            round &&
-            round.status === "complete" &&
-            !round.winningsAwarded
-        ) {
-            // BT-01: Only real players receive chip payouts
-            for (const winner of round.winners) {
-                const player = round.players.find(
-                    p => p.username === winner.username
-                );
+    if (
+        round &&
+        round.status === "complete" &&
+        !round.winningsAwarded
+    ) {
 
-                if (player && !player.isBot && winner.winnings > 0) {
-                    await chipHelper.addChips(
-                        req,
-                        winner.username,
-                        winner.winnings
-                    );
+        round.winningsAwarded = true;
+
+        const winnerNames = new Set(round.winners.map(w => w.username));
+
+        // BT-01: Only real players receive chip payouts
+        for (const winner of round.winners) {
+            const player = round.players.find(
+                p => p.username === winner.username
+            );
+
+            if (player && !player.isBot && winner.winnings > 0) {
+                try {
+                    await chipHelper.addChips(req, winner.username, winner.winnings);
+                } catch (err) {
+                    console.error("Could not pay winner:", err);
                 }
             }
-
-            round.winningsAwarded = true;
-
-            setTimeout(async () => {
-                await dao.updateStatus(
-                    tableId,
-                    "waiting"
-                );
-
-                gameRounds.endRound(tableId);
-            }, 10000);
         }
+
+        // ST-01: record wins and losses for registered players
+        for (const player of round.players) {
+            if (player.isBot || chipHelper.isGuestName(player.username)) continue;
+
+            try {
+                await usersDao.recordGameResult(
+                    player.username,
+                    winnerNames.has(player.username) ? "win" : "loss"
+                );
+            } catch (err) {
+                console.error("Could not record result for " + player.username + ":", err);
+            }
+        }
+
+        setTimeout(async () => {
+            await dao.updateStatus(tableId, "waiting");
+            gameRounds.endRound(tableId);
+        }, 10000);
+    }
 
         if (!round) {
             return res.status(404).json({
