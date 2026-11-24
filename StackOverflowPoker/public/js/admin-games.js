@@ -238,12 +238,26 @@
                     )
                 );
             }
-            // AM-06-T5: Remove Table button
+            
+            if (
+                game.status !== "playing" &&
+                !game.activeGame &&
+                !game.roundStatus
+            ) {
 
-            row.appendChild(actions);
-            rows.appendChild(row);
-        }
-    }
+                actions.appendChild(
+                    actionButton(
+                        "Remove Table",
+                        "btn btn-sm btn-danger",
+                        () => removeTable(game)
+                    )
+                );
+            }
+
+                        row.appendChild(actions);
+                        rows.appendChild(row);
+                    }
+                }
 
     // Load all games from the backend
 
@@ -283,6 +297,46 @@
         }
 
         busy = true;
+
+    async function removeTable(game) {
+
+        if (busy) return;
+
+        if (!confirm(
+            "Permanently remove " + game.name +
+            "? This action cannot be undone."
+        )) {
+            return;
+        }
+
+        busy = true;
+        render();
+
+        try {
+
+            const data = await api(
+                "/api/admin/games/" +
+                encodeURIComponent(game.id),
+                {
+                    method: "DELETE"
+                }
+            );
+
+            alert(data.msg);
+
+            await loadGames();
+
+        } catch (error) {
+
+            alert(error.message);
+
+        } finally {
+
+            busy = false;
+            render();
+        }
+    }
+
         render();
 
         try {

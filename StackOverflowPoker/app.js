@@ -332,5 +332,11 @@ app.patch(
     lockHandler(adminGamesController.endGame)
 );
 
+app.delete(
+    "/api/admin/games/:tableId",
+    requireAdmin,
+    lockHandler(adminGamesController.removeTable)
+);
+
 exports.app = app;
 

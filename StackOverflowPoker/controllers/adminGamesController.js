@@ -158,3 +158,73 @@ exports.endGame = async function(req, res) {
         });
     }
 };
+
+// AM-06: Remove a poker table
+
+exports.removeTable = async function(req, res) {
+
+    if (!req.user || req.user.role !== "admin") {
+        return res.status(403).json({
+            msg: "Administrators only."
+        });
+    }
+
+    const tableId = req.params.tableId;
+
+    if (!mongoose.isValidObjectId(tableId)) {
+        return res.status(400).json({
+            msg: "Invalid table ID."
+        });
+    }
+
+    try {
+
+        const table =
+            await tablesDao.readAdminById(tableId);
+
+        if (!table) {
+            return res.status(404).json({
+                msg: "Table not found."
+            });
+        }
+
+        const round =
+            gameRounds.getRound(String(tableId));
+
+        if (table.status === "playing" || round) {
+
+            return res.status(409).json({
+                msg: "End the active game before removing this table."
+            });
+        }
+
+        if (table.status !== "closed") {
+
+            await tablesDao.closeTable(tableId);
+        }
+
+        const removed =
+            await tablesDao.removeTable(tableId);
+
+        if (!removed) {
+            return res.status(409).json({
+                msg: "The table could not be removed."
+            });
+        }
+
+        return res.status(200).json({
+            msg: "Table removed successfully."
+        });
+
+    } catch (error) {
+
+        console.error(
+            "AM-06 removing table:",
+            error
+        );
+
+        return res.status(500).json({
+            msg: "Unable to remove table."
+        });
+    }
+};
