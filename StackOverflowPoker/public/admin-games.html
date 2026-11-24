@@ -1,0 +1,331 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1">
+
+    <title>Game Management - Stack Overflow Poker</title>
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"
+        rel="stylesheet"
+    >
+
+    <link href="/css/styles.css" rel="stylesheet">
+    <link href="/css/createTable.css" rel="stylesheet">
+
+    <style>
+
+        body {
+            background: #160e1d;
+            color: #f5edf8;
+        }
+
+        .game-panel {
+            background: #26182f;
+            border: 1px solid #75447e;
+            border-radius: 14px;
+            padding: 22px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: #302039;
+            border: 1px solid #75447e;
+            border-radius: 14px;
+            padding: 20px;
+            height: 100%;
+        }
+
+        .summary-number {
+            color: #df65dc;
+            font-size: 32px;
+            font-weight: bold;
+        }
+
+        .summary-label {
+            color: #d8c5df;
+        }
+
+        .game-table th,
+        .game-table td {
+            background: transparent;
+            color: #f5edf8;
+            border-color: #60406d;
+            vertical-align: middle;
+        }
+
+        .page-heading {
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        .page-description {
+            color: #d8c5df;
+        }
+
+        .game-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .modal-content {
+            background: #26182f;
+            color: #ffffff;
+        }
+
+        .modal-header,
+        .modal-footer {
+            border-color: #60406d;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <div id="siteNav" data-variant="admin"></div>
+
+    <script src="/js/nav.js"></script>
+
+    <main class="container py-4">
+
+        <h1 class="page-heading">
+            <i class="bi bi-suit-spade-fill"
+               style="color:#df65dc"></i>
+            Game Management
+        </h1>
+
+        <p class="page-description">
+            Monitor poker tables, view active games,
+            and manage game activity.
+        </p>
+
+        <!-- Summary cards -->
+
+        <div class="row g-3 mb-4">
+
+            <div class="col-6 col-lg-3">
+                <div class="summary-card">
+
+                    <div class="summary-label">
+                        Total Tables
+                    </div>
+
+                    <div id="totalTables"
+                         class="summary-number">0</div>
+
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="summary-card">
+
+                    <div class="summary-label">
+                        Active Games
+                    </div>
+
+                    <div id="activeGames"
+                         class="summary-number">0</div>
+
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="summary-card">
+
+                    <div class="summary-label">
+                        Waiting Tables
+                    </div>
+
+                    <div id="waitingTables"
+                         class="summary-number">0</div>
+
+                </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+                <div class="summary-card">
+
+                    <div class="summary-label">
+                        Closed Tables
+                    </div>
+
+                    <div id="closedTables"
+                         class="summary-number">0</div>
+
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Search and filter controls -->
+
+        <section class="game-panel">
+
+            <div class="row g-3">
+
+                <div class="col-md-6">
+
+                    <label for="search"
+                           class="form-label">
+                        Search tables or players
+                    </label>
+
+                    <input
+                        id="search"
+                        class="form-control"
+                        placeholder="Enter table or player name"
+                    >
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <label for="statusFilter"
+                           class="form-label">
+                        Table Status
+                    </label>
+
+                    <select id="statusFilter"
+                            class="form-select">
+
+                        <option value="all">
+                            All Tables
+                        </option>
+
+                        <option value="waiting">
+                            Waiting
+                        </option>
+
+                        <option value="playing">
+                            Playing
+                        </option>
+
+                        <option value="closed">
+                            Closed
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-2 d-flex align-items-end">
+
+                    <button id="refreshButton"
+                            class="btn btn-outline-light w-100">
+
+                        <i class="bi bi-arrow-clockwise"></i>
+                        Refresh
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- Game table list -->
+
+        <section class="game-panel">
+
+            <h2 class="h4">Poker Tables</h2>
+
+            <p id="statusMessage" role="status"></p>
+
+            <div class="table-responsive">
+
+                <table class="table game-table">
+
+                    <thead>
+                        <tr>
+                            <th>Table Name</th>
+                            <th>Players</th>
+                            <th>Privacy</th>
+                            <th>Status</th>
+                            <th>Ante</th>
+                            <th>Bots</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="gameRows"></tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Game details modal -->
+
+    <div class="modal fade"
+         id="gameDetailsModal"
+         tabindex="-1">
+
+        <div class="modal-dialog">
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+
+                    <h5 class="modal-title">
+                        Game Details
+                    </h5>
+
+                    <button
+                        type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal">
+                    </button>
+
+                </div>
+
+                <div class="modal-body"
+                     id="gameDetails">
+                </div>
+
+                <div class="modal-footer">
+
+                    <button
+                        class="btn btn-secondary"
+                        data-bs-dismiss="modal">
+
+                        Close
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Bootstrap is required for the navigation menu -->
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js">
+    </script>
+
+    <script src="/js/admin-games.js"></script>
+
+</body>
+
+</html>
