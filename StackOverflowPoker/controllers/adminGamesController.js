@@ -88,3 +88,73 @@ exports.getGames = async function(req, res) {
         });
     }
 };
+
+// AM-06: End an active game and close its table
+
+exports.endGame = async function(req, res) {
+
+    if (!req.user || req.user.role !== "admin") {
+        return res.status(403).json({
+            msg: "Administrators only."
+        });
+    }
+
+    const tableId = req.params.tableId;
+
+    if (!mongoose.isValidObjectId(tableId)) {
+        return res.status(400).json({
+            msg: "Invalid table ID."
+        });
+    }
+
+    try {
+
+        const table =
+            await tablesDao.readAdminById(tableId);
+
+        if (!table) {
+            return res.status(404).json({
+                msg: "Table not found."
+            });
+        }
+
+        const round =
+            gameRounds.getRound(String(tableId));
+
+        if (round && round.status === "complete") {
+            return res.status(409).json({
+                msg: "Wait for the completed game to finish processing."
+            });
+        }
+
+        if (
+            table.status !== "playing" &&
+            !round
+        ) {
+            return res.status(409).json({
+                msg: "This table has no active game."
+            });
+        }
+
+        // Close first so no new players can join
+        await tablesDao.closeTable(tableId);
+
+        // Refund unfinished bets and clear the round
+        await gameRounds.cancelRound(
+            String(tableId),
+            req
+        );
+
+        return res.status(200).json({
+            msg: "Game ended and table closed successfully."
+        });
+
+    } catch (error) {
+
+        console.error("AM-06 ending game:", error);
+
+        return res.status(500).json({
+            msg: "Unable to finish ending the game. Check the server logs."
+        });
+    }
+};

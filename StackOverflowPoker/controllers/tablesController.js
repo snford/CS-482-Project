@@ -4,6 +4,9 @@ const gameRounds = require("../game/sevenStud");
 const chipHelper = require("../game/chipHelper");
 const handHelper = require("../game/handHelper");
 const usersDao = require("../dao/UsersDaoMongoose");
+const {
+withTableLock
+} = require("../middleware/tableOperationLock");
 
 //Lt-01: View Lobbys
 exports.getTables = async function(req, res) {
@@ -324,10 +327,35 @@ exports.getRound = async function (req, res) {
             }
         }
 
-        setTimeout(async () => {
-            await dao.updateStatus(tableId, "waiting");
-            gameRounds.endRound(tableId);
-        }, 10000);
+        setTimeout(() => {
+
+        withTableLock(tableId, async () => {
+
+            const currentRound =
+                gameRounds.getRound(String(tableId));
+
+            const currentTable =
+                await dao.readById(tableId);
+
+            if (
+                currentTable &&
+                currentTable.status === "playing" &&
+                currentRound === round
+            ) {
+
+                await dao.updateStatus(
+                    tableId,
+                    "waiting"
+                );
+
+                gameRounds.endRound(tableId);
+            }
+
+        }).catch(error => {
+            console.error("Round cleanup failed:", error);
+        });
+
+    }, 10000);
     }
 
         if (!round) {

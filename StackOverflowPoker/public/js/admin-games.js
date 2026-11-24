@@ -225,7 +225,19 @@
                 )
             );
 
-            // AM-06-T4: End Game button
+            if (
+                game.activeGame ||
+                game.status === "playing"
+            ) {
+
+                actions.appendChild(
+                    actionButton(
+                        "End Game",
+                        "btn btn-sm btn-warning",
+                        () => endGame(game)
+                    )
+                );
+            }
             // AM-06-T5: Remove Table button
 
             row.appendChild(actions);
@@ -258,6 +270,46 @@
                 .textContent = data.summary.closedTables;
 
             status.textContent = "";
+
+    async function endGame(game) {
+
+        if (busy) return;
+
+        if (!confirm(
+            "End the game at " + game.name +
+            "? The table will close and unfinished bets will be refunded."
+        )) {
+            return;
+        }
+
+        busy = true;
+        render();
+
+        try {
+
+            const data = await api(
+                "/api/admin/games/" +
+                encodeURIComponent(game.id) +
+                "/end",
+                {
+                    method: "PATCH"
+                }
+            );
+
+            alert(data.msg);
+
+            await loadGames();
+
+        } catch (error) {
+
+            alert(error.message);
+
+        } finally {
+
+            busy = false;
+            render();
+        }
+    }
 
             render();
 

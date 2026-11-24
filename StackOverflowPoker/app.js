@@ -1,5 +1,6 @@
 const controller = require("./controllers/usersController");
 const tablesController = require("./controllers/tablesController");
+const { lockHandler } = require("./middleware/tableOperationLock");
 const messageController = require("./controllers/messageController");
 const friendsController = require("./controllers/friendsController");
 const express = require('express');
@@ -232,7 +233,7 @@ app.get("/api/tables", tablesController.getTables);
 app.get("/api/tables/:tableId", tablesController.getTable);
 
 // LT-02: Join Table
-app.post("/api/tables/join", tablesController.joinTable);
+app.post("/api/tables/join", lockHandler(tablesController.joinTable));
 
 // LT-03: Create Table
 app.post("/api/tables/create", tablesController.createTable);
@@ -243,7 +244,7 @@ app.get("/table/:tableId", (req, res) => {
     );
 });
 
-app.post("/api/tables/leave", tablesController.leaveTable);
+app.post("/api/tables/leave", lockHandler(tablesController.leaveTable));
 // PG-02: Retrieve chip balance
 app.get('/users/:username/chips', controller.getChips);
 // PG-02: Add, remove, or set a player's chips.
@@ -252,18 +253,12 @@ app.post('/users/:username/chips/add', requireAdmin, controller.addChips);
 app.post('/users/:username/chips/remove', requireAdmin, controller.removeChips);
 app.put('/users/:username/chips', requireAdmin, controller.setChips);
 //PG-01: Start a new round of Seven-Card Stud
-app.post("/api/tables/:tableId/start-round",tablesController.startRound);   
-//PG-01: Start the game
-app.get("/api/tables/:tableId/game", tablesController.getRound);
-//PG-02: Fold
-app.post("/api/tables/:tableId/fold",tablesController.fold);
-//PG-02: Check
-app.post("/api/tables/:tableId/check",tablesController.check);
-//PG-02: Call
-app.post("/api/tables/:tableId/call",tablesController.call);
-//PG-02: Raise
-app.post("/api/tables/:tableId/raise",tablesController.raise);
-//SF-05: Send a message to a friend
+app.post("/api/tables/:tableId/start-round", lockHandler(tablesController.startRound));//PG-01: Start the game
+app.get("/api/tables/:tableId/game", lockHandler(tablesController.getRound));//PG-02: Fold
+app.post("/api/tables/:tableId/fold", lockHandler(tablesController.fold));//PG-02: Check
+app.post("/api/tables/:tableId/check", lockHandler(tablesController.check));//PG-02: Call
+app.post("/api/tables/:tableId/call", lockHandler(tablesController.call));//PG-02: Raise
+app.post("/api/tables/:tableId/raise", lockHandler(tablesController.raise));//SF-05: Send a message to a friend
 app.post("/messages/send",requireLogin,messageController.sendMessage);
 app.get("/messages/new", requireLogin, messageController.getNew);
 app.get("/messages/inbox", requireLogin, messageController.getInbox);
@@ -329,6 +324,12 @@ app.get(
     "/api/admin/games",
     requireAdmin,
     adminGamesController.getGames
+);
+
+app.patch(
+    "/api/admin/games/:tableId/end",
+    requireAdmin,
+    lockHandler(adminGamesController.endGame)
 );
 
 exports.app = app;
