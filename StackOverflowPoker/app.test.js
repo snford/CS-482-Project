@@ -200,3 +200,15 @@ describe("TT-05 Chip Changes Are Admin Only", function() {
         expect(response.status).toBe(200);
     });
 });
+
+test("SF-10: Blocking needs a signed-in player", async function() {
+    const json = { accept: "application/json", "content-type": "application/json" };
+
+    const list = await request("/api/blocks", { headers: json });
+    const block = await request("/api/blocks", { method: "POST", headers: json, body: JSON.stringify({ username: "Amy" }) });
+    const unblock = await request("/api/blocks/Amy", { method: "DELETE", headers: json });
+
+    expect(list.status).toBe(401);
+    expect(block.status).toBe(401);
+    expect(unblock.status).toBe(401);
+});

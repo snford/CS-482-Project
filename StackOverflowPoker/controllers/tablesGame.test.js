@@ -5,10 +5,13 @@ jest.mock("../dao/TablesDaoMongoose", () => ({
 }));
 jest.mock("../game/sevenStud");
 jest.mock("../game/chipHelper");
+// ST-01: finished rounds save wins and losses, so the user database is faked too
+jest.mock("../dao/UsersDaoMongoose");
 
 const dao = require("../dao/TablesDaoMongoose");
 const sevenStud = require("../game/sevenStud");
 const chipHelper = require("../game/chipHelper");
+const usersDao = require("../dao/UsersDaoMongoose");
 const controller = require("./tablesController");
 
 const tableId = "507f1f77bcf86cd799439011";
@@ -282,6 +285,43 @@ describe("PG-01 View The Round", function() {
         await jest.advanceTimersByTimeAsync(10000);
         expect(dao.updateStatus).toHaveBeenCalledWith(tableId, "waiting");
         expect(sevenStud.endRound).toHaveBeenCalledWith(tableId);
+    });
+
+    test("ST-01: A finished round saves a win or loss for each registered player", async function() {
+        jest.useFakeTimers();
+        chipHelper.isGuestName.mockImplementation(name => /^Guest-\d+$/.test(name));
+        sevenStud.getRound.mockReturnValue(roundWith([
+            { username: "Ben" },
+            { username: "Amy" },
+            { username: "Bot 1", isBot: true },
+            { username: "Guest-1234" }
+        ], {
+            status: "complete",
+            winners: [{ username: "Ben", winnings: 40 }]
+        }));
+
+        await controller.getRound(asPlayer("Ben"), makeResponse());
+
+        expect(usersDao.recordGameResult).toHaveBeenCalledWith("Ben", "win");
+        expect(usersDao.recordGameResult).toHaveBeenCalledWith("Amy", "loss");
+        // Bots and guests have no saved stats
+        expect(usersDao.recordGameResult).toHaveBeenCalledTimes(2);
+    });
+
+    test("ST-01: A failed payout or stats save doesn't stop the round from showing", async function() {
+        jest.useFakeTimers();
+        chipHelper.addChips.mockRejectedValue(new Error("Database error"));
+        usersDao.recordGameResult.mockRejectedValue(new Error("Database error"));
+        sevenStud.getRound.mockReturnValue(roundWith([{ username: "Ben" }, { username: "Amy" }], {
+            status: "complete",
+            winners: [{ username: "Ben", winnings: 40 }]
+        }));
+        const res = makeResponse();
+
+        await controller.getRound(asPlayer("Ben"), res);
+
+        expect(res.json.mock.calls[0][0].winners).toEqual([{ username: "Ben", winnings: 40 }]);
+        expect(errorLog).toHaveBeenCalled();
     });
 
     test("Error while loading the round", async function() {
