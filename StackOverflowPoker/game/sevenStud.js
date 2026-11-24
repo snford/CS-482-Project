@@ -563,3 +563,45 @@ function showdown(round) {
 exports.endRound = function(tableId) {
     activeRounds.delete(String(tableId));
 };
+
+// AM-06: Cancel an unfinished round and refund contributions
+exports.cancelRound = async function(tableId, req) {
+
+    const round = activeRounds.get(String(tableId));
+
+    if (!round) {
+        return false;
+    }
+
+    // Completed games must finish their normal payout process
+    if (round.status === "complete") {
+        throw new Error(
+            "Completed games must finish processing first."
+        );
+    }
+
+    // Prevent additional betting during cancellation
+    round.status = "cancelled";
+
+    for (const player of round.players) {
+
+        if (
+            !player.isBot &&
+            player.totalBet > 0
+        ) {
+
+            await chipHelper.addChips(
+                req,
+                player.username,
+                player.totalBet
+            );
+
+            // Prevent refunding this contribution again
+            player.totalBet = 0;
+        }
+    }
+
+    activeRounds.delete(String(tableId));
+
+    return true;
+};

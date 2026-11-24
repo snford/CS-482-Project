@@ -121,3 +121,40 @@ exports.updateStatus = async function (tableId, status) {
 
     return table;
 };
+
+// AM-06: Retrieve all public and private tables
+exports.readAllAdmin = async function() {
+    return await Table.find()
+        .sort({ name: 1 })
+        .lean();
+};
+
+// AM-06: Retrieve a table regardless of its status
+exports.readAdminById = async function(tableId) {
+    return await Table.findById(tableId);
+};
+
+// AM-06: Close a table and remove its players
+exports.closeTable = async function(tableId) {
+    return await Table.findByIdAndUpdate(
+        tableId,
+        {
+            $set: {
+                status: "closed",
+                players: []
+            }
+        },
+        {
+            new: true,
+            runValidators: true
+        }
+    );
+};
+
+// AM-06: Permanently remove a closed table
+exports.removeTable = async function(tableId) {
+    return await Table.findOneAndDelete({
+        _id: tableId,
+        status: "closed"
+    });
+};

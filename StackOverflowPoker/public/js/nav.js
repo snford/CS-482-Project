@@ -195,6 +195,13 @@
     pages: ["admin-chat-logs.html"]
     },
     {
+        id: "adminGamesLink",
+        href: "/admin-games.html",
+        label: "Game Management",
+        icon: "bi-suit-spade-fill",
+        pages: ["admin-games.html"]
+    },
+    {
         id: "adminAdsLink",
         href: "/adminads.html",
         label: "Ads",

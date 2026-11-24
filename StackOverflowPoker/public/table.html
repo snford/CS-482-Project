@@ -449,6 +449,21 @@ if (table.status === "playing") {
       try {
         const response = await fetch("/api/tables/" + encodeURIComponent(tableId), { cache: "no-store" });
         const result = await response.json();
+        // AM-06: Table was closed or removed
+
+        if (response.status === 404) {
+
+            sessionStorage.removeItem("currentTableId");
+
+            alert(
+                "This table is no longer available. " +
+                "You will be returned to the lobby."
+            );
+
+            window.location.replace("/lobby.html");
+
+            return;
+        }
         if (!response.ok) {
           throw new Error(result.msg || "Could not load this table");
         }
