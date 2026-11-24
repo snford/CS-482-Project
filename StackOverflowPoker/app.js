@@ -22,6 +22,7 @@ const adminController = require('./controllers/adminController');
 // AM-01: Player reports and administrator conversations
 const reportsController = require("./controllers/reportsController");
 const chatLogsController = require("./controllers/chatLogsController");
+const adminGamesController = require("./controllers/adminGamesController");
 const app = express();
 
 app.use(morgan('dev'));
@@ -92,7 +93,8 @@ const adminPages = [
     "/admin-dashboard.html",
     "/admin.html",
     "/adminads.html",
-    "/admin-chat-logs.html"
+    "/admin-chat-logs.html",
+    "/admin-games.html"
 ];
 
 // Only administrators can access these pages
@@ -320,6 +322,13 @@ app.get(
     "/api/admin/chat-logs",
     requireAdmin,
     chatLogsController.getLogs
+);
+
+// AM-06: Administrator game management
+app.get(
+    "/api/admin/games",
+    requireAdmin,
+    adminGamesController.getGames
 );
 
 exports.app = app;
